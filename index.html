@@ -48,40 +48,12 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-md navbar-light bg-white" style="height: 100px;">
-        <div class="container-fluid" style="max-width: 1200px;">
-            <a class="navbar-brand" href="index.html">
-                <img src="https://raw.githubusercontent.com/junovhs/sporestore/main/site_logo.svg" height="38" alt="Sporestore Logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="qr.html">QR Code Generator</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="encryption.html">Encryption Tool</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <div class="bg-dark text-white d-flex align-items-center justify-content-center" style="height: 30px;">
-        <p class="fs-base mb-0 text-center">BLACK FRIDAY SPECIAL! SAVE 50% ON ALL EXOTICS</p>
-    </div>
+    <div id="navbar-placeholder"></div>
 
-    <!-- Main Content -->
     <div class="main-content">
         <h1>Welcome to PoolTool Projects</h1>
         <ul class="project-list">
             <li><a href="qr.html">Go to QR Code Generator</a></li>
-            <li><a href="encryption.html">Go to Encryption Tool</a></li>
             <!-- You can add more project links here -->
         </ul>
     </div>
@@ -90,5 +62,13 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Load the navbar -->
+    <script>
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            });
+    </script>
 </body>
 </html>
