@@ -7,11 +7,6 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             margin: 0;
             background-color: #f4f4f9;
         }
@@ -22,6 +17,10 @@
             color: white;
             padding: 10px 0;
             text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
         }
 
         nav a {
@@ -33,6 +32,16 @@
 
         nav a:hover {
             text-decoration: underline;
+        }
+
+        main {
+            margin-top: 60px; /* Adjust based on nav bar height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 60px);
+            text-align: center;
         }
 
         h1 {
@@ -66,11 +75,13 @@
         <a href="encryption.html">Encryption Tool</a>
         <!-- Add more navigation links here if needed -->
     </nav>
-    <h1>Welcome to PoolTool Projects</h1>
-    <ul class="project-list">
-        <li><a href="qr.html">Go to QR Code Generator</a></li>
-        <li><a href="encryption.html">Go to Encryption Tool</a></li>
-        <!-- You can add more project links here -->
-    </ul>
+    <main>
+        <h1>Welcome to PoolTool Projects</h1>
+        <ul class="project-list">
+            <li><a href="qr.html">Go to QR Code Generator</a></li>
+            <li><a href="encryption.html">Go to Encryption Tool</a></li>
+            <!-- You can add more project links here -->
+        </ul>
+    </main>
 </body>
 </html>
