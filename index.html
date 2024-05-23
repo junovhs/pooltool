@@ -4,44 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PoolTool Projects</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f4f4f9;
-        }
-
-        nav {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1000;
-        }
-
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-            font-size: 18px;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        main {
-            margin-top: 60px; /* Adjust based on nav bar height */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: calc(100vh - 60px);
-            text-align: center;
+            padding-top: 130px; /* Adjust based on navbar height */
         }
 
         h1 {
@@ -66,22 +36,59 @@
         .project-list a:hover {
             text-decoration: underline;
         }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 160px); /* Adjust based on navbar and top bar height */
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="qr.html">QR Code Generator</a>
-        <a href="encryption.html">Encryption Tool</a>
-        <!-- Add more navigation links here if needed -->
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md navbar-light bg-white" style="height: 100px;">
+        <div class="container-fluid" style="max-width: 1200px;">
+            <a class="navbar-brand" href="index.html">
+                <img src="https://raw.githubusercontent.com/junovhs/sporestore/main/site_logo.svg" height="38" alt="Sporestore Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="qr.html">QR Code Generator</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="encryption.html">Encryption Tool</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </nav>
-    <main>
+    <div class="bg-dark text-white d-flex align-items-center justify-content-center" style="height: 30px;">
+        <p class="fs-base mb-0 text-center">BLACK FRIDAY SPECIAL! SAVE 50% ON ALL EXOTICS</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
         <h1>Welcome to PoolTool Projects</h1>
         <ul class="project-list">
             <li><a href="qr.html">Go to QR Code Generator</a></li>
             <li><a href="encryption.html">Go to Encryption Tool</a></li>
             <!-- You can add more project links here -->
         </ul>
-    </main>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
