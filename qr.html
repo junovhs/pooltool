@@ -12,6 +12,25 @@
             font-family: Arial, sans-serif;
         }
 
+        nav {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
         #container {
             display: flex;
             align-items: center;
@@ -67,6 +86,11 @@
     </style>
 </head>
 <body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="qr.html">QR Code Generator</a>
+        <!-- Add more navigation links here if needed -->
+    </nav>
     <div id="container">
         <div id="instructions">
             Enter the URL you want to convert to a QR code:
