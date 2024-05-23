@@ -10,19 +10,47 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding-top: 130px; /* Adjust based on navbar height */
+            padding-top: 100px; /* Adjust based on navbar height */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        nav {
+            width: 100%;
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        nav a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
         }
 
         #container {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            margin: 20px;
+            margin-top: 20px;
         }
 
         #instructions {
-            margin-right: 20px;
             font-size: 16px;
             color: #333;
+            margin-bottom: 10px;
         }
 
         #linkInput {
@@ -60,10 +88,12 @@
             margin-top: 20px;
             font-size: 14px;
             color: #555;
+            text-align: center;
         }
 
         #guide ul {
-            padding-left: 20px;
+            padding-left: 0;
+            list-style-type: none;
         }
     </style>
 </head>
@@ -85,16 +115,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="qr.html">QR Code Generator</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="encryption.html">Encryption Tool</a>
-                    </li>
+                    <!-- Add more navigation links here if needed -->
                 </ul>
             </div>
         </div>
     </nav>
-    <div class="bg-dark text-white d-flex align-items-center justify-content-center" style="height: 30px;">
-        <p class="fs-base mb-0 text-center">BLACK FRIDAY SPECIAL! SAVE 50% ON ALL EXOTICS</p>
-    </div>
 
     <!-- Main Content -->
     <div id="container">
@@ -104,18 +129,18 @@
         <form id="qrForm" onsubmit="return false;">
             <input type="text" id="linkInput" placeholder="Enter URL">
         </form>
-    </div>
-    <div id="qrcode">QR code will appear here</div>
-    <button id="downloadBtn">Download SVG</button>
-    <div id="guide">
-        <strong>QR Code Format Guide:</strong>
-        <ul>
-            <li>URL: <code>https://www.example.com</code></li>
-            <li>WiFi: <code>WIFI:T:WPA;S:YourNetworkName;P:YourPassword;;</code></li>
-            <li>SMS: <code>sms:+1234567890?body=Hello</code></li>
-            <li>Email: <code>mailto:example@example.com</code></li>
-            <li>Phone: <code>tel:+1234567890</code></li>
-        </ul>
+        <div id="qrcode">QR code will appear here</div>
+        <button id="downloadBtn">Download SVG</button>
+        <div id="guide">
+            <strong>QR Code Format Guide:</strong>
+            <ul>
+                <li>URL: <code>https://www.example.com</code></li>
+                <li>WiFi: <code>WIFI:T:WPA;S:YourNetworkName;P:YourPassword;;</code></li>
+                <li>SMS: <code>sms:+1234567890?body=Hello</code></li>
+                <li>Email: <code>mailto:example@example.com</code></li>
+                <li>Phone: <code>tel:+1234567890</code></li>
+            </ul>
+        </div>
     </div>
 
     <!-- Include QRCode.js library -->
