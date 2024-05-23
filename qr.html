@@ -4,31 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             font-family: Arial, sans-serif;
-        }
-
-        nav {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-
-        nav a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
-            font-size: 18px;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
+            margin: 0;
+            padding-top: 130px; /* Adjust based on navbar height */
         }
 
         #container {
@@ -86,12 +68,35 @@
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="qr.html">QR Code Generator</a>
-        <a href="encryption.html">Encryption Tool</a>
-        <!-- Add more navigation links here if needed -->
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md navbar-light bg-white" style="height: 100px;">
+        <div class="container-fluid" style="max-width: 1200px;">
+            <a class="navbar-brand" href="index.html">
+                <img src="https://raw.githubusercontent.com/junovhs/sporestore/main/site_logo.svg" height="38" alt="Sporestore Logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="qr.html">QR Code Generator</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="encryption.html">Encryption Tool</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </nav>
+    <div class="bg-dark text-white d-flex align-items-center justify-content-center" style="height: 30px;">
+        <p class="fs-base mb-0 text-center">BLACK FRIDAY SPECIAL! SAVE 50% ON ALL EXOTICS</p>
+    </div>
+
+    <!-- Main Content -->
     <div id="container">
         <div id="instructions">
             Enter the URL you want to convert to a QR code:
@@ -163,5 +168,10 @@
             URL.revokeObjectURL(url);
         }
     </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
