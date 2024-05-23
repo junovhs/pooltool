@@ -12,8 +12,16 @@
             font-family: Arial, sans-serif;
         }
 
-        #qrForm {
+        #container {
+            display: flex;
+            align-items: center;
             margin: 20px;
+        }
+
+        #instructions {
+            margin-right: 20px;
+            font-size: 16px;
+            color: #333;
         }
 
         #linkInput {
@@ -22,47 +30,87 @@
             width: 300px;
         }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-left: 10px;
-        }
-
         #qrcode {
             margin-top: 20px;
+            width: 320px; /* Double the width */
+            height: 320px; /* Double the height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ccc;
+            background-color: #f9f9f9;
+            color: #ccc;
+            font-size: 16px;
+        }
+
+        #qrcode svg {
+            display: block;
+            margin: auto;
+        }
+
+        #downloadBtn {
+            display: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        #guide {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        #guide ul {
+            padding-left: 20px;
         }
     </style>
 </head>
 <body>
-    <form id="qrForm">
-        <input type="text" id="linkInput" placeholder="Enter URL">
-        <button type="submit">Generate QR Code</button>
-    </form>
-    <div id="qrcode"></div>
-    <button id="downloadBtn" style="display:none;">Download SVG</button>
+    <div id="container">
+        <div id="instructions">
+            Enter the URL you want to convert to a QR code:
+        </div>
+        <form id="qrForm" onsubmit="return false;">
+            <input type="text" id="linkInput" placeholder="Enter URL">
+        </form>
+    </div>
+    <div id="qrcode">QR code will appear here</div>
+    <button id="downloadBtn">Download SVG</button>
+    <div id="guide">
+        <strong>QR Code Format Guide:</strong>
+        <ul>
+            <li>URL: <code>https://www.example.com</code></li>
+            <li>WiFi: <code>WIFI:T:WPA;S:YourNetworkName;P:YourPassword;;</code></li>
+            <li>SMS: <code>sms:+1234567890?body=Hello</code></li>
+            <li>Email: <code>mailto:example@example.com</code></li>
+            <li>Phone: <code>tel:+1234567890</code></li>
+        </ul>
+    </div>
 
     <!-- Include QRCode.js library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
     <script>
-        document.getElementById('qrForm').addEventListener('submit', function(event) {
-            event.preventDefault();
+        document.getElementById('linkInput').addEventListener('input', function() {
             var url = document.getElementById('linkInput').value;
             if (url) {
                 generateQRCode(url);
+            } else {
+                document.getElementById('qrcode').innerHTML = "QR code will appear here";
+                document.getElementById('downloadBtn').style.display = "none";
             }
         });
 
         function generateQRCode(url) {
             // Clear previous QR code
             document.getElementById('qrcode').innerHTML = "";
-            document.getElementById('downloadBtn').style.display = "none";
 
             // Generate QR code
             var qrcode = new QRCode({
                 content: url,
                 padding: 4,
-                width: 160,
-                height: 160,
+                width: 320, /* Double the width */
+                height: 320, /* Double the height */
                 color: "#000000",
                 background: "#ffffff",
                 ecl: "H"
