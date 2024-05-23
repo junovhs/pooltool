@@ -3,92 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator</title>
+    <title>PoolTool Projects</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-family: Arial, sans-serif;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
         }
 
-        #qrForm {
-            margin: 20px;
+        h1 {
+            color: #333;
         }
 
-        #linkInput {
-            padding: 10px;
-            font-size: 16px;
-            width: 300px;
+        .project-list {
+            list-style-type: none;
+            padding: 0;
         }
 
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-left: 10px;
+        .project-list li {
+            margin: 10px 0;
         }
 
-        #qrcode {
-            margin-top: 20px;
+        .project-list a {
+            text-decoration: none;
+            color: #0073e6;
+            font-size: 18px;
+        }
+
+        .project-list a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <form id="qrForm">
-        <input type="text" id="linkInput" placeholder="Enter URL">
-        <button type="submit">Generate QR Code</button>
-    </form>
-    <div id="qrcode"></div>
-    <button id="downloadBtn" style="display:none;">Download SVG</button>
-
-    <!-- Include QRCode.js library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
-    <script>
-        document.getElementById('qrForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            var url = document.getElementById('linkInput').value;
-            if (url) {
-                generateQRCode(url);
-            }
-        });
-
-        function generateQRCode(url) {
-            // Clear previous QR code
-            document.getElementById('qrcode').innerHTML = "";
-            document.getElementById('downloadBtn').style.display = "none";
-
-            // Generate QR code
-            var qrcode = new QRCode({
-                content: url,
-                padding: 4,
-                width: 160,
-                height: 160,
-                color: "#000000",
-                background: "#ffffff",
-                ecl: "H"
-            }).svg();
-
-            // Append the SVG QR code
-            document.getElementById('qrcode').innerHTML = qrcode;
-            document.getElementById('downloadBtn').style.display = "block";
-
-            // Attach the download function
-            document.getElementById('downloadBtn').onclick = function() {
-                downloadSVG(qrcode);
-            };
-        }
-
-        function downloadSVG(svg) {
-            var blob = new Blob([svg], { type: "image/svg+xml" });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
-            a.href = url;
-            a.download = "qrcode.svg";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-    </script>
+    <h1>Welcome to PoolTool Projects</h1>
+    <ul class="project-list">
+        <li><a href="qr.html">Go to QR Code Generator</a></li>
+        <!-- You can add more project links here -->
+    </ul>
 </body>
 </html>
