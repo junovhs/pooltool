@@ -10,10 +10,19 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding-top: 130px; /* Adjust based on navbar height */
+            background-color: #f4f4f9;
+        }
+
+        .content {
+            margin-top: 130px; /* Adjust based on navbar height */
+            padding: 20px;
+        }
+
+        .main-content {
             display: flex;
             flex-direction: column;
             align-items: center;
+            text-align: center;
         }
 
         #container {
@@ -27,7 +36,6 @@
             margin-bottom: 20px;
             font-size: 16px;
             color: #333;
-            text-align: center;
         }
 
         #linkInput {
@@ -77,24 +85,29 @@
 <body>
     <div id="navbar-placeholder"></div>
 
-    <div id="container">
-        <div id="instructions">
-            Enter the URL you want to convert to a QR code:
-        </div>
-        <form id="qrForm" onsubmit="return false;">
-            <input type="text" id="linkInput" placeholder="Enter URL">
-        </form>
-        <div id="qrcode">QR code will appear here</div>
-        <button id="downloadBtn">Download SVG</button>
-        <div id="guide">
-            <strong>QR Code Format Guide:</strong>
-            <ul>
-                <li>URL: <code>https://www.example.com</code></li>
-                <li>WiFi: <code>WIFI:T:WPA;S:YourNetworkName;P:YourPassword;;</code></li>
-                <li>SMS: <code>sms:+1234567890?body=Hello</code></li>
-                <li>Email: <code>mailto:example@example.com</code></li>
-                <li>Phone: <code>tel:+1234567890</code></li>
-            </ul>
+    <div class="content">
+        <div class="main-content">
+            <h1>QR Code Generator</h1>
+            <div id="container">
+                <div id="instructions">
+                    Enter the URL you want to convert to a QR code:
+                </div>
+                <form id="qrForm" onsubmit="return false;">
+                    <input type="text" id="linkInput" placeholder="Enter URL">
+                </form>
+                <div id="qrcode">QR code will appear here</div>
+                <button id="downloadBtn">Download SVG</button>
+                <div id="guide">
+                    <strong>QR Code Format Guide:</strong>
+                    <ul>
+                        <li>URL: <code>https://www.example.com</code></li>
+                        <li>WiFi: <code>WIFI:T:WPA;S:YourNetworkName;P:YourPassword;;</code></li>
+                        <li>SMS: <code>sms:+1234567890?body=Hello</code></li>
+                        <li>Email: <code>mailto:example@example.com</code></li>
+                        <li>Phone: <code>tel:+1234567890</code></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
