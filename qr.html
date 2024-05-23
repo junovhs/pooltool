@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #qrForm {
+            margin: 20px;
+        }
+
+        #linkInput {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        #qrcode {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <form id="qrForm">
+        <input type="text" id="linkInput" placeholder="Enter URL">
+        <button type="submit">Generate QR Code</button>
+    </form>
+    <div id="qrcode"></div>
+    <button id="downloadBtn" style="display:none;">Download SVG</button>
+
+    <!-- Include QRCode.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
+    <script>
+        document.getElementById('qrForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var url = document.getElementById('linkInput').value;
+            if (url) {
+                generateQRCode(url);
+            }
+        });
+
+        function generateQRCode(url) {
+            // Clear previous QR code
+            document.getElementById('qrcode').innerHTML = "";
+            document.getElementById('downloadBtn').style.display = "none";
+
+            // Generate QR code
+            var qrcode = new QRCode({
+                content: url,
+                padding: 4,
+                width: 160,
+                height: 160,
+                color: "#000000",
+                background: "#ffffff",
+                ecl: "H"
+            }).svg();
+
+            // Append the SVG QR code
+            document.getElementById('qrcode').innerHTML = qrcode;
+            document.getElementById('downloadBtn').style.display = "block";
+
+            // Attach the download function
+            document.getElementById('downloadBtn').onclick = function() {
+                downloadSVG(qrcode);
+            };
+        }
+
+        function downloadSVG(svg) {
+            var blob = new Blob([svg], { type: "image/svg+xml" });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.href = url;
+            a.download = "qrcode.svg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
