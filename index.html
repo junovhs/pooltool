@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PoolTool Projects</title>
-    <!-- Bootstrap CSS -->
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -12,45 +11,37 @@
             margin: 0;
             background-color: #f4f4f9;
         }
-
         .content {
             margin-top: 130px; /* Adjust based on navbar height */
             padding: 20px;
         }
-
         .main-content {
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
-
         h1 {
             color: #333;
         }
-
         .intro {
             max-width: 800px;
             margin: 20px auto;
             font-size: 18px;
             color: #555;
         }
-
         .project-list {
             list-style-type: none;
             padding: 0;
         }
-
         .project-list li {
             margin: 10px 0;
         }
-
         .project-list a {
             text-decoration: none;
             color: #0073e6;
             font-size: 18px;
         }
-
         .project-list a:hover {
             text-decoration: underline;
         }
@@ -58,29 +49,18 @@
 </head>
 <body>
     <div id="navbar-placeholder"></div>
-
     <div class="content">
         <div class="main-content">
             <h1>Welcome to PoolTool Projects</h1>
             <p class="intro">Welcome to PoolTool Projects! This site offers various tools that you can use for free. Feel free to explore and utilize the tools available, including the QR Code Generator. We aim to provide useful resources to help you with your projects. Enjoy and don't hesitate to reach out if you have any questions or feedback.</p>
             <ul class="project-list">
-                <li><a href="https://junovhs.github.io/pooltool/qr.html">Go to QR Code Generator</a></li>
-                <li><a href="https://junovhs.github.io/pooltool/encryption.html">Go to Text Encryption Tool</a></li>
+                <li><a href="pages/qr.html">Go to QR Code Generator</a></li>
+                <li><a href="pages/encryption.html">Go to Encryption Tool</a></li>
+                <!-- You can add more project links here -->
             </ul>
         </div>
     </div>
-
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Load the navbar -->
-    <script>
-        fetch('https://junovhs.github.io/pooltool/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('navbar-placeholder').innerHTML = data;
-            });
-    </script>
+    <script src="config.js"></script>
+    <script src="components/scripts.js"></script>
 </body>
 </html>
