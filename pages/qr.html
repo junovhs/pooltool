@@ -99,16 +99,15 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
-    <script>
-        document.getElementById('linkInput').addEventListener('input', function() {
-            var url = document.getElementById('linkInput').value;
-            if (url) {
-                generateQRCode(url);
-            } else {
-                document.getElementById('qrcode').innerHTML = "QR code will appear here";
-                document.getElementById('downloadBtn').style.display = "none";
-            }
-        });
+        <script>
+            fetch('https://junovhs.github.io/pooltool/components/navbar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('navbar-placeholder').innerHTML = data;
+                    loadNavbar(); // Ensure this function is called to populate the nav links
+                });
+        </script>
+
 
         function generateQRCode(url) {
             // Clear previous QR code
