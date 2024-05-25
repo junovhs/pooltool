@@ -1,6 +1,7 @@
 const pages = [
     { name: "Home", path: "index.html", enabled: true },
     { name: "QR Code Generator", path: "pages/qr.html", enabled: true },
+    { name: "Text Encryption Tool", path: "pages/encryption.html", enabled: true },
     // Add more pages as needed
 ];
 
