@@ -150,11 +150,9 @@
     <script src="../config.js"></script>
     <script src="../components/scripts.js"></script>
     <script>
-        console.log('Fetching navbar');
         fetch('https://junovhs.github.io/pooltool/components/navbar.html')
             .then(response => response.text())
             .then(data => {
-                console.log('Navbar fetched');
                 document.getElementById('navbar-placeholder').innerHTML = data;
                 loadNavbar(); // Ensure this function is called to populate the nav links
             });
