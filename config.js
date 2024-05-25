@@ -1,7 +1,7 @@
 const pages = [
     { name: "Home", path: "index.html", enabled: true },
     { name: "QR Code Generator", path: "pages/qr.html", enabled: true },
-    { name: "Encryption Tool", path: "pages/encryption.html", enabled: false }
+    // Add more pages as needed
 ];
 
 function loadNavbar() {
@@ -14,7 +14,7 @@ function loadNavbar() {
                 if (page.enabled) {
                     const li = document.createElement('li');
                     li.className = 'nav-item';
-                    li.innerHTML = `<a class="nav-link" href="${page.path}">${page.name}</a>`;
+                    li.innerHTML = `<a class="nav-link" href="https://junovhs.github.io/pooltool/${page.path}">${page.name}</a>`;
                     navLinks.appendChild(li);
                 }
             });
