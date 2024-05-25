@@ -9,57 +9,74 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            background-color: #f4f4f9;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
         .content {
-            margin-top: 130px; /* Adjust based on navbar height */
-            padding: 20px;
-        }
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
         }
-        h1 {
-            color: #333;
+        .cube {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate 10s infinite linear;
         }
-        .intro {
-            max-width: 800px;
-            margin: 20px auto;
-            font-size: 18px;
-            color: #555;
+        .cube div {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ccc;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: #000;
         }
-        .project-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        .project-list li {
-            margin: 10px 0;
-        }
-        .project-list a {
-            text-decoration: none;
-            color: #0073e6;
-            font-size: 18px;
-        }
-        .project-list a:hover {
-            text-decoration: underline;
+        .cube .front  { transform: translateZ(100px); }
+        .cube .back   { transform: rotateY(180deg) translateZ(100px); }
+        .cube .left   { transform: rotateY(-90deg) translateZ(100px); }
+        .cube .right  { transform: rotateY(90deg) translateZ(100px); }
+        .cube .top    { transform: rotateX(90deg) translateZ(100px); }
+        .cube .bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+        @keyframes rotate {
+            from { transform: rotateX(0deg) rotateY(0deg); }
+            to { transform: rotateX(360deg) rotateY(360deg); }
         }
     </style>
 </head>
 <body>
     <div id="navbar-placeholder"></div>
     <div class="content">
-        <div class="main-content">
-            <h1>Welcome to PoolTool Projects</h1>
-            <p class="intro">Welcome to PoolTool Projects! This site offers various tools that you can use for free. Feel free to explore and utilize the tools available, including the QR Code Generator. We aim to provide useful resources to help you with your projects. Enjoy and don't hesitate to reach out if you have any questions or feedback.</p>
-            <ul class="project-list">
-                <li><a href="https://junovhs.github.io/pooltool/pages/qr.html">Go to QR Code Generator</a></li>
-                <!-- Add more project links here -->
-            </ul>
+        <div class="cube">
+            <div class="front">Front</div>
+            <div class="back">Back</div>
+            <div class="left">Left</div>
+            <div class="right">Right</div>
+            <div class="top">Top</div>
+            <div class="bottom">Bottom</div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="config.js"></script>
     <script src="components/scripts.js"></script>
+    <script>
+        fetch('https://junovhs.github.io/pooltool/components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+                loadNavbar(); // Ensure this function is called to populate the nav links
+            });
+    </script>
 </body>
 </html>
