@@ -5,7 +5,7 @@ const pages = [
 ];
 
 function loadNavbar() {
-    fetch('components/navbar.html')
+    fetch('https://junovhs.github.io/pooltool/components/navbar.html')
         .then(response => response.text())
         .then(data => {
             document.getElementById('navbar-placeholder').innerHTML = data;
