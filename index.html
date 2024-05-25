@@ -14,6 +14,9 @@
             flex-direction: column;
             align-items: center;
         }
+        .navbar-placeholder {
+            width: 100%;
+        }
         .content {
             text-align: center;
             margin-top: 50px;
@@ -23,7 +26,7 @@
             height: 300px;
             position: relative;
             perspective: 1000px;
-            margin: 0 auto;
+            margin: 0 auto 50px; /* Added bottom margin to create space below the cube */
         }
         .cube {
             width: 100%;
@@ -59,7 +62,7 @@
     </style>
 </head>
 <body>
-    <div id="navbar-placeholder"></div>
+    <div id="navbar-placeholder" class="navbar-placeholder"></div>
     <div class="content">
         <div class="cube-container">
             <div class="cube">
