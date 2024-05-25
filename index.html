@@ -19,67 +19,51 @@
         }
         .content {
             text-align: center;
-            margin-top: 50px;
+            margin-top: 100px;
         }
-        .cube-container {
-            width: 300px;
-            height: 300px;
-            position: relative;
-            perspective: 1000px;
-            margin: 0 auto 50px; /* Added bottom margin to create space below the cube */
-        }
-        .cube {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            transform-style: preserve-3d;
-            animation: rotate 10s infinite linear;
-        }
-        .cube div {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
+        .intro-container {
+            background-color: #ffffff;
             border: 1px solid #ccc;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            color: #000;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
         }
-        .cube .front  { transform: translateZ(150px); }
-        .cube .back   { transform: rotateY(180deg) translateZ(150px); }
-        .cube .left   { transform: rotateY(-90deg) translateZ(150px); }
-        .cube .right  { transform: rotateY(90deg) translateZ(150px); }
-        .cube .top    { transform: rotateX(90deg) translateZ(150px); }
-        .cube .bottom { transform: rotateX(-90deg) translateZ(150px); }
-
-        @keyframes rotate {
-            from { transform: rotateX(0deg) rotateY(0deg); }
-            to { transform: rotateX(360deg) rotateY(360deg); }
+        .intro-container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .intro-container p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .intro-container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .intro-container ul li {
+            margin-bottom: 10px;
+        }
+        .intro-container ul li a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .intro-container ul li a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div id="navbar-placeholder" class="navbar-placeholder"></div>
     <div class="content">
-        <div class="cube-container">
-            <div class="cube">
-                <div class="front">Front</div>
-                <div class="back">Back</div>
-                <div class="left">Left</div>
-                <div class="right">Right</div>
-                <div class="top">Top</div>
-                <div class="bottom">Bottom</div>
-            </div>
+        <div class="intro-container">
+            <h1>Welcome to PoolTool Projects</h1>
+            <p>This site offers various tools that you can use for free. Feel free to explore and utilize the tools available, including the QR Code Generator. We aim to provide useful resources to help you with your projects. Enjoy and don't hesitate to reach out if you have any questions or feedback.</p>
+            <ul class="project-list">
+                <li><a href="https://junovhs.github.io/pooltool/pages/qr.html">Go to QR Code Generator</a></li>
+                <!-- Add more project links here -->
+            </ul>
         </div>
-        <h1>Welcome to PoolTool Projects</h1>
-        <p class="intro">Welcome to PoolTool Projects! This site offers various tools that you can use for free. Feel free to explore and utilize the tools available, including the QR Code Generator. We aim to provide useful resources to help you with your projects. Enjoy and don't hesitate to reach out if you have any questions or feedback.</p>
-        <ul class="project-list">
-            <li><a href="https://junovhs.github.io/pooltool/pages/qr.html">Go to QR Code Generator</a></li>
-            <!-- Add more project links here -->
-        </ul>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
