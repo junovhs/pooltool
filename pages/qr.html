@@ -149,5 +149,13 @@
     </script>
     <script src="../config.js"></script>
     <script src="../components/scripts.js"></script>
+    <script>
+        fetch('../components/navbar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+                loadNavbar(); // Call the function to load the navbar links
+            });
+    </script>
 </body>
 </html>
