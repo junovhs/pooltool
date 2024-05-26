@@ -10,36 +10,30 @@
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .navbar-placeholder {
+            width: 100%;
         }
         .content {
-            margin-top: 130px; /* Adjust based on navbar height */
-            padding: 20px;
-        }
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             text-align: center;
+            margin-top: 50px;
         }
-        #container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 20px;
-        }
-        #instructions {
+        .btn-group {
             margin-bottom: 20px;
-            font-size: 16px;
-            color: #333;
         }
-        #linkInput {
-            padding: 10px;
-            font-size: 16px;
-            width: 300px;
-            margin-bottom: 20px;
+        .form-group {
+            display: none;
+        }
+        .form-group.active {
+            display: block;
+        }
+        .qr-container {
+            margin-top: 20px;
         }
         #qrcode {
-            margin-top: 20px;
             width: 320px;
             height: 320px;
             display: flex;
@@ -55,68 +49,191 @@
             display: block;
             margin: auto;
         }
-        #downloadBtn {
-            display: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        #guide {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #555;
-        }
-        #guide ul {
-            padding-left: 20px;
-        }
     </style>
 </head>
 <body>
-    <div id="navbar-placeholder"></div>
+    <div id="navbar-placeholder" class="navbar-placeholder"></div>
     <div class="content">
-        <div class="main-content">
-            <h1>QR Code Generator</h1>
-            <div id="container">
-                <div id="instructions">
-                    Enter the URL you want to convert to a QR code:
-                </div>
-                <form id="qrForm" onsubmit="return false;">
-                    <input type="text" id="linkInput" placeholder="Enter URL">
-                </form>
-                <div id="qrcode">QR code will appear here</div>
-                <button id="downloadBtn">Download SVG</button>
-                <div id="guide">
-                    <strong>QR Code Format Guide:</strong>
-                    <ul>
-                        <li>URL: <code>https://www.example.com</code></li>
-                        <li>WiFi: <code>WIFI:T:WPA;S:YourNetworkName;P:YourPassword;;</code></li>
-                        <li>SMS: <code>sms:+1234567890?body=Hello</code></li>
-                        <li>Email: <code>mailto:example@example.com</code></li>
-                        <li>Phone: <code>tel:+1234567890</code></li>
-                    </ul>
-                </div>
-            </div>
+        <h1>QR Code Generator</h1>
+        <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('url')">URL</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('text')">TEXT</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('email')">EMAIL</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('phone')">PHONE</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('sms')">SMS</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('vcard')">VCARD</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('mecard')">MECARD</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('location')">LOCATION</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('facebook')">FACEBOOK</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('twitter')">TWITTER</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('youtube')">YOUTUBE</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('wifi')">WIFI</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('event')">EVENT</button>
+            <button type="button" class="btn btn-outline-primary" onclick="showForm('bitcoin')">BITCOIN</button>
         </div>
+
+        <!-- Form Groups for Each Type -->
+        <div class="form-group" id="url">
+            <input type="text" class="form-control" id="urlInput" placeholder="Enter URL">
+        </div>
+        <div class="form-group" id="text">
+            <input type="text" class="form-control" id="textInput" placeholder="Enter text">
+        </div>
+        <div class="form-group" id="email">
+            <input type="email" class="form-control" id="emailInput" placeholder="Enter email">
+        </div>
+        <div class="form-group" id="phone">
+            <input type="tel" class="form-control" id="phoneInput" placeholder="Enter phone number">
+        </div>
+        <div class="form-group" id="sms">
+            <input type="tel" class="form-control" id="smsNumberInput" placeholder="Enter phone number">
+            <input type="text" class="form-control mt-2" id="smsBodyInput" placeholder="Enter message">
+        </div>
+        <div class="form-group" id="vcard">
+            <input type="text" class="form-control" id="vcardNameInput" placeholder="Enter full name">
+            <input type="tel" class="form-control mt-2" id="vcardPhoneInput" placeholder="Enter phone number">
+            <input type="email" class="form-control mt-2" id="vcardEmailInput" placeholder="Enter email">
+            <input type="text" class="form-control mt-2" id="vcardOrganizationInput" placeholder="Enter organization">
+            <input type="text" class="form-control mt-2" id="vcardTitleInput" placeholder="Enter title">
+            <input type="text" class="form-control mt-2" id="vcardAddressInput" placeholder="Enter address">
+            <input type="text" class="form-control mt-2" id="vcardWebsiteInput" placeholder="Enter website">
+        </div>
+        <div class="form-group" id="mecard">
+            <input type="text" class="form-control" id="mecardNameInput" placeholder="Enter name">
+            <input type="tel" class="form-control mt-2" id="mecardPhoneInput" placeholder="Enter phone number">
+            <input type="email" class="form-control mt-2" id="mecardEmailInput" placeholder="Enter email">
+        </div>
+        <div class="form-group" id="location">
+            <input type="text" class="form-control" id="locationLatInput" placeholder="Enter latitude">
+            <input type="text" class="form-control mt-2" id="locationLngInput" placeholder="Enter longitude">
+        </div>
+        <div class="form-group" id="facebook">
+            <input type="text" class="form-control" id="facebookInput" placeholder="Enter Facebook URL">
+        </div>
+        <div class="form-group" id="twitter">
+            <input type="text" class="form-control" id="twitterInput" placeholder="Enter Twitter URL">
+        </div>
+        <div class="form-group" id="youtube">
+            <input type="text" class="form-control" id="youtubeInput" placeholder="Enter YouTube URL">
+        </div>
+        <div class="form-group" id="wifi">
+            <input type="text" class="form-control" id="wifiSSIDInput" placeholder="Enter SSID">
+            <input type="text" class="form-control mt-2" id="wifiPasswordInput" placeholder="Enter password">
+            <select class="form-control mt-2" id="wifiEncryptionInput">
+                <option value="WPA">WPA</option>
+                <option value="WEP">WEP</option>
+                <option value="">None</option>
+            </select>
+        </div>
+        <div class="form-group" id="event">
+            <input type="text" class="form-control" id="eventNameInput" placeholder="Enter event name">
+            <input type="text" class="form-control mt-2" id="eventLocationInput" placeholder="Enter event location">
+            <input type="datetime-local" class="form-control mt-2" id="eventStartInput" placeholder="Enter event start">
+            <input type="datetime-local" class="form-control mt-2" id="eventEndInput" placeholder="Enter event end">
+        </div>
+        <div class="form-group" id="bitcoin">
+            <input type="text" class="form-control" id="bitcoinAddressInput" placeholder="Enter Bitcoin address">
+            <input type="text" class="form-control mt-2" id="bitcoinAmountInput" placeholder="Enter amount">
+            <input type="text" class="form-control mt-2" id="bitcoinLabelInput" placeholder="Enter label">
+        </div>
+
+        <div class="qr-container">
+            <div id="qrcode">QR code will appear here</div>
+        </div>
+        <button class="btn btn-primary mt-3" onclick="downloadSVG()">Download SVG</button>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/qrcode-svg@1.1.0/dist/qrcode.min.js"></script>
     <script>
-        document.getElementById('linkInput').addEventListener('input', function() {
-            var url = document.getElementById('linkInput').value;
-            if (url) {
-                generateQRCode(url);
-            } else {
-                document.getElementById('qrcode').innerHTML = "QR code will appear here";
-                document.getElementById('downloadBtn').style.display = "none";
-            }
-        });
+        function showForm(type) {
+            const formGroups = document.querySelectorAll('.form-group');
+            formGroups.forEach(group => {
+                group.classList.remove('active');
+            });
+            document.getElementById(type).classList.add('active');
+            generateQRCode(); // Generate QR code immediately when form is shown
+        }
 
-        function generateQRCode(url) {
+        function generateQRCode() {
+            let content = "";
+            const activeForm = document.querySelector('.form-group.active');
+            if (!activeForm) return;
+
+            switch (activeForm.id) {
+                case 'url':
+                    content = document.getElementById('urlInput').value;
+                    break;
+                case 'text':
+                    content = document.getElementById('textInput').value;
+                    break;
+                case 'email':
+                    content = `mailto:${document.getElementById('emailInput').value}`;
+                    break;
+                case 'phone':
+                    content = `tel:${document.getElementById('phoneInput').value}`;
+                    break;
+                case 'sms':
+                    const smsNumber = document.getElementById('smsNumberInput').value;
+                    const smsBody = document.getElementById('smsBodyInput').value;
+                    content = `SMSTO:${smsNumber}:${smsBody}`;
+                    break;
+                case 'vcard':
+                    const vcardName = document.getElementById('vcardNameInput').value;
+                    const vcardPhone = document.getElementById('vcardPhoneInput').value;
+                    const vcardEmail = document.getElementById('vcardEmailInput').value;
+                    const vcardOrganization = document.getElementById('vcardOrganizationInput').value;
+                    const vcardTitle = document.getElementById('vcardTitleInput').value;
+                    const vcardAddress = document.getElementById('vcardAddressInput').value;
+                    const vcardWebsite = document.getElementById('vcardWebsiteInput').value;
+                    content = `BEGIN:VCARD\nVERSION:3.0\nN:${vcardName}\nFN:${vcardName}\nORG:${vcardOrganization}\nTITLE:${vcardTitle}\nTEL:${vcardPhone}\nEMAIL:${vcardEmail}\nADR:${vcardAddress}\nURL:${vcardWebsite}\nEND:VCARD`;
+                    break;
+                case 'mecard':
+                    const mecardName = document.getElementById('mecardNameInput').value;
+                    const mecardPhone = document.getElementById('mecardPhoneInput').value;
+                    const mecardEmail = document.getElementById('mecardEmailInput').value;
+                    content = `MECARD:N:${mecardName};TEL:${mecardPhone};EMAIL:${mecardEmail};;`;
+                    break;
+                case 'location':
+                    const locationLat = document.getElementById('locationLatInput').value;
+                    const locationLng = document.getElementById('locationLngInput').value;
+                    content = `geo:${locationLat},${locationLng}`;
+                    break;
+                case 'facebook':
+                    content = document.getElementById('facebookInput').value;
+                    break;
+                case 'twitter':
+                    content = document.getElementById('twitterInput').value;
+                    break;
+                case 'youtube':
+                    content = document.getElementById('youtubeInput').value;
+                    break;
+                case 'wifi':
+                    const wifiSSID = document.getElementById('wifiSSIDInput').value;
+                    const wifiPassword = document.getElementById('wifiPasswordInput').value;
+                    const wifiEncryption = document.getElementById('wifiEncryptionInput').value;
+                    content = `WIFI:T:${wifiEncryption};S:${wifiSSID};P:${wifiPassword};;`;
+                    break;
+                case 'event':
+                    const eventName = document.getElementById('eventNameInput').value;
+                    const eventLocation = document.getElementById('eventLocationInput').value;
+                    const eventStart = document.getElementById('eventStartInput').value.replace(/-/g, "").replace(/:/g, "").replace(/\./g, "");
+                    const eventEnd = document.getElementById('eventEndInput').value.replace(/-/g, "").replace(/:/g, "").replace(/\./g, "");
+                    content = `BEGIN:VEVENT\nSUMMARY:${eventName}\nLOCATION:${eventLocation}\nDTSTART:${eventStart}\nDTEND:${eventEnd}\nEND:VEVENT`;
+                    break;
+                case 'bitcoin':
+                    const bitcoinAddress = document.getElementById('bitcoinAddressInput').value;
+                    const bitcoinAmount = document.getElementById('bitcoinAmountInput').value;
+                    const bitcoinLabel = document.getElementById('bitcoinLabelInput').value;
+                    content = `bitcoin:${bitcoinAddress}?amount=${bitcoinAmount}&label=${bitcoinLabel}`;
+                    break;
+            }
+
             // Clear previous QR code
             document.getElementById('qrcode').innerHTML = "";
 
             // Generate QR code
-            var qrcode = new QRCode({
-                content: url,
+            const qrcode = new QRCode({
+                content: content,
                 padding: 4,
                 width: 320,
                 height: 320,
@@ -127,25 +244,28 @@
 
             // Append the SVG QR code
             document.getElementById('qrcode').innerHTML = qrcode;
-            document.getElementById('downloadBtn').style.display = "block";
-
-            // Attach the download function
-            document.getElementById('downloadBtn').onclick = function() {
-                downloadSVG(qrcode);
-            };
         }
 
-        function downloadSVG(svg) {
-            var blob = new Blob([svg], { type: "image/svg+xml" });
-            var url = URL.createObjectURL(blob);
-            var a = document.createElement("a");
+        function downloadSVG() {
+            const svgElement = document.querySelector('#qrcode svg');
+            if (!svgElement) return;
+
+            const serializer = new XMLSerializer();
+            const source = serializer.serializeToString(svgElement);
+            const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
             a.href = url;
-            a.download = "qrcode.svg";
+            a.download = 'qrcode.svg';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('input', generateQRCode);
+        });
     </script>
     <script src="../config.js"></script>
     <script src="../components/scripts.js"></script>
