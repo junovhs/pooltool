@@ -49,6 +49,9 @@
             display: block;
             margin: auto;
         }
+        .form-row {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -90,13 +93,54 @@
             <input type="text" class="form-control mt-2" id="smsBodyInput" placeholder="Enter message">
         </div>
         <div class="form-group" id="vcard">
-            <input type="text" class="form-control" id="vcardNameInput" placeholder="Enter full name">
-            <input type="tel" class="form-control mt-2" id="vcardPhoneInput" placeholder="Enter phone number">
-            <input type="email" class="form-control mt-2" id="vcardEmailInput" placeholder="Enter email">
-            <input type="text" class="form-control mt-2" id="vcardOrganizationInput" placeholder="Enter organization">
-            <input type="text" class="form-control mt-2" id="vcardTitleInput" placeholder="Enter title">
-            <input type="text" class="form-control mt-2" id="vcardAddressInput" placeholder="Enter address">
-            <input type="text" class="form-control mt-2" id="vcardWebsiteInput" placeholder="Enter website">
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardFirstNameInput" placeholder="Firstname">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardLastNameInput" placeholder="Lastname">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardOrganizationInput" placeholder="Organization">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardTitleInput" placeholder="Position (Work)">
+            </div>
+            <div class="form-row">
+                <input type="tel" class="form-control" id="vcardPhoneWorkInput" placeholder="Phone (Work)">
+            </div>
+            <div class="form-row">
+                <input type="tel" class="form-control" id="vcardPhonePrivateInput" placeholder="Phone (Private)">
+            </div>
+            <div class="form-row">
+                <input type="tel" class="form-control" id="vcardPhoneMobileInput" placeholder="Phone (Mobile)">
+            </div>
+            <div class="form-row">
+                <input type="tel" class="form-control" id="vcardFaxWorkInput" placeholder="Fax (Work)">
+            </div>
+            <div class="form-row">
+                <input type="tel" class="form-control" id="vcardFaxPrivateInput" placeholder="Fax (Private)">
+            </div>
+            <div class="form-row">
+                <input type="email" class="form-control" id="vcardEmailInput" placeholder="Email">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardWebsiteInput" placeholder="Website">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardStreetInput" placeholder="Street">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardZipcodeInput" placeholder="Zipcode">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardCityInput" placeholder="City">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardStateInput" placeholder="State">
+            </div>
+            <div class="form-row">
+                <input type="text" class="form-control" id="vcardCountryInput" placeholder="Country">
+            </div>
         </div>
         <div class="form-group" id="mecard">
             <input type="text" class="form-control" id="mecardNameInput" placeholder="Enter name">
@@ -178,14 +222,23 @@
                     content = `SMSTO:${smsNumber}:${smsBody}`;
                     break;
                 case 'vcard':
-                    const vcardName = document.getElementById('vcardNameInput').value;
-                    const vcardPhone = document.getElementById('vcardPhoneInput').value;
-                    const vcardEmail = document.getElementById('vcardEmailInput').value;
+                    const vcardFirstName = document.getElementById('vcardFirstNameInput').value;
+                    const vcardLastName = document.getElementById('vcardLastNameInput').value;
                     const vcardOrganization = document.getElementById('vcardOrganizationInput').value;
                     const vcardTitle = document.getElementById('vcardTitleInput').value;
-                    const vcardAddress = document.getElementById('vcardAddressInput').value;
+                    const vcardPhoneWork = document.getElementById('vcardPhoneWorkInput').value;
+                    const vcardPhonePrivate = document.getElementById('vcardPhonePrivateInput').value;
+                    const vcardPhoneMobile = document.getElementById('vcardPhoneMobileInput').value;
+                    const vcardFaxWork = document.getElementById('vcardFaxWorkInput').value;
+                    const vcardFaxPrivate = document.getElementById('vcardFaxPrivateInput').value;
+                    const vcardEmail = document.getElementById('vcardEmailInput').value;
                     const vcardWebsite = document.getElementById('vcardWebsiteInput').value;
-                    content = `BEGIN:VCARD\nVERSION:3.0\nN:${vcardName}\nFN:${vcardName}\nORG:${vcardOrganization}\nTITLE:${vcardTitle}\nTEL:${vcardPhone}\nEMAIL:${vcardEmail}\nADR:${vcardAddress}\nURL:${vcardWebsite}\nEND:VCARD`;
+                    const vcardStreet = document.getElementById('vcardStreetInput').value;
+                    const vcardZipcode = document.getElementById('vcardZipcodeInput').value;
+                    const vcardCity = document.getElementById('vcardCityInput').value;
+                    const vcardState = document.getElementById('vcardStateInput').value;
+                    const vcardCountry = document.getElementById('vcardCountryInput').value;
+                    content = `BEGIN:VCARD\nVERSION:3.0\nN:${vcardLastName};${vcardFirstName}\nFN:${vcardFirstName} ${vcardLastName}\nORG:${vcardOrganization}\nTITLE:${vcardTitle}\nTEL;WORK:${vcardPhoneWork}\nTEL;HOME:${vcardPhonePrivate}\nTEL;CELL:${vcardPhoneMobile}\nTEL;FAX;WORK:${vcardFaxWork}\nTEL;FAX;HOME:${vcardFaxPrivate}\nEMAIL:${vcardEmail}\nURL:${vcardWebsite}\nADR;WORK:;;${vcardStreet};${vcardCity};${vcardState};${vcardZipcode};${vcardCountry}\nEND:VCARD`;
                     break;
                 case 'mecard':
                     const mecardName = document.getElementById('mecardNameInput').value;
