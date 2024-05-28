@@ -50,8 +50,8 @@ peerConnection.ondatachannel = (event) => {
     const receiveChannel = event.channel;
     receiveChannel.onmessage = (event) => {
         const emailData = JSON.parse(event.data);
-        // Process the received email data
-        console.log(emailData);
+        // Store the received email data in IndexedDB
+        storeEmail(emailData);
     };
 };
 
@@ -97,7 +97,7 @@ dbRequest.onsuccess = (event) => {
         const tx = db.transaction('emails', 'readwrite');
         const store = tx.objectStore('emails');
         store.add(email);
-        tx.oncomplete = () => console.log('Email stored');
+        tx.oncomplete = () => displayEmails(); // Refresh the email list
     }
 
     function displayEmails() {
