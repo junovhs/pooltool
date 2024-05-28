@@ -34,6 +34,20 @@
             font-size: 16px;
             margin-bottom: 20px;
         }
+        .container ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .container ul li {
+            margin-bottom: 10px;
+        }
+        .container ul li a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .container ul li a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -44,6 +58,11 @@
             <button id="generate-email" class="btn btn-primary">Generate Temporary Email</button>
             <p id="email-display"></p>
             <button id="copy-email" class="btn btn-secondary">Copy</button>
+            <br><br>
+            <button id="create-offer" class="btn btn-primary">Create Offer</button>
+            <p id="offer-key"></p>
+            <input type="text" id="answer-key-input" class="form-control" placeholder="Enter Answer Key">
+            <button id="handle-answer" class="btn btn-primary">Handle Answer</button>
             <ul id="email-list"></ul>
         </div>
     </div>
@@ -61,7 +80,5 @@
                 loadNavbar(); // Ensure this function is called to populate the nav links
             });
     </script>
-<button id="create-offer" class="btn btn-primary">Create Offer</button>
-<p id="offer-key"></p>
 </body>
 </html>
