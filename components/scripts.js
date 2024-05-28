@@ -21,6 +21,8 @@ document.getElementById('copy-email').addEventListener('click', () => {
         console.error('Could not copy text: ', err);
     });
 });
+<input type="text" id="answer-key-input" class="form-control" placeholder="Enter Answer Key">
+<button id="handle-answer" class="btn btn-primary">Handle Answer</button>
 
 // WebRTC signaling using Hastebin
 async function exchangeSignalingData(data) {
