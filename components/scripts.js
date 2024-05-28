@@ -7,6 +7,10 @@ function generateUniqueEmail() {
     const email = `${randomString}@tempmail.com`;
     document.getElementById('email-display').innerText = email;
 }
+document.getElementById('create-offer').addEventListener('click', async () => {
+    const offerKey = await createOffer();
+    document.getElementById('offer-key').innerText = `Offer Key: ${offerKey}`;
+});
 
 // Copy the generated email address to the clipboard
 document.getElementById('copy-email').addEventListener('click', () => {
