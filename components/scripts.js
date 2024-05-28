@@ -34,6 +34,11 @@ async function exchangeSignalingData(data) {
     const json = await response.json();
     return json.key; // Unique ID for the data
 }
+document.getElementById('handle-answer').addEventListener('click', async () => {
+    const answerKey = document.getElementById('answer-key-input').value;
+    await handleAnswer(answerKey);
+    alert('WebRTC connection established.');
+});
 
 async function retrieveSignalingData(key) {
     const response = await fetch(`https://hastebin.com/raw/${key}`);
