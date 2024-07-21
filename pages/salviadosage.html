@@ -1,0 +1,799 @@
+<html><head><base href="https://salviadosage.com/"><title>S.A.L.V.I.A. Experience Level Calculator</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #34495e;
+        --background-color: #f5f5f5;
+        --text-color: #333;
+        --highlight-color: #3498db;
+        --warning-color: #ff4136;
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        line-height: 1.6;
+        color: var(--text-color);
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: var(--background-color);
+    }
+
+    h1 {
+        color: var(--primary-color);
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 30px;
+        font-weight: 700;
+    }
+
+    .weight-input-container {
+        position: relative;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .weight-input {
+        width: 100px;
+        padding: 10px 15px;
+        font-size: 18px;
+        border: 2px solid var(--primary-color);
+        border-radius: 5px;
+        background-color: white;
+        color: var(--text-color);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .weight-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.3);
+    }
+
+    .weight-controls {
+        display: flex;
+        flex-direction: column;
+        margin-left: 10px;
+    }
+
+    .weight-control {
+        background: var(--primary-color);
+        border: none;
+        color: white;
+        width: 30px;
+        height: 30px;
+        border-radius: 5px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 2px 0;
+    }
+
+    .weight-control:hover {
+        background: var(--secondary-color);
+    }
+
+    .weight-presets {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -25px;
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .weight-preset {
+        font-size: 12px;
+        color: var(--text-color);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        padding: 0 5px;
+        opacity: 0.5;
+    }
+
+    .weight-preset:hover {
+        opacity: 1;
+        font-size: 14px;
+        color: var(--primary-color);
+    }
+
+    .salvia-levels {
+        display: flex;
+        justify-content: center;
+        height: 80px;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: visible;
+    }
+
+    .level {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 24px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: visible;
+        transform: skew(-20deg);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        border: 2px solid transparent;
+    }
+
+    .level:first-child, .level:last-child {
+        overflow: visible;
+    }
+
+    .level:hover {
+        flex: 1.2;
+        font-size: 28px;
+        z-index: 10;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        border: 2px solid white;
+    }
+
+    .level span {
+        transform: skew(20deg);
+    }
+
+    .level-details-container {
+        width: 100%;
+        overflow: visible;
+        transition: height 0.4s ease;
+        margin-bottom: 30px;
+        padding: 20px 0;
+    }
+
+    .level-details {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-color);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.1);
+        font-size: 16px;
+        text-align: left;
+        position: relative;
+        overflow: visible;
+        backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+    }
+
+    .level-details:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 15px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .level[data-level="S"] { background: linear-gradient(135deg, #4CAF50, #45a049); }
+    .level[data-level="A"] { background: linear-gradient(135deg, #8BC34A, #7cb342); }
+    .level[data-level="L"] { background: linear-gradient(135deg, #CDDC39, #c0ca33); }
+    .level[data-level="V"] { background: linear-gradient(135deg, #FFEB3B, #fdd835); }
+    .level[data-level="I"] { background: linear-gradient(135deg, #FFC107, #ffb300); }
+    .level[data-level="A2"] { background: linear-gradient(135deg, #FF5722, #f4511e); }
+
+    #result {
+        font-weight: bold;
+        margin: 20px 0;
+        padding: 20px;
+        background-color: white;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.5s ease;
+        overflow: visible;
+        position: relative;
+    }
+
+    #result.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .dosage {
+        font-size: 24px;
+        color: var(--highlight-color);
+        margin: 10px 0;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .method {
+        font-style: italic;
+        color: var(--secondary-color);
+    }
+
+    .disclaimer {
+        font-size: 0.9em;
+        color: #555;
+        margin-top: 30px;
+        padding: 15px;
+        background-color: #e8e8e8;
+        border-left: 5px solid #ccc;
+        border-radius: 5px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: visible;
+    }
+
+    .effect-icon {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        margin-right: 15px;
+        vertical-align: middle;
+        font-size: 30px;
+        text-align: center;
+        line-height: 40px;
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        border-radius: 50%;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+
+    .effect-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .effect-list li {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .effect-list li:hover {
+        transform: translateX(5px);
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+
+    .effect-list li:hover .effect-icon {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 5px 10px rgba(0,0,0,0.25), 0 5px 5px rgba(0,0,0,0.22);
+    }
+
+    .effect-text {
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        color: var(--primary-color);
+        transition: all 0.3s ease;
+    }
+
+    .effect-list li:hover .effect-text {
+        color: var(--highlight-color);
+    }
+
+    .toggle-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .toggle-switch {
+        position: relative;
+        width: 180px;
+        height: 50px;
+        border-radius: 25px;
+        background-color: #e0e0e0;
+        overflow: hidden;
+        box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+    }
+
+    .toggle-switch input {
+        display: none;
+    }
+
+    .slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transition: 0.4s;
+    }
+
+    .slider:before {
+        content: "";
+        position: absolute;
+        width: 90px;
+        height: 46px;
+        left: 2px;
+        bottom: 2px;
+        border-radius: 23px;
+        background-color: white;
+        transition: 0.4s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(86px);
+    }
+
+    .toggle-labels {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+        box-sizing: border-box;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .toggle-label {
+        z-index: 1;
+    }
+
+    .method-description {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        font-size: 14px;
+        text-align: center;
+        max-width: 600px;
+    }
+
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        background-color: var(--highlight-color);
+        border-radius: 50%;
+        opacity: 0.5;
+        animation: float 3s infinite ease-in-out;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .level-details[data-level="A2"] {
+        border: 4px solid var(--warning-color);
+        background-color: rgba(255, 65, 54, 0.1);
+        animation: warning-pulse 1s infinite alternate;
+    }
+
+    @keyframes warning-pulse {
+        from { box-shadow: 0 0 5px var(--warning-color); }
+        to { box-shadow: 0 0 20px var(--warning-color), 0 0 30px var(--warning-color); }
+    }
+
+    .extreme-warning {
+        margin-top: 15px;
+        padding: 10px;
+        background-color: var(--warning-color);
+        color: white;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .extreme-warning::before,
+    .extreme-warning::after {
+        content: '⚠️';
+        position: absolute;
+        font-size: 24px;
+        animation: rotate 2s linear infinite;
+    }
+
+    .extreme-warning::before {
+        left: 10px;
+    }
+
+    .extreme-warning::after {
+        right: 10px;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .warning-icon {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background-color: yellow;
+        clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        margin-right: 5px;
+        animation: blink 0.5s infinite alternate;
+    }
+
+    @keyframes blink {
+        from { opacity: 1; }
+        to { opacity: 0.5; }
+    }
+
+    #level-title {
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        display: block;
+        text-align: center;
+        color: var(--primary-color);
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .select-level-instruction {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+        font-weight: bold;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .level.active {
+        border: 3px solid white;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+    }
+
+    .level::after {
+        content: "Click";
+        position: absolute;
+        bottom: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 3px 8px;
+        border-radius: 10px;
+        font-size: 12px;
+        color: var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .level:hover::after {
+        opacity: 1;
+    }
+</style>
+</head><body>
+<h1>S.A.L.V.I.A. Experience Level Calculator</h1>
+
+<div class="toggle-container">
+    <label class="toggle-switch">
+        <input type="checkbox" id="consumption-method">
+        <span class="slider"></span>
+        <div class="toggle-labels">
+            <span class="toggle-label">Smoked</span>
+            <span class="toggle-label">Chewed</span>
+        </div>
+    </label>
+    <div class="method-description" id="method-description"></div>
+</div>
+
+<div class="weight-input-container">
+    <input type="number" id="weight" class="weight-input" placeholder="Weight" required>
+    <div class="weight-controls">
+        <button class="weight-control" onclick="adjustWeight(1)">+</button>
+        <button class="weight-control" onclick="adjustWeight(-1)">-</button>
+    </div>
+    <div class="weight-presets">
+        <span class="weight-preset" onclick="setWeight(100)">100</span>
+        <span class="weight-preset" onclick="setWeight(110)">110</span>
+        <span class="weight-preset" onclick="setWeight(120)">120</span>
+        <span class="weight-preset" onclick="setWeight(130)">130</span>
+        <span class="weight-preset" onclick="setWeight(140)">140</span>
+        <span class="weight-preset" onclick="setWeight(150)">150</span>
+        <span class="weight-preset" onclick="setWeight(160)">160</span>
+        <span class="weight-preset" onclick="setWeight(170)">170</span>
+        <span class="weight-preset" onclick="setWeight(180)">180</span>
+        <span class="weight-preset" onclick="setWeight(190)">190</span>
+        <span class="weight-preset" onclick="setWeight(200)">200</span>
+        <span class="weight-preset" onclick="setWeight(210)">210</span>
+        <span class="weight-preset" onclick="setWeight(220)">220</span>
+        <span class="weight-preset" onclick="setWeight(230)">230</span>
+        <span class="weight-preset" onclick="setWeight(240)">240</span>
+        <span class="weight-preset" onclick="setWeight(250)">250</span>
+    </div>
+</div>
+
+<p class="select-level-instruction">Select an experience level:</p>
+
+<div class="salvia-levels">
+    <div class="level" data-level="S">
+        <span>S</span>
+    </div>
+    <div class="level" data-level="A">
+        <span>A</span>
+    </div>
+    <div class="level" data-level="L">
+        <span>L</span>
+    </div>
+    <div class="level" data-level="V">
+        <span>V</span>
+    </div>
+    <div class="level" data-level="I">
+        <span>I</span>
+    </div>
+    <div class="level" data-level="A2">
+        <span>A</span>
+    </div>
+</div>
+
+<div id="result">
+    <div class="particles"></div>
+    <p>Select an experience level and enter your weight to calculate dosage.</p>
+</div>
+
+<div class="level-details-container">
+    <div class="level-details" id="level-details" style="display: none;">
+        <strong id="level-title"></strong>
+        <ul class="effect-list" id="level-description"></ul>
+    </div>
+    <script>
+        const LEVEL_EFFECTS = {
+            'S': [
+                { emoji: '🌈', text: 'Subtle color enhancement' },
+                { emoji: '🍃', text: 'Slight change in perception' },
+                { emoji: '😌', text: 'Mild relaxation' },
+                { emoji: '🧘', text: 'Increased mindfulness' },
+                { emoji: '🎵', text: 'Enhanced appreciation of music' }
+            ],
+            'A': [
+                { emoji: '👁️', text: 'Vivid visual alterations' },
+                { emoji: '🌀', text: 'Geometric patterns overlay vision' },
+                { emoji: '🤔', text: 'Introspective thoughts' },
+                { emoji: '🌿', text: 'Heightened sensory awareness' },
+                { emoji: '⏱️', text: 'Altered perception of time' }
+            ],
+            'L': [
+                { emoji: '🚀', text: 'Out-of-body sensations' },
+                { emoji: '🎭', text: 'Reality seems dreamlike' },
+                { emoji: '👥', text: 'Encounter with entities' },
+                { emoji: '🧠', text: 'Profound shifts in perspective' },
+                { emoji: '🌌', text: 'Journey through mental landscapes' }
+            ],
+            'V': [
+                { emoji: '🌪️', text: 'Complete dissociation from reality' },
+                { emoji: '👽', text: 'Intense alien-like experiences' },
+                { emoji: '🔄', text: 'Loss of personal identity' },
+                { emoji: '🎬', text: 'Life replays in different scenarios' },
+                { emoji: '🧩', text: 'Reality breaks into puzzle pieces' }
+            ],
+            'I': [
+                { emoji: '💥', text: 'Reality-shattering visions' },
+                { emoji: '🔮', text: 'Prophetic-like revelations' },
+                { emoji: '🌌', text: 'Merge with the fabric of the universe' },
+                { emoji: '🤯', text: 'Complete ego dissolution' },
+                { emoji: '🕳️', text: 'Fall through dimensions of existence' }
+            ],
+            'A2': [
+                { emoji: '⚠️', text: 'Extreme caution advised' },
+                { emoji: '🌪️', text: 'Total loss of self and reality' },
+                { emoji: '🕰️', text: 'Eternity experienced in moments' },
+                { emoji: '🧠', text: 'Potential for temporary amnesia' },
+                { emoji: '🔥', text: 'Overwhelmingly intense experience' }
+            ]
+        };
+
+        function updateLevelDescription(level) {
+            const levelDescription = document.getElementById('level-description');
+            levelDescription.innerHTML = '';
+            LEVEL_EFFECTS[level].forEach(effect => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="effect-icon">${effect.emoji}</span><span class="effect-text">${effect.text}</span>`;
+                levelDescription.appendChild(li);
+            });
+        }
+
+        document.querySelectorAll('.level').forEach(level => {
+            level.addEventListener('click', function() {
+                updateLevelDescription(this.dataset.level);
+                // ... (rest of the existing click event logic)
+            });
+        });
+    </script>
+</div>
+
+<div class="disclaimer">
+    <h3>Important Disclaimer:</h3>
+    <p>Salvia divinorum is a powerful entheogen with profound psychological effects. It is illegal in many jurisdictions and its use carries potential risks. This calculator is provided for harm reduction and academic research purposes only. SalviaDosage.com does not endorse or encourage the use of Salvia divinorum or any other controlled substances. Always consult with a healthcare professional before considering any psychoactive substance use.</p>
+</div>
+
+<script>
+const SALVINORIN_A_CONTENT = 1.54; // mg/g in plain dry leaf
+const LEVEL_MULTIPLIERS = {
+    'S': 0.25, 'A': 0.5, 'L': 1, 'V': 1.5, 'I': 2, 'A2': 3
+};
+const DESCRIPTIONS = {
+    'S': "Subtle effects: Mild relaxation and altered perception.",
+    'A': "Altered perception: Vivid colors, patterns, and mild hallucinations.",
+    'L': "Light hallucinations: Clear visions and out-of-body sensations.",
+    'V': "Vivid hallucinations: Intense visions and loss of body awareness.",
+    'I': "Intense hallucinations: Complete dissociation and reality-breaking experiences.",
+    'A2': "Amnesic effects: Extreme dissociation and potential memory loss."
+};
+
+function calculateDosage(method, weight, level) {
+    const weightKg = weight * 0.453592; // Convert weight from lbs to kg
+    let baseDoseLow, baseDoseHigh;
+
+    if (method === 'smoked') {
+        baseDoseLow = 0.2 * (weightKg / 70); // mg, adjusted for weight
+        baseDoseHigh = 0.5 * (weightKg / 70); // mg, adjusted for weight
+    } else { // chewed
+        baseDoseLow = (0.018 * weightKg) / 0.1; // mg
+        baseDoseHigh = (0.021 * weightKg) / 0.1; // mg
+    }
+
+    const doseRangeLow = (baseDoseLow * LEVEL_MULTIPLIERS[level] / SALVINORIN_A_CONTENT).toFixed(3);
+    const doseRangeHigh = (baseDoseHigh * LEVEL_MULTIPLIERS[level] / SALVINORIN_A_CONTENT).toFixed(3);
+
+    return { low: doseRangeLow, high: doseRangeHigh };
+}
+
+function updateDosage() {
+    const method = document.getElementById('consumption-method').checked ? 'chewed' : 'smoked';
+    const weight = document.getElementById('weight').value;
+    const activeLevel = document.querySelector('.level.active');
+    const resultElement = document.getElementById('result');
+    
+    if (!activeLevel || !weight) {
+        resultElement.innerHTML = '<p>Select an experience level and enter your weight to calculate dosage.</p>';
+        return;
+    }
+    
+    const level = activeLevel.dataset.level;
+    const dosageRange = calculateDosage(method, weight, level);
+    const onsetTime = method === 'smoked' ? '30-60 seconds' : '5-10 minutes';
+    const duration = method === 'smoked' ? '5-30 minutes' : '30-60 minutes';
+    
+    resultElement.innerHTML = `
+        <div class="particles"></div>
+        <h2>Recommended Dosage</h2>
+        <p>For a <strong>${DESCRIPTIONS[level]}</strong> experience at ${weight} lbs:</p>
+        <p class="dosage">${dosageRange.low} g - ${dosageRange.high} g</p>
+        <p class="method">of plain Salvia divinorum leaves when ${method}</p>
+        <p>Onset of effects: ${onsetTime}</p>
+        <p>Duration of effects: ${duration}</p>
+    `;
+    
+    resultElement.classList.add('show');
+    createParticles();
+}
+
+function createParticles() {
+    const particlesContainer = document.querySelector('.particles');
+    particlesContainer.innerHTML = '';
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = `${Math.random() * 100}%`;
+        particle.style.top = `${Math.random() * 100}%`;
+        particle.style.width = `${Math.random() * 10 + 5}px`;
+        particle.style.height = particle.style.width;
+        particle.style.animationDelay = `${Math.random() * 2}s`;
+        particlesContainer.appendChild(particle);
+    }
+}
+
+document.querySelectorAll('.level').forEach(level => {
+    level.addEventListener('click', function() {
+        document.querySelectorAll('.level').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        const levelData = DESCRIPTIONS[this.dataset.level];
+        const levelDetails = document.getElementById('level-details');
+        document.getElementById('level-title').textContent = levelData;
+        levelDetails.setAttribute('data-level', this.dataset.level);
+        
+        // Remove any existing warning
+        const existingWarning = levelDetails.querySelector('.extreme-warning');
+        if (existingWarning) {
+            existingWarning.remove();
+        }
+        
+        if (this.dataset.level === 'A2') {
+            const warning = document.createElement('div');
+            warning.className = 'extreme-warning';
+            warning.innerHTML = `
+                <span class="warning-icon"></span>
+                EXTREME CAUTION
+                <span class="warning-icon"></span>
+                <br>
+                This level of experience is intensely profound and potentially overwhelming.
+                It's crucial to carefully consider your mental preparedness and setting.
+                This tool is for educational purposes only and does not advocate for Salvia use.
+            `;
+            levelDetails.appendChild(warning);
+        }
+        
+        levelDetails.style.display = 'block';
+        document.querySelector('.level-details-container').style.height = 'auto';
+        updateDosage();
+    });
+});
+
+function adjustWeight(change) {
+    const weightInput = document.getElementById('weight');
+    weightInput.value = parseInt(weightInput.value || 0) + change;
+    updateDosage();
+}
+
+function setWeight(weight) {
+    document.getElementById('weight').value = weight;
+    updateDosage();
+}
+
+function updateMethodDescription() {
+    const isChewed = document.getElementById('consumption-method').checked;
+    const descriptionElement = document.getElementById('method-description');
+    if (isChewed) {
+        descriptionElement.innerHTML = "Chewing method: Place the Salvia leaves in your mouth and chew thoroughly for 15-30 minutes. Hold the saliva and plant matter in your mouth, allowing absorption through the oral mucosa. Do not swallow. Effects typically onset within 10-20 minutes and last 1-2 hours.";
+    } else {
+        descriptionElement.innerHTML = "Smoking method: Use a water pipe or bong for best results. Pack a small amount of dried Salvia leaves into the bowl. Apply a flame directly to the leaves and inhale deeply, holding the smoke in your lungs for 20-30 seconds. Effects onset rapidly, usually within 30-60 seconds, and typically last 5-30 minutes.";
+    }
+}
+
+document.getElementById('weight').addEventListener('input', updateDosage);
+document.getElementById('consumption-method').addEventListener('change', function() {
+    updateMethodDescription();
+    updateDosage();
+});
+
+// Weight preset hover effect
+document.querySelectorAll('.weight-preset').forEach(preset => {
+    preset.addEventListener('mouseover', function() {
+        this.style.opacity = '1';
+        this.style.fontSize = '14px';
+    });
+    preset.addEventListener('mouseout', function() {
+        this.style.opacity = '0.5';
+        this.style.fontSize = '12px';
+    });
+});
+
+// Initial method description update
+updateMethodDescription();
+</script>
+
+</body></html>
