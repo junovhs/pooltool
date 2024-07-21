@@ -52,28 +52,23 @@
             text-decoration: underline;
         }
     </style>
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            injectNavbar();
+            loadNavbar();
+        });
+    </script>
 </head>
 <body>
-    <div id="navbar-placeholder" class="navbar-placeholder"></div>
     <div class="content">
         <div class="intro-container">
             <h1>Welcome to PoolTool Projects</h1>
             <p>This site offers various tools that you can use for free. Feel free to explore and utilize the tools available, including the QR Code Generator. We aim to provide useful resources to help you with your projects. Enjoy and don't hesitate to reach out if you have any questions or feedback.</p>
-            </ul>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="config.js"></script>
-    <script src="components/scripts.js"></script>
-    <script>
-        fetch('https://junovhs.github.io/pooltool/components/navbar.html')
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById('navbar-placeholder').innerHTML = data;
-                loadNavbar(); // Ensure this function is called to populate the nav links
-            });
-    </script>
 </body>
 </html>
