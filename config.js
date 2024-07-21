@@ -10,6 +10,12 @@ async function getPagesList() {
         }));
 }
 
+function injectNavbar() {
+    const navbarPlaceholder = document.createElement('div');
+    navbarPlaceholder.id = 'navbar-placeholder';
+    document.body.insertBefore(navbarPlaceholder, document.body.firstChild);
+}
+
 async function loadNavbar() {
     const pages = await getPagesList();
     fetch('https://junovhs.github.io/pooltool/components/navbar.html')
