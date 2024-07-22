@@ -7,16 +7,17 @@ async function generateNavbar() {
         
         const navbarHtml = `
             <ul>
-                <li><a href="/">Home</a></li>
+                <li><a href="/pooltool/">Home</a></li>
                 ${data
                     .filter(file => file.type === 'file' && file.name.endsWith('.html'))
-                    .map(file => `<li><a href="/${config.pagesPath}/${file.name}">${file.name.replace('.html', '')}</a></li>`)
+                    .map(file => `<li><a href="/pooltool/?page=${file.name}">${file.name.replace('.html', '')}</a></li>`)
                     .join('')
                 }
             </ul>
         `;
         
         document.getElementById('navbar').innerHTML = navbarHtml;
+        addNavbarListeners();
     } catch (error) {
         console.error('Error generating navbar:', error);
     }
@@ -26,9 +27,9 @@ function addNavbarListeners() {
     document.querySelectorAll('#navbar a').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = e.target.getAttribute('data-page');
+            const page = new URLSearchParams(new URL(e.target.href).search).get('page') || '';
             loadPage(page);
-            window.history.pushState({page: page}, '', `#${page}`);
+            window.history.pushState({page: page}, '', e.target.href);
         });
     });
 }
