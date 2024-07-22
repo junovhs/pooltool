@@ -43,21 +43,23 @@ function addNavbarListeners() {
 
 async function loadPage(page) {
     const contentDiv = document.getElementById('content');
+    console.log('Loading page:', page); // Debug log
     if (page === '') {
         contentDiv.innerHTML = '<h1>Welcome to Pool Tool</h1>';
         document.body.classList.remove('tool-page');
-        // Remove any tool-specific styles
         document.querySelectorAll('style[data-tool-style]').forEach(el => el.remove());
     } else {
         try {
             const response = await fetch(`${config.pagesPath}/${page}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const html = await response.text();
-            
-            // Create a temporary div to hold the content
+            console.log('Fetched HTML:', html.substring(0, 100) + '...'); // Debug log
+
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             
-            // Extract and apply styles
             const styles = tempDiv.getElementsByTagName('style');
             for (let style of styles) {
                 const newStyle = document.createElement('style');
@@ -68,10 +70,9 @@ async function loadPage(page) {
             
             document.body.classList.add('tool-page');
             
-            // Set the content
             contentDiv.innerHTML = tempDiv.innerHTML;
+            console.log('Content set:', contentDiv.innerHTML.substring(0, 100) + '...'); // Debug log
             
-            // Extract and apply scripts
             const scripts = tempDiv.getElementsByTagName('script');
             for (let script of scripts) {
                 const newScript = document.createElement('script');
