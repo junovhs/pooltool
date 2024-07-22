@@ -10,7 +10,7 @@ async function generateNavbar() {
                 <li><a href="#" data-page="">Home</a></li>
                 ${data
                     .filter(file => file.type === 'file' && file.name.endsWith('.html'))
-                    .map(file => `<li><a href="#" data-page="${file.name}">${file.name.replace('.html', '')}</a></li>`)
+                    .map(file => `<li><a href="#${file.name}" data-page="${file.name}">${file.name.replace('.html', '')}</a></li>`)
                     .join('')
                 }
             </ul>
@@ -29,6 +29,7 @@ function addNavbarListeners() {
             e.preventDefault();
             const page = e.target.getAttribute('data-page');
             loadPage(page);
+            window.history.pushState({page: page}, '', `#${page}`);
         });
     });
 }
@@ -36,23 +37,12 @@ function addNavbarListeners() {
 async function loadPage(page) {
     const contentDiv = document.getElementById('content');
     if (page === '') {
-        // Load home page content
         contentDiv.innerHTML = '<h1>Welcome to Your Tools Website</h1>';
     } else {
         try {
             const response = await fetch(`${config.pagesPath}/${page}`);
             const html = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            contentDiv.innerHTML = doc.body.innerHTML;
-
-            // Execute scripts in the loaded content
-            doc.querySelectorAll('script').forEach(script => {
-                const newScript = document.createElement('script');
-                Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                newScript.appendChild(document.createTextNode(script.innerHTML));
-                document.body.appendChild(newScript);
-            });
+            contentDiv.innerHTML = `<iframe src="${config.pagesPath}/${page}" style="width:100%; height:100vh; border:none;"></iframe>`;
         } catch (error) {
             console.error('Error loading page:', error);
             contentDiv.innerHTML = '<h1>Error loading page</h1>';
@@ -60,8 +50,24 @@ async function loadPage(page) {
     }
 }
 
+function handleInitialLoad() {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+        loadPage(hash);
+    } else {
+        loadPage('');
+    }
+}
+
+window.addEventListener('popstate', (event) => {
+    if (event.state && event.state.page) {
+        loadPage(event.state.page);
+    } else {
+        loadPage('');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
     generateNavbar();
-    // Load the home page initially
-    loadPage('');
+    handleInitialLoad();
 });
