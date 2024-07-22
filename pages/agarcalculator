@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Agar Recipe Calculator</title>
+  </head>
+  <style>
+  .input-field {
+    margin-top: 30px;
+  }
+  </style>
+
+  <body>
+    <div class="container py-5">
+      <!-- Calculator form -->
+      <form id="calculatorForm" class="row justify-content-center">
+        <!-- Dishes Quantity input field -->
+        <div class="form-group col-sm-3 d-flex flex-column align-items-center">
+          <label for="dishesNumber">Dishes Quantity:</label>
+          <input type="number" class="form-control w-75" id="dishesNumber" min="0" step="1" value="30">
+        </div>
+
+        <!-- Water Needed input field -->
+        <div class="form-group col-sm-3 d-flex flex-column align-items-center">
+          <label for="agarAmount">Water Needed (mL):</label>
+          <input type="number" class="form-control w-75" id="agarAmount" min="0" step="0.1" value="500">
+        </div>
+
+        <!-- Milliliters Per Dish input field -->
+        <div class="form-group col-sm-3 d-flex flex-column align-items-center">
+          <label for="mlPerDish">Milliliters Per Dish:</label>
+          <input type="number" class="form-control w-75" id="mlPerDish" min="0" step="1" value="15">
+        </div>
+
+        <!-- Add 10% Buffer checkbox -->
+        <div class="form-group col-sm-3 d-flex align-items-center input-field">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="spillageBuffer">
+            <label class="form-check-label" for="spillageBuffer">Add 6% Extra</label>
+          </div>
+        </div>
+
+      </form>
+      <!-- Results will be displayed here -->
+      <div id="results" class="mt-3">
+        <div class="row">
+          <div class="col-lg-8 offset-lg-2"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+// Get references to the form and input elements
+const dishesNumberInput = document.querySelector('#dishesNumber');
+const agarAmountInput = document.querySelector('#agarAmount');
+const mlPerDishInput = document.querySelector('#mlPerDish');
+const spillageBufferInput = document.querySelector('#spillageBuffer');
+const resultsDiv = document.querySelector('#results');
+
+// Add event listeners to the input elements
+dishesNumberInput.addEventListener('input', function() {
+  updateWaterVolume();
+  calculateIngredients();
+});
+agarAmountInput.addEventListener('input', function() {
+  updateDishesNumber();
+  calculateIngredients();
+});
+mlPerDishInput.addEventListener('input', function() {
+  updateWaterVolume();
+  calculateIngredients();
+});
+spillageBufferInput.addEventListener('change', function() {
+  updateWaterVolume();
+  calculateIngredients();
+});
+
+// Function to update the water volume based on the number of dishes and ml per dish
+function updateWaterVolume() {
+  const dishesNumber = dishesNumberInput.value;
+  const mlPerDish = mlPerDishInput.value;
+  let agarAmount = dishesNumber * mlPerDish;
+
+  // If the spillage buffer checkbox is checked, add 10%
+  if (spillageBufferInput.checked) {
+    agarAmount += agarAmount * 0.06;
+  }
+
+  agarAmountInput.value = agarAmount;
+}
+
+// Function to update the number of dishes based on the water volume and ml per dish
+function updateDishesNumber() {
+  const agarAmount = agarAmountInput.value;
+  const mlPerDish = mlPerDishInput.value;
+  dishesNumberInput.value = Math.floor(agarAmount / mlPerDish);
+}
+
+// Function to calculate and display the ingredients for each recipe
+function calculateIngredients() {
+  // Get the agar amount from the form
+  const agarAmount = agarAmountInput.value;
+  // Convert the agar amount to grams
+  const agarAmountInGrams = agarAmount;
+  // Calculate the ingredients for each recipe
+  const startingSporesAgar = [
+    '<b>Water:</b> ' + agarAmountInGrams + ' ml',
+    '<b>Agar:</b> ' + (agarAmountInGrams * 0.01).toFixed(1) + ' g',
+    '<b>LME:</b> ' + (agarAmountInGrams * 0.01).toFixed(1) + ' g'
+  ].join('&nbsp;&nbsp;&nbsp;');
+  const waterAgar = [
+    '<b>Water:</b> ' + agarAmountInGrams + ' ml',
+    '<b>Agar:</b> ' + (agarAmountInGrams * 0.02).toFixed(1) + ' g'
+  ].join('&nbsp;&nbsp;&nbsp;');
+  const maltYeastAgar = [
+    '<b>Water:</b> ' + agarAmountInGrams + ' ml',
+    '<b>Agar:</b> ' + (agarAmountInGrams * 0.02).toFixed(1) + ' g',
+    '<b>LME:</b> ' + (agarAmountInGrams * 0.015).toFixed(1) + ' g',
+    '<b>Yeast:</b> ' + (agarAmountInGrams * 0.002).toFixed(1) + ' g'
+  ].join('&nbsp;&nbsp;&nbsp;');
+  const maltExtractAgar = [
+    '<b>Water:</b> ' + agarAmountInGrams + ' ml',
+    '<b>Agar:</b> ' + (agarAmountInGrams * 0.018).toFixed(1) + ' g',
+    '<b>LME:</b> ' + (agarAmountInGrams * 0.006).toFixed(1) + ' g'
+  ].join('&nbsp;&nbsp;&nbsp;');
+  const grainWaterAgar = [
+    '<b>Grain Water:</b> ' + agarAmountInGrams + ' ml',
+    '<b>Agar:</b> ' + (agarAmountInGrams * 0.02).toFixed(1) + ' g'
+  ].join('&nbsp;&nbsp;&nbsp;');
+  // Display the calculated ingredients in the results div
+  const resultsHTML = `
+    <h1 class="text-center">AGAR RECIPES:</h1>
+    <p>
+    <h5 class="text-center">Low Nutrition Agar</h5>
+    <p class="text-center">Use low nutrition agar to purify and recover contaminated cultures or spores. Its minimal nutrient environment inhibits contaminants, enabling dominant growth of desired mycelium for a clean culture.</p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Starting Spores Agar</h5>
+        <p class="card-text">${startingSporesAgar}</p>
+      </div>
+    </div>
+    <P>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Water Agar</h5>
+        <p class="card-text">${waterAgar}</p>
+      </div>
+    </div>
+    <p>
+    <h5 class="text-center">Nutritious Agar</h5>
+    <p class="text-center">Use nutritious agar when you're looking to promote robust mycelial growth and development. The enriched nutrient environment provides the necessary resources for the mycelium to thrive, making it ideal for the propagation of a strong and healthy culture.</p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Malt Yeast Agar</h5>
+        <p class="card-text">${maltYeastAgar}</p>
+      </div>
+    </div>
+    <p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Malt Extract Agar</h5>
+        <p class="card-text">${maltExtractAgar}</p>
+      </div>
+    </div>
+    <p>
+    <h5 class="text-center">Specialized Agar</h5>
+    <p class="text-center">Specialized agar types like Grain Water Agar are utilized when you're exploring different growth conditions, testing new strains or conducting research. These agar recipes may contain unique nutrient sources, such as grain water, that can influence the growth patterns and characteristics of the mycelium. This allows for a greater understanding of the organism's behavior under different conditions.</p>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Grain Water Agar</h5>
+        <p class="card-text">${grainWaterAgar}</p>
+      </div>
+    </div>`;
+  resultsDiv.querySelector('.col-lg-8').innerHTML = resultsHTML;
+}
+
+// Calculate initial ingredients on page load
+window.addEventListener('load', function() {
+  updateWaterVolume();
+  calculateIngredients();
+});
+
+    </script>
+  </body>
+</html>
