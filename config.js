@@ -1,4 +1,3 @@
-
 const config = {
     repoOwner: 'junovhs',
     repoName: 'pooltool',
