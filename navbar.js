@@ -1,10 +1,3 @@
-const config = {
-    repoOwner: 'junovhs',
-    repoName: 'pooltool',
-    pagesPath: 'pages',
-    excludeFiles: ['index.html', 'config.js', 'navbar.js', 'styles.css']
-};
-
 async function generateNavbar() {
     const apiUrl = `https://api.github.com/repos/${config.repoOwner}/${config.repoName}/contents/${config.pagesPath}`;
     
@@ -43,7 +36,7 @@ function addNavbarListeners() {
 
 async function loadPage(page) {
     const contentDiv = document.getElementById('content');
-    console.log('Loading page:', page); // Debug log
+    console.log('Loading page:', page);
     if (page === '') {
         contentDiv.innerHTML = '<h1>Welcome to Pool Tool</h1>';
         document.body.classList.remove('tool-page');
@@ -55,7 +48,7 @@ async function loadPage(page) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const html = await response.text();
-            console.log('Fetched HTML:', html.substring(0, 100) + '...'); // Debug log
+            console.log('Fetched HTML:', html.substring(0, 100) + '...');
 
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
@@ -71,7 +64,7 @@ async function loadPage(page) {
             document.body.classList.add('tool-page');
             
             contentDiv.innerHTML = tempDiv.innerHTML;
-            console.log('Content set:', contentDiv.innerHTML.substring(0, 100) + '...'); // Debug log
+            console.log('Content set:', contentDiv.innerHTML.substring(0, 100) + '...');
             
             const scripts = tempDiv.getElementsByTagName('script');
             for (let script of scripts) {
