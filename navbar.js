@@ -50,32 +50,24 @@ async function loadPage(page) {
             const html = await response.text();
             console.log('Fetched HTML:', html.substring(0, 100) + '...');
 
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
+            // Create a new iframe
+            const iframe = document.createElement('iframe');
+            iframe.style.width = '100%';
+            iframe.style.height = '100vh';
+            iframe.style.border = 'none';
             
-            const styles = tempDiv.getElementsByTagName('style');
-            for (let style of styles) {
-                const newStyle = document.createElement('style');
-                newStyle.textContent = style.textContent;
-                newStyle.setAttribute('data-tool-style', '');
-                document.head.appendChild(newStyle);
-            }
-            
+            // Replace the content with the iframe
+            contentDiv.innerHTML = '';
+            contentDiv.appendChild(iframe);
+
+            // Write the fetched HTML to the iframe
+            iframe.contentWindow.document.open();
+            iframe.contentWindow.document.write(html);
+            iframe.contentWindow.document.close();
+
             document.body.classList.add('tool-page');
             
-            contentDiv.innerHTML = tempDiv.innerHTML;
-            console.log('Content set:', contentDiv.innerHTML.substring(0, 100) + '...');
-            
-            const scripts = tempDiv.getElementsByTagName('script');
-            for (let script of scripts) {
-                const newScript = document.createElement('script');
-                if (script.src) {
-                    newScript.src = script.src;
-                } else {
-                    newScript.textContent = script.textContent;
-                }
-                document.body.appendChild(newScript);
-            }
+            console.log('Content loaded into iframe');
         } catch (error) {
             console.error('Error loading page:', error);
             contentDiv.innerHTML = '<h1>Error loading page</h1>';
