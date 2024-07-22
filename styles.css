@@ -1,15 +1,14 @@
 body {
     font-family: Arial, sans-serif;
+    line-height: 1.6;
     margin: 0;
     padding: 0;
-    display: flex;
-    min-height: 100vh;
 }
 
 #navbar {
-    width: 200px;
-    background-color: #f0f0f0;
-    padding: 20px;
+    background-color: #333;
+    color: #fff;
+    padding: 1rem;
 }
 
 #navbar ul {
@@ -17,57 +16,30 @@ body {
     padding: 0;
 }
 
-#navbar li {
-    margin-bottom: 10px;
+#navbar ul li {
+    display: inline;
+    margin-right: 10px;
 }
 
-#navbar a {
+#navbar ul li a {
+    color: #fff;
     text-decoration: none;
-    color: #333;
-    font-weight: bold;
-}
-
-#navbar a:hover {
-    color: #007bff;
 }
 
 #content {
-    flex-grow: 1;
     padding: 20px;
 }
 
-h1 {
-    color: #007bff;
+/* Styles for the main site */
+body:not(.tool-page) {
+    background-color: #f4f4f4;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-    body {
-        flex-direction: column;
-    }
+/* Styles that should apply everywhere */
+#navbar {
+    /* Add any additional navbar styles here */
+}
 
-    #navbar {
-        width: 100%;
-        order: -1;
-    }
-
-    #navbar ul {
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    #navbar li {
-        margin-right: 10px;
-    }
-    body:not(.tool-page) {
-    /* Your main site styles */
-    }
-    
-    #navbar {
-        /* Navbar styles that should apply everywhere */
-    }
-    
-    #content {
-        /* Content area styles that should apply everywhere */
-    }
+#content {
+    /* Add any additional content area styles here */
 }
