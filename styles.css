@@ -59,4 +59,15 @@ h1 {
     #navbar li {
         margin-right: 10px;
     }
+    body:not(.tool-page) {
+    /* Your main site styles */
+    }
+    
+    #navbar {
+        /* Navbar styles that should apply everywhere */
+    }
+    
+    #content {
+        /* Content area styles that should apply everywhere */
+    }
 }
