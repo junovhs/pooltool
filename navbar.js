@@ -37,23 +37,45 @@ function addNavbarListeners() {
 async function loadPage(page) {
     const contentDiv = document.getElementById('content');
     if (page === '') {
-        contentDiv.innerHTML = '<h1>Welcome to Your Tools Website</h1>';
+        contentDiv.innerHTML = '<h1>Welcome to Pool Tool</h1>';
+        // Remove any tool-specific styles
+        document.querySelectorAll('style[data-tool-style]').forEach(el => el.remove());
     } else {
-        contentDiv.innerHTML = `<iframe src="${config.pagesPath}/${page}" style="width:100%; height:100vh; border:none;" frameborder="0"></iframe>`;
-        
-        // Ensure the iframe content is fully loaded before adjusting its height
-        const iframe = contentDiv.querySelector('iframe');
-        iframe.onload = function() {
-            this.style.height = this.contentWindow.document.body.scrollHeight + 'px';
+        try {
+            const response = await fetch(`${config.pagesPath}/${page}`);
+            const html = await response.text();
             
-            // Copy the styles from the iframe to the parent document
-            const styles = this.contentWindow.document.getElementsByTagName('style');
+            // Create a temporary div to hold the content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Extract and apply styles
+            const styles = tempDiv.getElementsByTagName('style');
             for (let style of styles) {
                 const newStyle = document.createElement('style');
                 newStyle.textContent = style.textContent;
+                newStyle.setAttribute('data-tool-style', '');
                 document.head.appendChild(newStyle);
             }
-        };
+            
+            // Set the content
+            contentDiv.innerHTML = tempDiv.innerHTML;
+            
+            // Extract and apply scripts
+            const scripts = tempDiv.getElementsByTagName('script');
+            for (let script of scripts) {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                document.body.appendChild(newScript);
+            }
+        } catch (error) {
+            console.error('Error loading page:', error);
+            contentDiv.innerHTML = '<h1>Error loading page</h1>';
+        }
     }
 }
 
