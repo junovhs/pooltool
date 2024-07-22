@@ -1,3 +1,10 @@
+const config = {
+    repoOwner: 'junovhs',
+    repoName: 'pooltool',
+    pagesPath: 'pages',
+    excludeFiles: ['index.html', 'config.js', 'navbar.js', 'styles.css']
+};
+
 async function generateNavbar() {
     const apiUrl = `https://api.github.com/repos/${config.repoOwner}/${config.repoName}/contents/${config.pagesPath}`;
     
@@ -38,6 +45,7 @@ async function loadPage(page) {
     const contentDiv = document.getElementById('content');
     if (page === '') {
         contentDiv.innerHTML = '<h1>Welcome to Pool Tool</h1>';
+        document.body.classList.remove('tool-page');
         // Remove any tool-specific styles
         document.querySelectorAll('style[data-tool-style]').forEach(el => el.remove());
     } else {
@@ -57,6 +65,8 @@ async function loadPage(page) {
                 newStyle.setAttribute('data-tool-style', '');
                 document.head.appendChild(newStyle);
             }
+            
+            document.body.classList.add('tool-page');
             
             // Set the content
             contentDiv.innerHTML = tempDiv.innerHTML;
@@ -79,13 +89,10 @@ async function loadPage(page) {
     }
 }
 
-function handleInitialLoad() {
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-        loadPage(hash);
-    } else {
-        loadPage('');
-    }
+function handlePageLoad() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page') || '';
+    loadPage(page);
 }
 
 window.addEventListener('popstate', (event) => {
@@ -98,5 +105,5 @@ window.addEventListener('popstate', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     generateNavbar();
-    handleInitialLoad();
+    handlePageLoad();
 });
