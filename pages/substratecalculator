@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mushroom Substrate Calculator</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    .container {
+      max-width: 800px;
+    }
+    .input-container {
+      max-width: 300px;
+      margin: auto;
+    }
+    .card {
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <form class="text-center">
+      <h1 class="mb-4">MUSHROOM SUBSTRATE CALCULATOR</h1>
+      <div class="form-group input-container">
+        <label for="volume">Container Volume (quarts):</label>
+        <input type="number" class="form-control" name="volume" id="volume" value="8" aria-label="Container Volume" />
+      </div>
+      <div class="form-group input-container">
+        <label for="ratio">Spawn:Sub Ratio</label>
+        <select class="form-control" name="ratio" id="ratio">
+          <option value="2">1:1</option>
+          <option value="3">1:2</option>
+          <option value="4">1:3</option>
+          <option value="5" selected="selected">1:4</option>
+          <option value="9">1:8</option>
+        </select>
+      </div>
+      <div class="btn-group-vertical my-4">
+        <h5>Choose a recipe:</h5>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="recipe" value="coco" id="recipe-coco" />
+          <label class="form-check-label" for="recipe-coco">Straight Coco</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="recipe" value="cvg" id="recipe-cvg" />
+          <label class="form-check-label" for="recipe-cvg">CVG</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="recipe" value="farmer" id="recipe-farmer" />
+          <label class="form-check-label" for="recipe-farmer">Farmer Mix</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="recipe" value="grasslands" id="recipe-grasslands" />
+          <label class="form-check-label" for="recipe-grasslands">Grasslands</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="recipe" value="ultimate" id="recipe-ultimate" />
+          <label class="form-check-label" for="recipe-ultimate">Ultimate Casing</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="recipe" value="woodloving" id="wood-loving" />
+          <label class="form-check-label" for="wood-loving">Wood Lovers</label>
+        </div>
+      </div>
+      <div class="form-group input-container" id="cocoWeightContainer" style="display:none;">
+        <label for="cocoWeight">Dry Coco Coir Weight (grams):</label>
+        <input type="number" class="form-control" name="cocoWeight" id="cocoWeight" value="650" aria-label="Dry Coco Coir Weight" />
+      </div>
+    </form>
+  </div>
+  <div class="card mt-5" id="result" style="width: 30rem;">
+    <div class="card-body">
+    </div>
+  </div>
+  <script>
+    window.onload = function() {
+      let cocoWeightManuallySet = false;
+      function showHideCocoWeightInput(recipeValue) {
+        const cocoWeightContainer = document.getElementById("cocoWeightContainer");
+        if (recipeValue === "coco" || recipeValue === "cvg") {
+          cocoWeightContainer.style.display = "block";
+        } else {
+          cocoWeightContainer.style.display = "none";
+        }
+      }
+      function calculate() {
+        try {
+          const volume = parseFloat(document.querySelector('input[name=volume]').value);
+          const ratio = parseFloat(document.querySelector('select[name=ratio]').value);
+          const recipe = document.querySelector('input[name=recipe]:checked');
+          let grainSpawn = volume / ratio;
+          let bulkSubstrate = volume - grainSpawn;
+          let cocoWeight;
+
+          if (cocoWeightManuallySet) {
+            cocoWeight = parseFloat(document.querySelector('input[name=cocoWeight]').value);
+          } else {
+            cocoWeight = bulkSubstrate * 65.0;
+          }
+
+          if (!recipe) {
+            const result = '<div class="card-body"> <p>Please select a recipe.</p> </div>';
+            document.querySelector('#result').innerHTML = result;
+            return;
+          }
+
+          showHideCocoWeightInput(recipe.value);
+
+          if (recipe.value === "coco" || recipe.value === "cvg") {
+            if (cocoWeightManuallySet) {
+              bulkSubstrate = cocoWeight / 65.0;
+            }
+          }
+
+          const casing = volume / 5;
+          let result = '<div class="card-body">';
+          result += '<h5 class="card-title">Total Substrate Volume: ' + (grainSpawn + bulkSubstrate).toFixed(1) + ' quarts</h5>';
+          if (recipe.value === "coco") {
+            const grainSpawn = volume / ratio;
+            const bulkSubstrate = volume - grainSpawn;
+            const waterVolume = cocoWeight * 5 / 1000;
+            result += '<p>Grain Spawn: ' + grainSpawn.toFixed(1) + ' quarts</p>';
+            result += '<p>Bulk Substrate: ' + bulkSubstrate.toFixed(1) + ' quarts</p>';
+            result += '<h6 class="card-title">INGREDIENTS</h6>';
+            result += '<ul>';
+            result += '<li>' + waterVolume.toFixed(2) + ' liters of water</li>';
+            result += '<li>' + cocoWeight.toFixed(2) + ' grams of dry coco coir</li>';
+            result += '</ul>';
+          } else if (recipe.value === "cvg") {
+            const grainSpawn = volume / ratio;
+            const bulkSubstrate = volume - grainSpawn;
+            const vermWeight = cocoWeight * 0.384615;
+            const waterVolumeCoco = cocoWeight * 5 / 1000;
+                        const waterVolumeVerm = vermWeight * 3 / 1000;
+            const totalWaterVolume = waterVolumeCoco + waterVolumeVerm;
+            result += '<p>Grain Spawn: ' + grainSpawn.toFixed(1) + ' quarts</p>';
+            result += '<p>Bulk Substrate: ' + bulkSubstrate.toFixed(1) + ' quarts</p>';
+            result += '<h6 class="card-title">INGREDIENTS</h6>';
+            result += '<ul>';
+            result += '<li>' + totalWaterVolume.toFixed(2) + ' liters of water</li>';
+            result += '<li>' + cocoWeight.toFixed(2) + ' grams of dry coco coir</li>';
+            result += '<li>' + vermWeight.toFixed(2) + ' grams of vermiculite</li>';
+            result += '<li>' + (bulkSubstrate * 0.075).toFixed(2) + ' grams of gypsum</li>';
+            result += '</ul>';
+          } else if (recipe.value === "farmer") {
+            const grainSpawn = volume / ratio;
+            const bulkSubstrate = volume - grainSpawn;
+            result += `<p>Grain Spawn: ${grainSpawn.toFixed(1)} quarts</p>`;
+            result += `<p>Bulk Substrate: ${bulkSubstrate.toFixed(1)} quarts</p>`;
+            result += `<h6 class="card-title">INGREDIENTS</h6>`;
+            result += `<ul>`;
+            result += `<li>${(bulkSubstrate * 0.5).toFixed(2)} quarts of Manure</li>`;
+            result += `<li>${(bulkSubstrate * 0.5).toFixed(2)} quarts of Straw/Rice Hulls</li>`;
+            result += `</ul>`;
+          } else if (recipe.value === "grasslands") {
+            const grainSpawn = volume / ratio;
+            const bulkSubstrate = volume - grainSpawn;
+            result += `<p>Grain Spawn: ${grainSpawn.toFixed(1)} quarts</p>`;
+            result += `<p>Bulk Substrate: ${bulkSubstrate.toFixed(1)} quarts</p>`;
+            result += `<h6 class="card-title">INGREDIENTS</h6>`;
+            result += `<ul>`;
+            result += `<li>${(bulkSubstrate * 0.6).toFixed(2)} quarts of Straw</li>`;
+            result += `<li>${(bulkSubstrate * 0.3).toFixed(2)} quarts of Manure</li>`;
+            result += `<li>${(bulkSubstrate * 0.1).toFixed(2)} quarts of Vermiculite</li>`;
+            result += `<li>${(bulkSubstrate * 0.075).toFixed(2)} grams of gypsum</li>`;
+            result += `</ul>`;
+          } else if (recipe.value === "ultimate") {
+            const grainSpawn = volume / ratio;
+            result += `<p>Casing: ${casing.toFixed(2)} quarts</p>`;
+            result += `<h6 class="card-title">INGREDIENTS</h6>`;
+            result += `<ul>`;
+            result += `<li>${(casing * 0.5).toFixed(2)} quarts of Peat Moss</li>`;
+            result += `<li>${(casing * 0.5).toFixed(2)} quarts of Vermiculite</li>`;
+            result += `<li>${(casing * 0.25).toFixed(2)} quarts of water</li>`;
+            result += `<li>${(casing * 0.075).toFixed(2)} grams of calcium carbonate</li>`;
+            result += `</ul>`;
+          } else if (recipe.value === "woodloving") {
+            const grainSpawn = volume / ratio;
+            const bulkSubstrate = volume - grainSpawn;
+            const expansionRatio = 2.68;
+            const dryPelletsVolume = (bulkSubstrate * 0.9) / expansionRatio;
+            const alfalfaVolume = bulkSubstrate * 0.1;
+            result += `<p>Grain Spawn: ${grainSpawn.toFixed(1)} quarts</p>`;
+            result += `<p>Bulk Substrate: ${bulkSubstrate.toFixed(1)} quarts</p>`;
+            result += `<h6 class="card-title">INGREDIENTS</h6>`;
+            result += `<ul>`;
+            result += `<li>${dryPelletsVolume.toFixed(2)} quarts of Dry Hardwood Fuel Pellets</li>`;
+            result += `<li>${dryPelletsVolume.toFixed(2)} quarts of water (add more if necessary)</li>`;
+            result += `<li>${alfalfaVolume.toFixed(2)} quarts of grain bran (oat, wheat, etc)</li>`;
+            result += `</ul>`;
+          }
+
+          result += '</div>';
+          document.querySelector('#result').innerHTML = result;
+        } catch (error) {
+          console.error(error);
+          document.querySelector('#result').innerHTML = '<div class="card-body"> <p>An error occurred: ' + error.message + '</p> </div>';
+        }
+      }
+      document.getElementById('volume').addEventListener('input', function() {
+        cocoWeightManuallySet = false;
+        calculate();
+      });
+      document.getElementById('ratio').addEventListener('input', calculate);
+      document.getElementById('cocoWeight').addEventListener('input', function() {
+        cocoWeightManuallySet = true;
+        calculate();
+      });
+      document.querySelectorAll('input[name=recipe]').forEach(function(radio) {
+        radio.addEventListener('change', calculate);
+      });
+      calculate();
+    }
+  </script>
+</body>
+</html>
