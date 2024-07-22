@@ -7,26 +7,18 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav id="navbar"></nav>
-    <div id="content"></div>
+    <nav id="navbar">
+        <!-- Fallback navbar content -->
+        <ul>
+            <li><a href="/pooltool/">Home</a></li>
+            <li><a href="/pooltool/?page=salviadosage.html">Salvia Calculator</a></li>
+        </ul>
+    </nav>
+    <div id="content">
+        <h1>Welcome to Pool Tool</h1>
+        <p>If you're seeing this, the dynamic content hasn't loaded yet.</p>
+    </div>
     <script src="config.js"></script>
     <script src="navbar.js"></script>
-    <script>
-        function handlePageLoad() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const page = urlParams.get('page') || '';
-            loadPage(page);
-        }
-
-        window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.page) {
-                loadPage(event.state.page);
-            } else {
-                loadPage('');
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', handlePageLoad);
-    </script>
 </body>
 </html>
