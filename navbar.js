@@ -7,17 +7,16 @@ async function generateNavbar() {
         
         const navbarHtml = `
             <ul>
-                <li><a href="#" data-page="">Home</a></li>
+                <li><a href="/">Home</a></li>
                 ${data
                     .filter(file => file.type === 'file' && file.name.endsWith('.html'))
-                    .map(file => `<li><a href="#${file.name}" data-page="${file.name}">${file.name.replace('.html', '')}</a></li>`)
+                    .map(file => `<li><a href="/${config.pagesPath}/${file.name}">${file.name.replace('.html', '')}</a></li>`)
                     .join('')
                 }
             </ul>
         `;
         
         document.getElementById('navbar').innerHTML = navbarHtml;
-        addNavbarListeners();
     } catch (error) {
         console.error('Error generating navbar:', error);
     }
