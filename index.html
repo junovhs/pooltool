@@ -11,5 +11,14 @@
     <div id="content"></div>
     <script src="config.js"></script>
     <script src="navbar.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const page = urlParams.get('page');
+        if (page) {
+            loadPage(page);
+        } else {
+            loadPage('');
+        }
+    </script>
 </body>
 </html>
