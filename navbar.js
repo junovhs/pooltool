@@ -28,8 +28,7 @@ function addNavbarListeners() {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const page = new URLSearchParams(new URL(e.target.href).search).get('page') || '';
-            loadPage(page);
-            window.history.pushState({page: page}, '', e.target.href);
+            window.location.href = e.target.href; // This line replaces loadPage and pushState
         });
     });
 }
@@ -78,7 +77,7 @@ async function loadPage(page) {
 function handlePageLoad() {
     const urlParams = new URLSearchParams(window.location.search);
     const page = urlParams.get('page') || '';
-    loadPage(page);
+    // loadPage(page); // Comment out or remove this line
 }
 
 window.addEventListener('popstate', (event) => {
@@ -91,5 +90,5 @@ window.addEventListener('popstate', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     generateNavbar();
-    handlePageLoad();
+    // handlePageLoad(); // Comment out or remove this line
 });
