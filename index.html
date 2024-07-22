@@ -12,13 +12,21 @@
     <script src="config.js"></script>
     <script src="navbar.js"></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const page = urlParams.get('page');
-        if (page) {
+        function handlePageLoad() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const page = urlParams.get('page') || '';
             loadPage(page);
-        } else {
-            loadPage('');
         }
+
+        window.addEventListener('popstate', (event) => {
+            if (event.state && event.state.page) {
+                loadPage(event.state.page);
+            } else {
+                loadPage('');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', handlePageLoad);
     </script>
 </body>
 </html>
