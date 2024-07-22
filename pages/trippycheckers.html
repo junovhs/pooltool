@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trippy Spiraling Checkerboard</title>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; }
+        #container { position: fixed; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/88/three.min.js"></script>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        void main() {
+            gl_Position = vec4( position, 1.0 );
+        }
+    </script>
+    <script id="fragmentShader" type="x-shader/x-fragment">
+        uniform vec2 u_resolution;
+        uniform float u_time;
+      
+        #define PI 3.14159265359
+
+        vec2 spiralZoom(vec2 p, float time) {
+            float a = atan(p.y, p.x);
+            float r = length(p);
+            float speed = sin(time * 0.2) * 0.5 + 0.5; // Modulate speed
+            float t = time * speed * 0.5;
+            
+            // Create near-reversal effect
+            float direction = sign(sin(time * 0.1));
+            t *= direction;
+            
+            r = pow(r, 0.5 + 0.5 * sin(time * 0.3)); // Modulate zoom
+            
+            float n = 5.0; // Number of spiral arms
+            return vec2(a * n + log(r) - t, r);
+        }
+
+        vec3 colorGradient(float t) {
+            vec3 a = vec3(0.5, 0.5, 0.5);
+            vec3 b = vec3(0.5, 0.5, 0.5);
+            vec3 c = vec3(1.0, 1.0, 1.0);
+            vec3 d = vec3(0.0, 0.33, 0.67);
+
+            return a + b * cos(6.28318 * (c * t + d));
+        }
+
+        void main() {
+            vec2 st = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+            
+            vec2 uv = spiralZoom(st, u_time);
+            
+            vec2 grid = fract(uv * 10.0); // Adjust 10.0 to change checker size
+            float checker = step(0.5, mod(floor(uv.x * 10.0) + floor(uv.y * 10.0), 2.0));
+            
+            // Create color gradient
+            vec3 color = colorGradient(uv.x * 0.1 + u_time * 0.1);
+            
+            // Mix checker pattern with color gradient
+            color = mix(color, 1.0 - color, checker);
+
+            gl_FragColor = vec4(color, 1.0);
+        }
+    </script>
+    <div id="container"></div>
+
+    <script>
+        let container;
+        let camera, scene, renderer;
+        let uniforms;
+
+        function init() {
+            container = document.getElementById('container');
+            camera = new THREE.Camera();
+            camera.position.z = 1;
+            scene = new THREE.Scene();
+            var geometry = new THREE.PlaneBufferGeometry(2, 2);
+            uniforms = {
+                u_time: { type: "f", value: 0.0 },
+                u_resolution: { type: "v2", value: new THREE.Vector2() },
+                u_mouse: { type: "v2", value: new THREE.Vector2() }
+            };
+            var material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: document.getElementById('vertexShader').textContent,
+                fragmentShader: document.getElementById('fragmentShader').textContent
+            });
+            var mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            onWindowResize();
+            window.addEventListener('resize', onWindowResize, false);
+            document.onmousemove = function(e){
+                uniforms.u_mouse.value.x = e.pageX
+                uniforms.u_mouse.value.y = e.pageY
+            }
+        }
+
+        function onWindowResize(event) {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            uniforms.u_resolution.value.x = renderer.domElement.width;
+            uniforms.u_resolution.value.y = renderer.domElement.height;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            render();
+        }
+
+        function render() {
+            uniforms.u_time.value += 0.01;
+            renderer.render(scene, camera);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
