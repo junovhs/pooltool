@@ -3,30 +3,7 @@ layout: default
 title: Salvia Dosage Calculator
 ---
 <html><head>
-
 <style>
-        body, html {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        overflow-x: hidden;
-    }
-    .content-wrapper {
-        width: 100%;
-        max-width: none;
-        padding: 0;
-        margin: 0;
-    }
-    .container {
-        width: 100%;
-        max-width: none;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    .centered-content {
-        max-width: 800px;
-        margin: 0 auto;
-    }
     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
     :root {
@@ -522,55 +499,8 @@ title: Salvia Dosage Calculator
     .level:hover::after {
         opacity: 1;
     }
-
-        body.salvia-page {
-        width: 100%;
-        overflow-x: hidden;
-        margin: 0;
-        padding: 0;
-    }
-    .salvia-page .content-wrapper,
-    .salvia-page main {
-        width: 100%;
-        max-width: none;
-        padding: 0;
-        margin: 0;
-    }
-    .salvia-page .container,
-    .salvia-page .row,
-    .salvia-page .col-md-12 {
-        width: 100%;
-        max-width: none;
-        padding: 0;
-        margin: 0;
-    }
-    /* Adjust the main content area to have some padding */
-    .salvia-page main {
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    /* Ensure the toggle container and other elements don't overflow */
-    .salvia-page .toggle-container,
-    .salvia-page h1,
-    .salvia-page .disclaimer {
-        max-width: 100%;
-        box-sizing: border-box;
-    }
-
-    .salvia-page .container,
-.salvia-page .container-fluid {
-    width: 100%;
-    max-width: none;
-    padding-right: 0;
-    margin-right: 0;
-}
-
 </style>
-</head>
-<div class="container">
-    <div class="centered-content">    
-<body>
-    <body class="salvia-page">
+</head><body>
 <h1>S.A.L.V.I.A. Experience Level Calculator</h1>
 
 <div class="toggle-container">
@@ -870,7 +800,4 @@ document.querySelectorAll('.weight-preset').forEach(preset => {
 updateMethodDescription();
 </script>
 
-</body>
-    </div>
-</div>
-</html>
+</body></html>
