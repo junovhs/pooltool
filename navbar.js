@@ -14,7 +14,7 @@ async function generateNavbar() {
         
         const navbarHtml = `
             <ul>
-                <li><a href="/pooltool/">Home</a></li>
+                <li><a href="/pooltool/" class="logo">Pool Tool</a></li>
                 ${await generateNavItems(data)}
             </ul>
         `;
@@ -44,7 +44,7 @@ async function generateNavItems(items, parentPath = '') {
                 </li>
             `;
         } else if (item.name.endsWith('.html')) {
-            navItems += `<li><a href="/pooltool/?page=${fullPath.slice(1)}" data-page="${fullPath.slice(1)}">${item.name.replace('.html', '')}</a></li>`;
+            navItems += `<li><a href="#" data-page="${fullPath.slice(1)}">${item.name.replace('.html', '')}</a></li>`;
         }
     }
     return navItems;
@@ -53,15 +53,17 @@ async function generateNavItems(items, parentPath = '') {
 function addNavbarListeners() {
     document.querySelectorAll('#navbar a').forEach(link => {
         link.addEventListener('click', (e) => {
+            e.preventDefault();
             if (link.classList.contains('dropbtn')) {
-                e.preventDefault();
                 link.parentElement.classList.toggle('active');
             } else {
-                e.preventDefault();
                 const page = link.getAttribute('data-page');
                 if (page) {
                     loadPage(page);
-                    window.history.pushState({page: page}, '', link.href);
+                    window.history.pushState({page: page}, '', `/pooltool/?page=${page}`);
+                } else {
+                    loadPage('');
+                    window.history.pushState({page: ''}, '', '/pooltool/');
                 }
             }
         });
@@ -71,7 +73,17 @@ function addNavbarListeners() {
 async function loadPage(page) {
     const contentDiv = document.getElementById('content');
     if (page === '') {
-        contentDiv.innerHTML = '<h1>Welcome to Pool Tool</h1>';
+        contentDiv.innerHTML = `
+            <h2>Welcome to Pool Tool</h2>
+            <p>Pool Tool is a collection of useful calculators and tools for various purposes. Select a tool from the navigation menu to get started.</p>
+            <section id="featured-tools">
+                <h3>Featured Tools</h3>
+                <ul>
+                    <li><a href="#" data-page="salviadosage.html">S.A.L.V.I.A. Experience Level Calculator</a></li>
+                </ul>
+            </section>
+        `;
+        addContentListeners();
     } else {
         try {
             const iframe = document.createElement('iframe');
@@ -87,6 +99,17 @@ async function loadPage(page) {
             contentDiv.innerHTML = '<h1>Error loading page</h1>';
         }
     }
+}
+
+function addContentListeners() {
+    document.querySelectorAll('#content a[data-page]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.getAttribute('data-page');
+            loadPage(page);
+            window.history.pushState({page: page}, '', `/pooltool/?page=${page}`);
+        });
+    });
 }
 
 function handlePageLoad() {
