@@ -5,20 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title | default: site.title }}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        nav { background: #f0f0f0; padding: 10px; }
-        nav ul { list-style-type: none; padding: 0; }
-        nav ul li { display: inline; margin-right: 10px; }
-        main { margin-top: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        
+        /* Reset and base styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Roboto', Arial, sans-serif; line-height: 1.6; }
+        
+        /* Navigation styles */
+        #site-nav {
+            background-color: #333;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        #site-nav ul {
+            list-style-type: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        #site-nav li {
+            margin: 0.5rem;
+        }
+        #site-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        #site-nav a:hover, #site-nav a:focus {
+            background-color: #555;
+        }
+        
+        /* Main content area */
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
-    <nav>
+    <nav id="site-nav">
         <ul>
         {% assign pages_list = site.pages | sort:"url" %}
         {% for node in pages_list %}
             {% if node.title != null and node.url contains "/pages/" %}
-            <li><a href="{{ node.url | relative_url }}">{{ node.title }}</a></li>
+            <li><a href="{{ site.baseurl }}{{ node.url }}">{{ node.title }}</a></li>
             {% endif %}
         {% endfor %}
         </ul>
