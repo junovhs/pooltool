@@ -5,35 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page.title | default: site.title }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-        
         /* Reset and base styles */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Roboto', Arial, sans-serif; line-height: 1.6; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; }
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            padding-top: 60px; /* Adjust based on your navbar height */
+        }
         
         /* Navigation styles */
         #site-nav {
             background-color: #333;
-            padding: 1rem;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
+            height: 60px; /* Fixed height */
             z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
         }
         #site-nav ul {
             list-style-type: none;
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            margin: 0;
+            padding: 0;
+            width: 100%;
         }
         #site-nav li {
-            margin: 0.5rem;
+            margin: 0 10px;
         }
         #site-nav a {
             color: white;
             text-decoration: none;
-            padding: 0.5rem 1rem;
+            padding: 10px;
             border-radius: 4px;
             transition: background-color 0.3s;
+            font-size: 16px; /* Consistent font size */
         }
         #site-nav a:hover, #site-nav a:focus {
             background-color: #555;
@@ -41,9 +53,14 @@
         
         /* Main content area */
         main {
-            padding: 2rem;
+            padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
+        }
+
+        /* Ensure content doesn't overlap with fixed navbar */
+        .content-wrapper {
+            padding-top: 60px; /* Should match navbar height */
         }
     </style>
 </head>
@@ -58,8 +75,10 @@
         {% endfor %}
         </ul>
     </nav>
-    <main>
-        {{ content }}
-    </main>
+    <div class="content-wrapper">
+        <main>
+            {{ content }}
+        </main>
+    </div>
 </body>
 </html>
