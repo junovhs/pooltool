@@ -3,14 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
     <title>Dynamic Content Hub</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        nav { background: #f0f0f0; padding: 10px; }
+        nav ul { list-style-type: none; padding: 0; }
+        nav ul li { display: inline; margin-right: 10px; }
+        #content { margin-top: 20px; }
+    </style>
 </head>
 <body>
-    <header>
-        <nav id="navbar"></nav>
-    </header>
-    <main id="content"></main>
-    <script src="app.js"></script>
+    <nav id="navbar"></nav>
+    <div id="content"></div>
+
+    <script>
+        const BASE_URL = 'https://junovhs.github.io/pooltool/pages/';
+        const navbar = document.getElementById('navbar');
+        const content = document.getElementById('content');
+
+        async function discoverPages(baseUrl, path = '') {
+            const pages = [];
+            try {
+                const response = await fetch(baseUrl + path);
+                if (!response.ok) throw new Error('HTTP error ' + response.status);
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const links = doc.querySelectorAll('a');
+                
+                for (const link of links) {
+                    const href = link.getAttribute('href');
+                    if (href && href.endsWith('.html')) {
+                        pages.push(path + href);
+                    } else if (href && href.endsWith('/') && !href.startsWith('/')) {
+                        const subPages = await discoverPages(baseUrl, path + href);
+                        pages.push(...subPages);
+                    }
+                }
+            } catch (error) {
+                console.error('Error discovering pages:', error);
+            }
+            return pages;
+        }
+
+        function generateNavigation(pages) {
+            const navItems = pages.map(page => 
+                `<li><a href="#${page}">${formatPageName(page)}</a></li>`
+            ).join('');
+            navbar.innerHTML = `<ul>${navItems}</ul>`;
+        }
+
+        function formatPageName(page) {
+            return page.split('/').pop().replace('.html', '').split('_').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+
+        async function loadPage(page) {
+            try {
+                const response = await fetch(BASE_URL + page);
+                if (!response.ok) throw new Error('HTTP error ' + response.status);
+                const html = await response.text();
+                content.innerHTML = html;
+            } catch (error) {
+                content.innerHTML = `<p>Error loading page: ${error}</p>`;
+            }
+        }
+
+        async function init() {
+            const pages = await discoverPages(BASE_URL);
+            generateNavigation(pages);
+
+            window.addEventListener('hashchange', () => {
+                const page = location.hash.substring(1);
+                loadPage(page);
+            });
+
+            navbar.addEventListener('click', (event) => {
+                if (event.target.tagName === 'A') {
+                    event.preventDefault();
+                    const page = event.target.getAttribute('href').substring(1);
+                    location.hash = page;
+                }
+            });
+
+            if (location.hash) {
+                loadPage(location.hash.substring(1));
+            } else if (pages.length > 0) {
+                location.hash = pages[0];
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>
