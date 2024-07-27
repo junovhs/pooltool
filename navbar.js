@@ -1,39 +1,63 @@
-const config = {
-    repoOwner: 'junovhs',
-    repoName: 'pooltool',
-    pagesPath: 'pages'
-};
-
-function generateNavbar() {
-    const navbarHtml = `
-        <ul>
-            <li><a href="/pooltool/">Home</a></li>
-            <li><a href="/pooltool/pages/salviadosage.html">Salvia Dosage</a></li>
-            <li><a href="/pooltool/pages/trippycheckers.html">Trippy Checkers</a></li>
-            <li><a href="/pooltool/pages/mushroom_stuff/agarcalculator.html">Agar Calculator</a></li>
-            <li><a href="/pooltool/pages/mushroom_stuff/substratecalculator.html">Substrate Calculator</a></li>
-        </ul>
-    `;
-    
-    document.getElementById('navbar').innerHTML = navbarHtml;
+async function fetchSiteStructure() {
+    const structure = {
+        'home': { title: 'Home', path: 'pages/home.html' },
+        'salviadosage': { title: 'Salvia Dosage', path: 'pages/salviadosage.html' },
+        'trippycheckers': { title: 'Trippy Checkers', path: 'pages/trippycheckers.html' },
+        'mushroom_stuff': {
+            title: 'Mushroom Tools',
+            submenu: {
+                'agarcalculator': { title: 'Agar Calculator', path: 'pages/mushroom_stuff/agarcalculator.html' },
+                'substratecalculator': { title: 'Substrate Calculator', path: 'pages/mushroom_stuff/substratecalculator.html' }
+            }
+        }
+    };
+    return structure;
 }
 
-function loadPage(page) {
-    const contentDiv = document.getElementById('content');
-    if (page === '') {
-        contentDiv.innerHTML = '<h1>Welcome to Pool Tool</h1>';
-    } else {
-        contentDiv.innerHTML = `<iframe src="${page}" style="width:100%; height:100vh; border:none;"></iframe>`;
+function createNavbar(structure) {
+    const navbar = document.getElementById('navbar');
+    const mainMenu = document.createElement('ul');
+    mainMenu.className = 'main-menu';
+
+    for (const [key, page] of Object.entries(structure)) {
+        const menuItem = document.createElement('li');
+        
+        if (page.submenu) {
+            const dropdownBtn = document.createElement('button');
+            dropdownBtn.textContent = page.title;
+            dropdownBtn.className = 'dropdown-btn';
+            menuItem.appendChild(dropdownBtn);
+
+            const submenu = document.createElement('ul');
+            submenu.className = 'submenu';
+            
+            for (const [subKey, subPage] of Object.entries(page.submenu)) {
+                const subMenuItem = document.createElement('li');
+                const subLink = document.createElement('a');
+                subLink.href = `#${subKey}`;
+                subLink.textContent = subPage.title;
+                subLink.onclick = (e) => {
+                    e.preventDefault();
+                    loadPage(subPage.path);
+                };
+                subMenuItem.appendChild(subLink);
+                submenu.appendChild(subMenuItem);
+            }
+            
+            menuItem.appendChild(submenu);
+        } else {
+            const link = document.createElement('a');
+            link.href = `#${key}`;
+            link.textContent = page.title;
+            link.onclick = (e) => {
+                e.preventDefault();
+                loadPage(page.path);
+            };
+            menuItem.appendChild(link);
+        }
+        
+        mainMenu.appendChild(menuItem);
     }
-}
 
-function handlePageLoad() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const page = urlParams.get('page') || '';
-    loadPage(page);
+    navbar.appendChild(mainMenu);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    generateNavbar();
-    handlePageLoad();
-});
