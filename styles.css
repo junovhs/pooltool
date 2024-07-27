@@ -1,68 +1,35 @@
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    margin: 0;
+/* Basic styling for the navbar */
+.main-menu {
+    list-style-type: none;
     padding: 0;
-}
-
-#navbar {
+    margin: 0;
+    display: flex;
     background-color: #333;
-    color: #fff;
-    padding: 1rem;
 }
 
-#navbar ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-#navbar ul li {
-    display: inline;
-    margin-right: 10px;
-}
-
-#navbar ul li a {
-    color: #fff;
-    text-decoration: none;
-}
-
-#content {
-    padding: 20px;
-}
-
-/* Styles for the main site */
-body:not(.tool-page) {
-    background-color: #f4f4f4;
-}
-
-/* Styles that should apply everywhere */
-#navbar {
-    /* Add any additional navbar styles here */
-}
-
-#content {
-    /* Add any additional content area styles here */
-}
-
-#navbar ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-#navbar li {
-    display: inline-block;
+.main-menu > li {
     position: relative;
 }
 
-#navbar a {
+.main-menu > li > a,
+.dropdown-btn {
     display: block;
-    padding: 10px 15px;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
     text-decoration: none;
-    color: #333;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
 }
 
-.dropdown-content {
+.main-menu > li > a:hover,
+.dropdown-btn:hover {
+    background-color: #111;
+}
+
+.submenu {
     display: none;
     position: absolute;
     background-color: #f9f9f9;
@@ -71,7 +38,11 @@ body:not(.tool-page) {
     z-index: 1;
 }
 
-.dropdown-content a {
+.main-menu > li:hover .submenu {
+    display: block;
+}
+
+.submenu a {
     color: black;
     padding: 12px 16px;
     text-decoration: none;
@@ -79,11 +50,18 @@ body:not(.tool-page) {
     text-align: left;
 }
 
-.dropdown:hover .dropdown-content {
-    display: block;
+.submenu a:hover {
+    background-color: #f1f1f1;
 }
 
-.dropdown-content .dropdown-content {
-    left: 100%;
-    top: 0;
+/* Basic layout */
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+#content {
+    padding: 20px;
 }
