@@ -7,9 +7,9 @@
     <style>
         /* Reset and base styles */
         *, *::before, *::after { box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; height: 100%; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow-x: hidden; }
         body { 
-            font-family: Arial, sans-serif; 
+            font-family: 'Arial', sans-serif; 
             line-height: 1.6; 
             padding-top: 60px; /* Adjust based on your navbar height */
         }
@@ -22,7 +22,7 @@
             left: 0;
             right: 0;
             height: 60px; /* Fixed height */
-            z-index: 1000;
+            z-index: 9999; /* Ensure it's above all content */
             display: flex;
             align-items: center;
             padding: 0 20px;
@@ -46,6 +46,8 @@
             border-radius: 4px;
             transition: background-color 0.3s;
             font-size: 16px; /* Consistent font size */
+            font-weight: normal; /* Prevent bold text */
+            text-transform: none; /* Prevent text transformation */
         }
         #site-nav a:hover, #site-nav a:focus {
             background-color: #555;
@@ -61,6 +63,11 @@
         /* Ensure content doesn't overlap with fixed navbar */
         .content-wrapper {
             padding-top: 60px; /* Should match navbar height */
+        }
+
+        /* Override any conflicting styles */
+        #site-nav * {
+            font-family: 'Arial', sans-serif !important;
         }
     </style>
 </head>
