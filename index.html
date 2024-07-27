@@ -3,20 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Tool</title>
+    <title>PoolTool - Dynamic Content Hub</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav id="navbar">
-        <!-- Navbar content will be dynamically generated -->
-    </nav>
-    <main id="content">
-        <!-- Content will be dynamically loaded here -->
-    </main>
-    <footer>
-        <p>&copy; 2024 Pool Tool. All rights reserved.</p>
-    </footer>
-    <script src="config.js"></script>
+    <nav id="navbar"></nav>
+    <main id="content"></main>
+
     <script src="navbar.js"></script>
+    <script>
+        async function loadPage(path) {
+            try {
+                const response = await fetch(path);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const html = await response.text();
+                document.getElementById('content').innerHTML = html;
+                
+                // Execute scripts in the loaded content
+                Array.from(document.getElementById('content').getElementsByTagName('script'))
+                    .forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                
+                // Update URL
+                history.pushState({ path: path }, '', `#${path}`);
+            } catch (error) {
+                console.error('Error loading page:', error);
+                document.getElementById('content').innerHTML = '<h1>404 - Page Not Found</h1><p>Sorry, the page you\'re looking for doesn\'t exist.</p>';
+            }
+        }
+
+        async function initApp() {
+            const structure = await fetchSiteStructure();
+            if (!structure) {
+                document.getElementById('content').innerHTML = '<h1>Error</h1><p>Failed to load site structure.</p>';
+                return;
+            }
+            createNavbar(structure);
+
+            // Load default page (first page in structure)
+            const defaultPage = Object.values(structure)[0];
+            loadPage(defaultPage.path);
+
+            // Handle navigation
+            window.addEventListener('popstate', (event) => {
+                if (event.state && event.state.path) {
+                    loadPage(event.state.path);
+                }
+            });
+
+            // Handle initial load based on URL hash
+            const hash = window.location.hash.substring(1);
+            if (hash && structure[hash]) {
+                loadPage(structure[hash].path);
+            } else if (hash) {
+                // Check submenus
+                for (const page of Object.values(structure)) {
+                    if (page.submenu && page.submenu[hash]) {
+                        loadPage(page.submenu[hash].path);
+                        break;
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
 </body>
 </html>
