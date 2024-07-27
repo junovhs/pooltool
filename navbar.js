@@ -2,14 +2,12 @@ const config = {
     repoOwner: 'junovhs',
     repoName: 'pooltool',
     pagesPath: 'pages',
-    excludeFiles: ['index.html', 'config.js', 'navbar.js', 'styles.css']
+    excludeFiles: ['index.html', 'config.js', 'navbar.js', 'styles.css', '404.html']
 };
 
 async function generateNavbar() {
-    const apiUrl = `https://api.github.com/repos/${config.repoOwner}/${config.repoName}/contents/${config.pagesPath}`;
-    
     try {
-        const response = await fetch(apiUrl);
+        const response = await fetch(`https://api.github.com/repos/${config.repoOwner}/${config.repoName}/contents/${config.pagesPath}`);
         const data = await response.json();
         
         const navbarHtml = `
@@ -74,42 +72,22 @@ async function loadPage(page) {
     const contentDiv = document.getElementById('content');
     if (page === '') {
         contentDiv.innerHTML = `
-            <h2>Welcome to Pool Tool</h2>
-            <p>Pool Tool is a collection of useful calculators and tools for various purposes. Select a tool from the navigation menu to get started.</p>
-            <section id="featured-tools">
-                <h3>Featured Tools</h3>
-                <ul>
-                    <li><a href="#" data-page="salviadosage.html">S.A.L.V.I.A. Experience Level Calculator</a></li>
-                </ul>
-            </section>
+            <h1>Welcome to Pool Tool</h1>
+            <p>Select a tool from the navigation menu to get started.</p>
         `;
-        addContentListeners();
     } else {
         try {
-            const iframe = document.createElement('iframe');
-            iframe.style.width = '100%';
-            iframe.style.height = '100vh';
-            iframe.style.border = 'none';
-            iframe.src = `${config.pagesPath}/${page}`;
-            
-            contentDiv.innerHTML = '';
-            contentDiv.appendChild(iframe);
+            const response = await fetch(`/${config.pagesPath}/${page}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const html = await response.text();
+            contentDiv.innerHTML = html;
         } catch (error) {
             console.error('Error loading page:', error);
             contentDiv.innerHTML = '<h1>Error loading page</h1>';
         }
     }
-}
-
-function addContentListeners() {
-    document.querySelectorAll('#content a[data-page]').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = link.getAttribute('data-page');
-            loadPage(page);
-            window.history.pushState({page: page}, '', `/pooltool/?page=${page}`);
-        });
-    });
 }
 
 function handlePageLoad() {
