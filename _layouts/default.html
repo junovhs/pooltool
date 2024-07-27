@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title | default: site.title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        nav { background: #f0f0f0; padding: 10px; }
+        nav ul { list-style-type: none; padding: 0; }
+        nav ul li { display: inline; margin-right: 10px; }
+        main { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+        {% assign pages_list = site.pages | sort:"url" %}
+        {% for node in pages_list %}
+            {% if node.title != null and node.url contains "/pages/" %}
+            <li><a href="{{ node.url | relative_url }}">{{ node.title }}</a></li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </nav>
+    <main>
+        {{ content }}
+    </main>
+</body>
+</html>
