@@ -1,3 +1,10 @@
+const config = {
+    repoOwner: 'junovhs',
+    repoName: 'pooltool',
+    pagesPath: 'pages',
+    excludeFiles: ['index.html', 'config.js', 'navbar.js', 'styles.css']
+};
+
 async function generateNavbar() {
     const apiUrl = `https://api.github.com/repos/${config.repoOwner}/${config.repoName}/contents/${config.pagesPath}`;
     
@@ -8,7 +15,7 @@ async function generateNavbar() {
         const navbarHtml = `
             <ul>
                 <li><a href="/pooltool/">Home</a></li>
-                ${generateNavItems(data)}
+                ${await generateNavItems(data)}
             </ul>
         `;
         
@@ -19,26 +26,28 @@ async function generateNavbar() {
     }
 }
 
-function generateNavItems(items, parentPath = '') {
-    return items
-        .filter(item => !config.excludeFiles.includes(item.name))
-        .map(item => {
-            const fullPath = parentPath + '/' + item.name;
-            if (item.type === 'dir') {
-                return `
-                    <li class="dropdown">
-                        <a href="#" class="dropbtn">${item.name}</a>
-                        <div class="dropdown-content">
-                            ${generateNavItems(item.children, fullPath)}
-                        </div>
-                    </li>
-                `;
-            } else if (item.name.endsWith('.html')) {
-                return `<li><a href="/pooltool/?page=${fullPath.slice(1)}" data-page="${fullPath.slice(1)}">${item.name.replace('.html', '')}</a></li>`;
-            }
-            return '';
-        })
-        .join('');
+async function generateNavItems(items, parentPath = '') {
+    let navItems = '';
+    for (const item of items) {
+        if (config.excludeFiles.includes(item.name)) continue;
+        
+        const fullPath = parentPath + '/' + item.name;
+        if (item.type === 'dir') {
+            const response = await fetch(item.url);
+            const children = await response.json();
+            navItems += `
+                <li class="dropdown">
+                    <a href="#" class="dropbtn">${item.name}</a>
+                    <div class="dropdown-content">
+                        ${await generateNavItems(children, fullPath)}
+                    </div>
+                </li>
+            `;
+        } else if (item.name.endsWith('.html')) {
+            navItems += `<li><a href="/pooltool/?page=${fullPath.slice(1)}" data-page="${fullPath.slice(1)}">${item.name.replace('.html', '')}</a></li>`;
+        }
+    }
+    return navItems;
 }
 
 function addNavbarListeners() {
@@ -50,8 +59,10 @@ function addNavbarListeners() {
             } else {
                 e.preventDefault();
                 const page = link.getAttribute('data-page');
-                loadPage(page);
-                window.history.pushState({page: page}, '', link.href);
+                if (page) {
+                    loadPage(page);
+                    window.history.pushState({page: page}, '', link.href);
+                }
             }
         });
     });
