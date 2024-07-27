@@ -1,21 +1,20 @@
-// app.js
 document.addEventListener("DOMContentLoaded", function() {
     const navbar = document.getElementById('navbar');
     const content = document.getElementById('content');
 
-    // Function to generate navigation
+    // Function to scan the pages directory and generate navigation
     async function generateNavigation() {
         try {
             const response = await fetch('pages/');
-            const text = await response.text();
+            const html = await response.text();
             const parser = new DOMParser();
-            const doc = parser.parseFromString(text, 'text/html');
+            const doc = parser.parseFromString(html, 'text/html');
             const links = Array.from(doc.querySelectorAll('a'))
-                .filter(link => link.href.endsWith('.html'))
-                .map(link => link.getAttribute('href'));
+                .filter(a => a.href.endsWith('.html'))
+                .map(a => a.href.split('/').pop());
 
-            const navHTML = links.map(link => 
-                `<li><a href="#${link}">${formatLinkName(link)}</a></li>`
+            const navHTML = links.map(page => 
+                `<li><a href="#${page}">${formatLinkName(page)}</a></li>`
             ).join('');
             navbar.innerHTML = `<ul>${navHTML}</ul>`;
             addNavEventListeners();
@@ -26,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Function to format link names
     function formatLinkName(link) {
-        return link.replace('.html', '').split('/').pop().split('_').map(word => 
+        return link.replace('.html', '').split('_').map(word => 
             word.charAt(0).toUpperCase() + word.slice(1)
         ).join(' ');
     }
@@ -57,12 +56,12 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Handle popstate event for browser back/forward navigation
     window.addEventListener('popstate', function() {
-        const page = location.hash.substring(1) || 'home.html';
+        const page = location.hash.substring(1) || 'index.html';
         loadPage(page);
     });
 
     // Initial setup
     generateNavigation();
-    const initialPage = location.hash.substring(1) || 'home.html';
+    const initialPage = location.hash.substring(1) || 'index.html';
     loadPage(initialPage);
 });
