@@ -1,67 +1,38 @@
-/* Basic styling for the navbar */
-.main-menu {
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+}
+
+nav ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
-    display: flex;
-    background-color: #333;
 }
 
-.main-menu > li {
-    position: relative;
+nav ul li {
+    display: inline;
+    margin-right: 1rem;
 }
 
-.main-menu > li > a,
-.dropdown-btn {
-    display: block;
+nav ul li a {
     color: white;
-    text-align: center;
-    padding: 14px 16px;
     text-decoration: none;
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
 }
 
-.main-menu > li > a:hover,
-.dropdown-btn:hover {
-    background-color: #111;
+main {
+    padding: 1rem;
 }
 
-.submenu {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-.main-menu > li:hover .submenu {
-    display: block;
-}
-
-.submenu a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    text-align: left;
-}
-
-.submenu a:hover {
-    background-color: #f1f1f1;
-}
-
-/* Basic layout */
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-}
-
-#content {
-    padding: 20px;
+@media (max-width: 600px) {
+    nav ul li {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
 }
