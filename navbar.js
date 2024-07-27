@@ -7,12 +7,8 @@ async function generateNavbar() {
         
         const navbarHtml = `
             <ul>
-                <li><a href="/pooltool/" data-page="">Home</a></li>
-                ${data
-                    .filter(file => file.type === 'file' && file.name.endsWith('.html'))
-                    .map(file => `<li><a href="/pooltool/?page=${file.name}" data-page="${file.name}">${file.name.replace('.html', '')}</a></li>`)
-                    .join('')
-                }
+                <li><a href="/pooltool/">Home</a></li>
+                ${generateNavItems(data)}
             </ul>
         `;
         
@@ -23,13 +19,40 @@ async function generateNavbar() {
     }
 }
 
+function generateNavItems(items, parentPath = '') {
+    return items
+        .filter(item => !config.excludeFiles.includes(item.name))
+        .map(item => {
+            const fullPath = parentPath + '/' + item.name;
+            if (item.type === 'dir') {
+                return `
+                    <li class="dropdown">
+                        <a href="#" class="dropbtn">${item.name}</a>
+                        <div class="dropdown-content">
+                            ${generateNavItems(item.children, fullPath)}
+                        </div>
+                    </li>
+                `;
+            } else if (item.name.endsWith('.html')) {
+                return `<li><a href="/pooltool/?page=${fullPath.slice(1)}" data-page="${fullPath.slice(1)}">${item.name.replace('.html', '')}</a></li>`;
+            }
+            return '';
+        })
+        .join('');
+}
+
 function addNavbarListeners() {
     document.querySelectorAll('#navbar a').forEach(link => {
         link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = e.target.getAttribute('data-page');
-            loadPage(page);
-            window.history.pushState({page: page}, '', e.target.href);
+            if (link.classList.contains('dropbtn')) {
+                e.preventDefault();
+                link.parentElement.classList.toggle('active');
+            } else {
+                e.preventDefault();
+                const page = link.getAttribute('data-page');
+                loadPage(page);
+                window.history.pushState({page: page}, '', link.href);
+            }
         });
     });
 }
