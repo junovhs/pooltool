@@ -1,7 +1,280 @@
----
-layout: default
-title: Home
----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Projects</title>
+  <!-- Google Font for a clean look -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* ========== Theme & Reset ========== */
+    :root {
+      --bg-color: #0d0d0d;
+      --primary-color: #1a1a1a;
+      --accent-color: #00bcd4;
+      --text-color: #e0e0e0;
+      --nav-bg: rgba(0, 0, 0, 0.7);
+      --nav-hover: rgba(0, 188, 212, 0.2);
+      --transition-speed: 0.3s;
+    }
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
 
-<h1>Welcome to the Dynamic Content Hub</h1>
-<p>Select a page from the navigation menu above to view its content.</p>
+    /* ========== Header & Navigation ========== */
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--accent-color);
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+    /* Hamburger toggle (for mobile) */
+    .nav-toggle {
+      display: none;
+      cursor: pointer;
+    }
+    /* Navigation links */
+    nav {
+      display: flex;
+      gap: 20px;
+    }
+    nav a {
+      text-decoration: none;
+      color: var(--text-color);
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background var(--transition-speed);
+    }
+    nav a:hover {
+      background: var(--nav-hover);
+    }
+    /* Responsive: toggle nav on small screens */
+    @media (max-width: 768px) {
+      .nav-toggle {
+        display: block;
+      }
+      nav {
+        position: fixed;
+        top: 60px;
+        right: 0;
+        background: var(--nav-bg);
+        flex-direction: column;
+        width: 200px;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height var(--transition-speed) ease;
+      }
+      nav.open {
+        max-height: 400px;
+      }
+    }
+
+    /* ========== Main Content Grid ========== */
+    main {
+      margin-top: 70px; /* room for the fixed header */
+      padding: 20px;
+      animation: fadeIn 0.6s ease forwards;
+      opacity: 0;
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+    .content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .project {
+      background: var(--primary-color);
+      border: 2px solid var(--accent-color);
+      border-radius: 8px;
+      padding: 20px;
+      transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .project:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 188, 212, 0.4);
+    }
+    .project h2 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+    }
+    .project p {
+      font-size: 0.9rem;
+    }
+
+    /* ========== Modal Overlay ========== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+    .modal-content {
+      background: var(--primary-color);
+      padding: 20px;
+      border: 2px solid var(--accent-color);
+      border-radius: 8px;
+      max-height: 90vh;
+      overflow-y: auto;
+      width: 90%;
+      max-width: 800px;
+    }
+    .modal-close {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: var(--accent-color);
+      border: none;
+      color: var(--bg-color);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background var(--transition-speed);
+    }
+    .modal-close:hover {
+      background: #0097a7;
+    }
+  </style>
+</head>
+<body>
+  <!-- ========== Header & Navigation ========== -->
+  <header>
+    <h1>My Projects</h1>
+    <div class="nav-toggle" id="navToggle">
+      <svg width="24" height="24" fill="var(--text-color)" xmlns="http://www.w3.org/2000/svg">
+        <rect y="4" width="24" height="2"/>
+        <rect y="11" width="24" height="2"/>
+        <rect y="18" width="24" height="2"/>
+      </svg>
+    </div>
+    <nav id="nav">
+      <a href="#home">Home</a>
+      <!-- Additional nav items will be dynamically added -->
+    </nav>
+  </header>
+
+  <!-- ========== Main Content Grid ========== -->
+  <main>
+    <section class="content" id="projectsContainer">
+      <!-- Project cards are dynamically inserted here -->
+    </section>
+  </main>
+
+  <!-- ========== JavaScript ========== -->
+  <script>
+    /**
+     * Replace this sample data with dynamic fetching if needed.
+     * Here we simulate project pages stored in your "pages" directory.
+     */
+    const projectsData = [
+      { name: "Cash Counter", description: "A tool to help cashiers close their drawers.", path: "pages/cash-counter.html" },
+      { name: "Workday Timer", description: "A timer for hourly workers to track their day.", path: "pages/workday-timer.html" },
+      { name: "Research Tool", description: "A companion app for AI-assisted research.", path: "pages/research-tool.html" }
+      // Add more projects as needed...
+    ];
+
+    const projectsContainer = document.getElementById('projectsContainer');
+    const nav = document.getElementById('nav');
+
+    // Create project cards and nav links dynamically
+    function loadProjects() {
+      projectsData.forEach(project => {
+        // Create the project card
+        const card = document.createElement('div');
+        card.className = 'project';
+        card.innerHTML = `
+          <h2>${project.name}</h2>
+          <p>${project.description}</p>
+        `;
+        card.addEventListener('click', () => {
+          window.location.hash = project.path;
+        });
+        projectsContainer.appendChild(card);
+
+        // Create corresponding nav link
+        const navLink = document.createElement('a');
+        navLink.href = '#' + project.path;
+        navLink.textContent = project.name;
+        nav.appendChild(navLink);
+      });
+    }
+
+    // Handle mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    navToggle.addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
+
+    // Listen for hash changes to load project content in a modal overlay
+    window.addEventListener('hashchange', handleHashChange);
+    function handleHashChange() {
+      const hash = window.location.hash.substring(1);
+      if (hash && hash !== 'home') {
+        fetch(hash)
+          .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.text();
+          })
+          .then(html => {
+            showModal(html);
+          })
+          .catch(err => {
+            showModal(`<h2>Error</h2><p>Failed to load the project content.</p>`);
+          });
+      }
+    }
+
+    // Function to show an overlay modal with project content
+    function showModal(content) {
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal-content">
+          <div id="modalContent">${content}</div>
+          <button class="modal-close" id="modalClose">Close</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.getElementById('modalClose').addEventListener('click', () => {
+        overlay.remove();
+        window.location.hash = 'home';
+      });
+    }
+
+    // Load project cards on DOM ready
+    document.addEventListener('DOMContentLoaded', loadProjects);
+  </script>
+</body>
+</html>
