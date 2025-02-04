@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Projects</title>
+  <title>My Dynamic Website</title>
   <!-- Google Font for a clean look -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* ========== Theme & Reset ========== */
+    /* ========== CSS Variables & Reset ========== */
     :root {
-      --bg-color: #0d0d0d;
-      --primary-color: #1a1a1a;
-      --accent-color: #00bcd4;
-      --text-color: #e0e0e0;
-      --nav-bg: rgba(0, 0, 0, 0.7);
-      --nav-hover: rgba(0, 188, 212, 0.2);
+      --bg-color: #f7f7f7;
+      --primary-color: #ffffff;
+      --accent-color: #007BFF;
+      --text-color: #333333;
+      --nav-bg: rgba(255, 255, 255, 0.95);
+      --nav-hover: rgba(0, 123, 255, 0.1);
       --transition-speed: 0.3s;
+      --modal-bg: rgba(0, 0, 0, 0.05);
     }
     *, *::before, *::after {
       margin: 0;
@@ -30,7 +31,7 @@
       line-height: 1.6;
     }
 
-    /* ========== Header & Navigation ========== */
+    /* ========== Fixed Header & Navigation ========== */
     header {
       position: fixed;
       top: 0;
@@ -41,7 +42,6 @@
       align-items: center;
       padding: 10px 20px;
       background: var(--nav-bg);
-      backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--accent-color);
     }
     header h1 {
@@ -49,12 +49,11 @@
       font-weight: 700;
       color: var(--accent-color);
     }
-    /* Hamburger toggle (for mobile) */
+    /* Hamburger toggle for mobile */
     .nav-toggle {
       display: none;
       cursor: pointer;
     }
-    /* Navigation links */
     nav {
       display: flex;
       gap: 20px;
@@ -70,7 +69,6 @@
     nav a:hover {
       background: var(--nav-hover);
     }
-    /* Responsive: toggle nav on small screens */
     @media (max-width: 768px) {
       .nav-toggle {
         display: block;
@@ -85,15 +83,16 @@
         max-height: 0;
         overflow: hidden;
         transition: max-height var(--transition-speed) ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
       nav.open {
         max-height: 400px;
       }
     }
 
-    /* ========== Main Content Grid ========== */
+    /* ========== Main Dashboard Grid ========== */
     main {
-      margin-top: 70px; /* room for the fixed header */
+      margin-top: 70px; /* Allow space for the fixed header */
       padding: 20px;
       animation: fadeIn 0.6s ease forwards;
       opacity: 0;
@@ -101,12 +100,12 @@
     @keyframes fadeIn {
       to { opacity: 1; }
     }
-    .content {
+    .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
     }
-    .project {
+    .card {
       background: var(--primary-color);
       border: 2px solid var(--accent-color);
       border-radius: 8px;
@@ -116,31 +115,37 @@
       position: relative;
       overflow: hidden;
     }
-    .project:hover {
+    .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0, 188, 212, 0.4);
+      box-shadow: 0 10px 20px rgba(0,123,255,0.2);
     }
-    .project h2 {
+    .card h2 {
       font-size: 1.2rem;
       margin-bottom: 10px;
+      color: var(--accent-color);
     }
-    .project p {
+    .card p {
       font-size: 0.9rem;
     }
 
-    /* ========== Modal Overlay ========== */
+    /* ========== Modal Overlay for Page Content ========== */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2000;
       padding: 20px;
+      animation: fadeInModal 0.3s ease forwards;
+    }
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     .modal-content {
       background: var(--primary-color);
@@ -151,26 +156,27 @@
       overflow-y: auto;
       width: 90%;
       max-width: 800px;
+      position: relative;
     }
     .modal-close {
       margin-top: 20px;
       padding: 10px 20px;
       background: var(--accent-color);
       border: none;
-      color: var(--bg-color);
+      color: var(--primary-color);
       border-radius: 4px;
       cursor: pointer;
       transition: background var(--transition-speed);
     }
     .modal-close:hover {
-      background: #0097a7;
+      background: #0056b3;
     }
   </style>
 </head>
 <body>
   <!-- ========== Header & Navigation ========== -->
   <header>
-    <h1>My Projects</h1>
+    <h1>My Website</h1>
     <div class="nav-toggle" id="navToggle">
       <svg width="24" height="24" fill="var(--text-color)" xmlns="http://www.w3.org/2000/svg">
         <rect y="4" width="24" height="2"/>
@@ -179,85 +185,107 @@
       </svg>
     </div>
     <nav id="nav">
+      <!-- "Home" is always present -->
       <a href="#home">Home</a>
-      <!-- Additional nav items will be dynamically added -->
+      <!-- Additional links will be dynamically inserted here -->
     </nav>
   </header>
 
-  <!-- ========== Main Content Grid ========== -->
-  <main>
-    <section class="content" id="projectsContainer">
-      <!-- Project cards are dynamically inserted here -->
+  <!-- ========== Main Dashboard (Project Cards) ========== -->
+  <main id="mainContent">
+    <section class="dashboard" id="dashboard">
+      <!-- Project cards will be inserted here dynamically -->
     </section>
   </main>
 
   <!-- ========== JavaScript ========== -->
   <script>
     /**
-     * Replace this sample data with dynamic fetching if needed.
-     * Here we simulate project pages stored in your "pages" directory.
+     * Dynamically fetches the list of pages from the "Pages" folder.
+     * Works differently in local mode (fetching a directory listing) and on GitHub Pages (using the GitHub API).
      */
-    const projectsData = [
-      { name: "Cash Counter", description: "A tool to help cashiers close their drawers.", path: "pages/cash-counter.html" },
-      { name: "Workday Timer", description: "A timer for hourly workers to track their day.", path: "pages/workday-timer.html" },
-      { name: "Research Tool", description: "A companion app for AI-assisted research.", path: "pages/research-tool.html" }
-      // Add more projects as needed...
-    ];
-
-    const projectsContainer = document.getElementById('projectsContainer');
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const dashboard = document.getElementById('dashboard');
     const nav = document.getElementById('nav');
 
-    // Create project cards and nav links dynamically
-    function loadProjects() {
-      projectsData.forEach(project => {
-        // Create the project card
-        const card = document.createElement('div');
-        card.className = 'project';
-        card.innerHTML = `
-          <h2>${project.name}</h2>
-          <p>${project.description}</p>
-        `;
-        card.addEventListener('click', () => {
-          window.location.hash = project.path;
-        });
-        projectsContainer.appendChild(card);
+    // Adjust these values to match your GitHub repository details
+    const githubOwner = 'junovhs';       // Replace with your GitHub username if needed
+    const githubRepo  = 'redleaf';        // Replace with your repository name
+    const pagesFolder = 'Pages';          // The folder where your HTML files live
 
-        // Create corresponding nav link
+    async function fetchPages() {
+      let pages = [];
+      try {
+        if (isLocal) {
+          // In local mode, fetch the directory listing from "Pages/"
+          const response = await fetch(pagesFolder + '/');
+          if (!response.ok) throw new Error('Failed to fetch local Pages directory');
+          const text = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const links = Array.from(doc.querySelectorAll('a'));
+          links.forEach(link => {
+            const href = link.getAttribute('href');
+            // Only include HTML files (ignore parent links and directories unless needed)
+            if (href.endsWith('.html')) {
+              pages.push({ type: 'file', name: href.replace('.html', ''), path: pagesFolder + '/' + href });
+            }
+          });
+        } else {
+          // On GitHub Pages, use the GitHub API to list contents of the Pages folder
+          const apiURL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${pagesFolder}`;
+          const response = await fetch(apiURL);
+          if (!response.ok) throw new Error('Failed to fetch Pages list from GitHub API');
+          const items = await response.json();
+          for (const item of items) {
+            if (item.type === 'file' && item.name.endsWith('.html')) {
+              pages.push({ type: 'file', name: item.name.replace('.html', ''), path: pagesFolder + '/' + item.name });
+            }
+            // Optionally, you can add folder support here if you want nested pages.
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pages:', error);
+      }
+      return pages;
+    }
+
+    // Create navigation links and dashboard cards based on fetched pages
+    function createNavAndCards(pages) {
+      pages.forEach(page => {
+        // Create nav link
         const navLink = document.createElement('a');
-        navLink.href = '#' + project.path;
-        navLink.textContent = project.name;
+        navLink.href = '#' + page.path;
+        navLink.textContent = page.name;
         nav.appendChild(navLink);
+
+        // Create a card for the dashboard view
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<h2>${page.name}</h2>
+                          <p>Click to view this page</p>`;
+        card.addEventListener('click', () => {
+          window.location.hash = page.path;
+        });
+        dashboard.appendChild(card);
       });
     }
 
-    // Handle mobile nav toggle
-    const navToggle = document.getElementById('navToggle');
-    navToggle.addEventListener('click', () => {
-      nav.classList.toggle('open');
-    });
-
-    // Listen for hash changes to load project content in a modal overlay
-    window.addEventListener('hashchange', handleHashChange);
-    function handleHashChange() {
-      const hash = window.location.hash.substring(1);
-      if (hash && hash !== 'home') {
-        fetch(hash)
-          .then(response => {
-            if (!response.ok) throw new Error('Network error');
-            return response.text();
-          })
-          .then(html => {
-            showModal(html);
-          })
-          .catch(err => {
-            showModal(`<h2>Error</h2><p>Failed to load the project content.</p>`);
-          });
+    // Load content from a given page path and show it in a modal overlay
+    async function loadContent(pagePath) {
+      try {
+        const response = await fetch(pagePath);
+        if (!response.ok) throw new Error('Failed to fetch page content');
+        const html = await response.text();
+        showModal(html);
+      } catch (error) {
+        console.error('Error loading content:', error);
+        showModal(`<h2>Error</h2><p>Failed to load the content.</p>`);
       }
     }
 
-    // Function to show an overlay modal with project content
+    // Display the fetched content in a modal overlay
     function showModal(content) {
-      // Create overlay
       const overlay = document.createElement('div');
       overlay.className = 'modal-overlay';
       overlay.innerHTML = `
@@ -273,8 +301,29 @@
       });
     }
 
-    // Load project cards on DOM ready
-    document.addEventListener('DOMContentLoaded', loadProjects);
+    // Handle URL hash changes to load content dynamically
+    function handleHashChange() {
+      const hash = window.location.hash.substring(1);
+      // If "home" or empty hash, do nothing (dashboard remains visible)
+      if (!hash || hash === 'home') return;
+      loadContent(hash);
+    }
+
+    // Mobile nav toggle behavior
+    const navToggle = document.getElementById('navToggle');
+    navToggle.addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+      const pages = await fetchPages();
+      createNavAndCards(pages);
+      // Default to home if no hash is set
+      if (!window.location.hash) window.location.hash = 'home';
+      else handleHashChange();
+    });
+    window.addEventListener('hashchange', handleHashChange);
   </script>
 </body>
 </html>
