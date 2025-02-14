@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- All CSS has been stripped out; no <style> tag, no <base> tag -->
+  <!-- Removed the <base> tag so it won’t interfere with relative URLs -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Supplier Categories Visualization</title>
+  <!-- Use the same Montserrat font as your index.html -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Alphabet Filter -->
+  <!-- Alphabet Filter (this element will be positioned and styled by the parent if needed) -->
   <div id="alphabet-filter"></div>
 
   <!-- Categories Container -->
   <div class="container">
-    <!-- Popular Cruises -->
-    <div class="category">
+    <!-- Each category is now a plain section with a heading and an unordered list -->
+    <section class="category">
       <h2>Popular Cruises</h2>
       <ul>
         <li>Norwegian</li>
@@ -25,15 +27,14 @@
         <li>Princess</li>
         <li>Carnival</li>
         <li>MSC Cruises</li>
-        <li data-parent="Viking Ocean">Viking Ocean</li>
+        <li>Viking Ocean</li>
       </ul>
-    </div>
-    
-    <!-- Luxury Cruises -->
-    <div class="category wide">
+    </section>
+
+    <section class="category">
       <h2>Luxury Cruises</h2>
       <ul>
-        <li data-parent="Viking Ocean">Viking Ocean</li>
+        <li>Viking Ocean</li>
         <li>American Cruise Line</li>
         <li>Atlas Ocean Voyages</li>
         <li>Azamara</li>
@@ -55,13 +56,12 @@
         <li>Tauck Cruises</li>
         <li>Windstar</li>
       </ul>
-    </div>
-    
-    <!-- River Cruises -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>River Cruises</h2>
       <ul>
-        <li data-parent="Viking River">Viking River</li>
+        <li>Viking River</li>
         <li>Avalon Waterways</li>
         <li>Ama Waterways</li>
         <li>CroisiEurope</li>
@@ -71,20 +71,18 @@
         <li>Uniworld</li>
         <li>Scenic River</li>
       </ul>
-    </div>
-    
-    <!-- Adventure Cruising -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>Adventure Cruising</h2>
       <ul>
         <li>Lindblad Expeditions &amp; National Geographic</li>
         <li>Hurtigruten</li>
         <li>UnCruise Adventures</li>
       </ul>
-    </div>
-    
-    <!-- Disney -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>Disney</h2>
       <ul>
         <li>Adventures by Disney</li>
@@ -92,10 +90,9 @@
         <li>DisneyWorld</li>
         <li>Aulani, A Disney Resort &amp; Spa</li>
       </ul>
-    </div>
-    
-    <!-- Resorts and Hawaii -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>Resorts and Hawaii</h2>
       <ul>
         <li>Sandals</li>
@@ -120,10 +117,9 @@
         <li>Zoëtry Wellness &amp; Spa Resorts</li>
         <li>Atlantis Paradise Island Bahamas</li>
       </ul>
-    </div>
-    
-    <!-- Tours and Custom Trips -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>Tours and Custom Trips</h2>
       <ul>
         <li>Great Safaris</li>
@@ -137,10 +133,9 @@
         <li>CIE Tours*</li>
         <li>Collette*</li>
       </ul>
-    </div>
-    
-    <!-- Shore Excursions -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>Shore Excursions</h2>
       <ul>
         <li>Shore Excursions Group</li>
@@ -148,15 +143,14 @@
         <li>Viator</li>
         <li>Project Expedition</li>
       </ul>
-    </div>
-    
-    <!-- Rail Vacations -->
-    <div class="category">
+    </section>
+
+    <section class="category">
       <h2>Rail Vacations</h2>
       <ul>
         <li>Rocky Mountaineer</li>
       </ul>
-    </div>
+    </section>
   </div>
 
   <script>
@@ -165,32 +159,26 @@
       const alphabetFilter = document.getElementById('alphabet-filter');
       
       let suppliers = new Map();
-    
+      
       categories.forEach(category => {
         const items = category.querySelectorAll('li');
         items.forEach(item => {
           const supplierName = item.dataset.parent || item.textContent;
-          if (suppliers.has(supplierName)) {
-            suppliers.set(supplierName, suppliers.get(supplierName) + 1);
-          } else {
-            suppliers.set(supplierName, 1);
-          }
+          suppliers.set(supplierName, (suppliers.get(supplierName) || 0) + 1);
         });
       });
-    
+      
       const sortedSuppliers = [...suppliers.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-    
+      
       function getColorForCount(count) {
-        // Arbitrary color logic. Will have no effect if there's no CSS.
         if (count === 1) return '#4CAF50';
         if (count === 2) return '#FFC107';
         return '#F44336';
       }
-    
+      
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       alphabet.split('').forEach(letter => {
         const suppliersForLetter = sortedSuppliers.filter(([supplier]) => supplier.toUpperCase().startsWith(letter));
-        
         if (suppliersForLetter.length > 0) {
           const letterDiv = document.createElement('div');
           letterDiv.classList.add('letter');
@@ -202,7 +190,7 @@
           suppliersForLetter.forEach(([supplier, count]) => {
             const item = document.createElement('div');
             item.classList.add('supplier-item');
-            item.textContent = `${supplier} (${count})`;
+            item.textContent = supplier + " (" + count + ")";
             item.style.backgroundColor = getColorForCount(count);
             item.style.color = count > 1 ? '#041317' : '#FFFFFF';
             item.addEventListener('click', () => filterSuppliers(supplier));
@@ -213,7 +201,7 @@
           alphabetFilter.appendChild(letterDiv);
         }
       });
-    
+      
       function filterSuppliers(supplierName) {
         const allItems = document.querySelectorAll('.category li');
         allItems.forEach(item => {
@@ -224,15 +212,6 @@
           }
         });
       }
-      
-      // Example logic: if a category has more than 14 items, we mark it "wide"
-      categories.forEach(category => {
-        const list = category.querySelector('ul');
-        const items = list.querySelectorAll('li');
-        if (items.length > 14) {
-          category.classList.add('wide');
-        }
-      });
     });
   </script>
 </body>
