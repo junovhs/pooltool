@@ -2,356 +2,607 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Dynamic Website</title>
-  <!-- Google Font for a clean look -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" 
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TravelPerks Value Proposition Presentation</title>
   <style>
-    /* ========== CSS Variables & Reset ========== */
+    /* Base Variables & Resets */
     :root {
-      --bg-color: #f7f7f7;
-      --primary-color: #ffffff;
-      --accent-color: #007BFF;
-      --text-color: #333333;
-      --nav-bg: rgba(255, 255, 255, 0.95);
-      --nav-hover: rgba(0, 123, 255, 0.1);
-      --transition-speed: 0.3s;
-      --nav-height: 60px;
-      --max-width: 1200px;
+      --primary-color: #2c3e50;
+      --accent-color: #e74c3c;
+      --highlight-color: #3498db;
+      --text-color: #333;
+      --background-color: #ecf0f1;
+      
+      /* Default sizing for a 16:9 display */
+      --h1-size: 3rem;
+      --h2-size: 2.5rem;
+      --body-font: 1rem;
+      --small-font: 0.9rem;
+      --container-padding: 1rem;
     }
-    *, *::before, *::after {
+    * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      overflow-x: hidden;
-      line-height: 1.6;
-    }
-    /* ========== Fixed Header & Navigation ========== */
-    header {
-      position: fixed;
-      top: 0;
+    html, body {
+      height: 100%;
       width: 100%;
-      z-index: 1000;
+      overflow-y: auto;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--background-color);
+      color: var(--text-color);
+      scroll-behavior: smooth;
+    }
+    
+    /* Each slide fills the viewport */
+    .slide {
+      position: relative;
+      min-height: 100vh;
+      width: 100%;
+      padding: var(--container-padding);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    
+    /* Headings & Text */
+    h1 {
+      font-size: var(--h1-size);
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+    h2 {
+      font-size: var(--h2-size);
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+    .subtitle {
+      font-size: calc(var(--body-font) * 1.5);
+      color: var(--accent-color);
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: var(--body-font);
+      line-height: 1.4;
+      max-width: 90%;
+      margin: 0.5rem auto;
+    }
+    
+    /* Example Content Containers */
+    .problem-container,
+    .goal-container,
+    .solution-container,
+    .options-container {
+      width: 90%;
+      max-width: 1000px;
+      padding: var(--container-padding);
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin: 1rem 0;
+    }
+    
+    /* Icon Styles (if needed) */
+    .icon-container {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1rem;
+    }
+    .icon {
+      width: 100%;
+      height: 100%;
+      fill: var(--accent-color);
+    }
+    
+    /* Details & List */
+    .details ul {
+      text-align: left;
+      margin: 0.5rem 0;
+      padding-left: 1rem;
+      font-size: var(--small-font);
+    }
+    
+    /* Comparison Container for side-by-side content */
+    .comparison-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .booking-option {
+      flex: 1;
+      min-width: 250px;
+      max-width: 350px;
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .vs {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      align-self: center;
+    }
+    .perks {
+      text-align: left;
+      margin: 0.5rem 0;
+    }
+    .perk {
+      background: #f7f9fc;
+      padding: 0.5rem;
+      margin: 0.3rem 0;
+      border-radius: 5px;
+      font-size: var(--small-font);
+    }
+    
+    /* Dark themed solution slide */
+    #solution {
+      background: #222;
+      color: #fff;
+    }
+    #solution .solution-container {
+      background: #2d2d2d;
+      color: #fff;
+    }
+    #solution h2 {
+      color: #fff;
+    }
+    
+    /* Clickable image that can go fullscreen */
+    .email-card-image {
+      width: 90%;
+      max-width: 800px;
+      margin: 1rem auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    .email-card-image:hover {
+      transform: scale(1.02);
+    }
+    
+    /* Implementation Options (Cards) */
+    .implementation-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 1rem auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+    .effort-level {
+      width: 100%;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+      margin-bottom: 1rem;
+    }
+    .effort-level:hover {
+      transform: translateY(-5px);
+    }
+    .level-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 20px;
-      background: var(--nav-bg);
-      border-bottom: 1px solid var(--accent-color);
-      height: var(--nav-height);
+      padding: 0.75rem 1rem;
+      color: #fff;
     }
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--accent-color);
-    }
-    /* Hamburger toggle for mobile */
-    .nav-toggle {
-      display: none;
-      cursor: pointer;
-    }
-    nav {
+    .level-header.minimal { background: #3498db; }
+    .level-header.moderate { background: #e67e22; }
+    .level-header.maximum { background: #e74c3c; }
+    .effort-indicator {
       display: flex;
-      gap: 20px;
+      gap: 0.3rem;
     }
-    nav a {
-      text-decoration: none;
-      color: var(--text-color);
-      font-weight: 500;
-      padding: 8px 12px;
-      border-radius: 4px;
-      transition: background var(--transition-speed);
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
     }
-    nav a:hover {
-      background: var(--nav-hover);
+    .dot.active { background: #fff; }
+    .level-content {
+      padding: 1rem;
+      text-align: left;
     }
-    @media (max-width: 768px) {
-      .nav-toggle {
-        display: block;
-      }
-      nav {
-        position: fixed;
-        top: var(--nav-height);
-        right: 0;
-        background: var(--nav-bg);
-        flex-direction: column;
-        width: 200px;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height var(--transition-speed) ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      nav.open {
-        max-height: 400px;
-      }
-    }
-    /* ========== Home Page Layout ========== */
-    main#mainContent {
-      margin-top: var(--nav-height);
-      width: 100%;
-      max-width: var(--max-width);
-      margin-left: auto;
-      margin-right: auto;
-    }
-    /* Hero section */
-    section.hero {
-      background: var(--accent-color);
+    .level-content h4 {
+      font-size: 1.5rem;
       color: var(--primary-color);
-      padding: 60px 20px;
-      text-align: center;
+      margin-top: 0;
     }
-    section.hero h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+    .level-content ul {
+      list-style: none;
+      padding: 0;
+      font-size: var(--small-font);
     }
-    section.hero p {
-      font-size: 1.2rem;
+    .level-content li {
+      position: relative;
+      padding-left: 1rem;
+      margin: 0.3rem 0;
     }
-    /* Body section */
-    section.body {
-      padding: 40px 20px;
-    }
-    /* Dashboard cards (for dynamic pages) */
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-    .card {
-      background: var(--primary-color);
-      border: 2px solid var(--accent-color);
-      border-radius: 8px;
-      padding: 20px;
-      transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-      cursor: pointer;
-      overflow: hidden;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,123,255,0.2);
-    }
-    .card h2 {
-      font-size: 1.2rem;
-      margin-bottom: 10px;
+    .level-content li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
       color: var(--accent-color);
     }
-    .card p {
-      font-size: 0.9rem;
+    .benefit {
+      background: #f8f9fa;
+      padding: 0.75rem;
+      border-radius: 5px;
+      font-style: italic;
+      color: var(--primary-color);
+      margin-top: 0.75rem;
+      font-size: var(--small-font);
     }
-    /* Footer */
-    footer {
-      background: #eaeaea;
-      padding: 20px;
-      text-align: center;
-      font-size: 0.9rem;
-      color: #666;
+    
+    /* Fullscreen Image Overlay */
+    .fullscreen-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 1000;
     }
+    .fullscreen-overlay.active {
+      display: flex;
+    }
+    .fullscreen-image {
+      max-width: 90%;
+      max-height: 90vh;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      object-fit: contain;
+    }
+    
+    /* Navigation Buttons */
+    .navigation {
+      position: fixed;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1rem;
+      z-index: 500;
+    }
+    .navigation button {
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .navigation button:hover {
+      background: var(--accent-color);
+    }
+    
+    /* RESPONSIVE BREAKPOINTS */
+    /* 1. Extra Small Devices (Mobile Portrait) */
+    @media (max-width: 599px) {
+      :root {
+        --h1-size: 2rem;
+        --h2-size: 1.75rem;
+        --body-font: 0.9rem;
+        --small-font: 0.8rem;
+        --container-padding: 0.5rem;
+      }
+      .comparison-container {
+        flex-direction: column;
+      }
+      .booking-option {
+        margin-bottom: 0.5rem;
+      }
+    }
+    /* 2. Small Devices (Mobile Landscape / Small Tablets) */
+    @media (min-width: 600px) and (max-width: 899px) {
+      :root {
+        --h1-size: 2.5rem;
+        --h2-size: 2rem;
+        --body-font: 1rem;
+        --small-font: 0.9rem;
+        --container-padding: 0.75rem;
+      }
+      .comparison-container {
+        flex-direction: column;
+      }
+    }
+    /* 3. Medium Devices (Standard Desktops & Laptops) */
+    @media (min-width: 900px) and (max-width: 1439px) {
+      :root {
+        --h1-size: 3rem;
+        --h2-size: 2.5rem;
+        --body-font: 1rem;
+        --small-font: 0.9rem;
+        --container-padding: 1rem;
+      }
+      .comparison-container {
+        flex-direction: row;
+      }
+    }
+    /* 4. Large Devices (Wide Desktops) */
+    @media (min-width: 1440px) and (max-width: 2559px) {
+      :root {
+        --h1-size: 3.5rem;
+        --h2-size: 3rem;
+        --body-font: 1.125rem;
+        --small-font: 1rem;
+        --container-padding: 1.25rem;
+      }
+    }
+    /* 5. Extra Large Devices (4K and beyond) */
+    @media (min-width: 2560px) {
+      :root {
+        --h1-size: 4rem;
+        --h2-size: 3.5rem;
+        --body-font: 1.25rem;
+        --small-font: 1.1rem;
+        --container-padding: 1.5rem;
+      }
+    }
+    /* Optional aspect ratio adjustments (if very tall viewports) */
+    @media (max-aspect-ratio: 3/4) {
+      :root {
+        --h1-size: calc(var(--h1-size) * 0.9);
+        --h2-size: calc(var(--h2-size) * 0.9);
+        --body-font: calc(var(--body-font) * 0.9);
+        --small-font: calc(var(--small-font) * 0.9);
+      }
+    }
+    
   </style>
 </head>
 <body>
-  <!-- ========== Header & Navigation ========== -->
-  <header>
-    <h1>My Website</h1>
-    <div class="nav-toggle" id="navToggle">
-      <svg width="24" height="24" fill="var(--text-color)" xmlns="http://www.w3.org/2000/svg">
-        <rect y="4" width="24" height="2"/>
-        <rect y="11" width="24" height="2"/>
-        <rect y="18" width="24" height="2"/>
-      </svg>
-    </div>
-    <nav id="nav">
-      <!-- "Home" is always present -->
-      <a href="#home">Home</a>
-      <!-- Additional links will be dynamically inserted here -->
-    </nav>
-  </header>
-
-  <!-- ========== Home Page (Dashboard) ========== -->
-  <main id="mainContent">
-    <section class="hero">
-      <h1>Welcome to My Dynamic Website</h1>
-      <p>Discover our curated apps and pages, all just a click away.</p>
-    </section>
-    <section class="body">
-      <h2>Explore Our Pages</h2>
-      <div class="dashboard" id="dashboard">
-        <!-- Dynamic project cards will be inserted here -->
+  
+  <!-- Intro Slide -->
+  <div class="slide" id="intro">
+    <h1>TravelPerks Value Proposition</h1>
+    <div class="subtitle">Making Our Value Crystal Clear</div>
+    <p>
+      Our goal is to make it impossible for customers to ignore the extra value we deliver.
+      With our innovative, side-by-side graphics, we show—at a glance—why booking with TravelPerks means more savings, more perks, and a stress‑free booking experience.
+    </p>
+    <p>
+      Even if someone just scrolls past, our visual forces the message home: Booking direct is a missed opportunity!
+    </p>
+  </div>
+  
+  <!-- Problem Slide -->
+  <div class="slide" id="problem">
+    <h2>The Problem</h2>
+    <div class="problem-container">
+      <div class="icon-container">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 
+                   10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
       </div>
-    </section>
-    <footer>
-      <p>&copy; 2025 My Website. All rights reserved.</p>
-    </footer>
-  </main>
-
-  <!-- ========== JavaScript ========== -->
+      <p>
+        Our emails list great deals—but they don’t immediately communicate our full value proposition.
+      </p>
+      <div class="details">
+        <ul>
+          <li>Travelers see a wall of text with individual deals, missing the big picture.</li>
+          <li>Our agents spend valuable time explaining why booking direct leaves money and perks on the table.</li>
+          <li>The current approach doesn’t illustrate how our stacked offers create a VIP experience.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Goal Slide -->
+  <div class="slide" id="goal">
+    <h2>The Goal</h2>
+    <div class="goal-container">
+      <div class="icon-container">
+        <svg class="icon" viewBox="0 0 24 24">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14h-2V9h-2V7h4v10z"/>
+        </svg>
+      </div>
+      <p>
+        We want our value to be instantly understandable:
+        <strong>Booking with TravelPerks = More Savings, More Perks, Same Cruise.</strong>
+      </p>
+    </div>
+    <div class="comparison-container">
+      <div class="booking-option">
+        <h3>Booking Direct</h3>
+        <div class="perks">
+          <div class="perk">Basic Cruise Offer</div>
+          <div class="perk">Only standard promos (if any)</div>
+          <div class="perk">No extra bonuses</div>
+          <div class="perk">Missing VIP benefits</div>
+        </div>
+        <p><strong>You’re Missing $1,500+ In Value!</strong></p>
+      </div>
+      <div class="vs">VS</div>
+      <div class="booking-option">
+        <h3>TravelPerks</h3>
+        <div class="perks">
+          <div class="perk">Same Cruise</div>
+          <div class="perk">+ 60% Off 2nd Guest</div>
+          <div class="perk">+ Kids Sail FREE</div>
+          <div class="perk">+ FREE Spa Treatment</div>
+          <div class="perk">+ FREE Specialty Dinner</div>
+          <div class="perk">+ $100 Onboard Credit & Extra Savings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Solution Slide -->
+  <div class="slide" id="solution">
+    <h2>The Solution</h2>
+    <div class="solution-container">
+      <p>
+        Introducing our high-impact, side-by-side comparison that makes it instantly clear what you gain by booking with us.
+      </p>
+      <p>
+        <strong>Why settle for just a basic cruise deal?</strong>
+        With TravelPerks, we stack every available Royal Caribbean promo—plus our exclusive bonuses—to deliver a VIP experience.
+      </p>
+      <h3>Visual Example: Ultimate Cruise Deal</h3>
+      <img src="https://raw.githubusercontent.com/junovhs/storage/refs/heads/main/example%202.png" 
+           alt="Ultimate Cruise Deal Screenshot" 
+           class="email-card-image" id="expandableImage">
+      <p>
+        Our visual instantly shows: when you book with TravelPerks, you unlock the full value—VIP upgrades, guaranteed savings, and more.
+      </p>
+      <p>
+        <strong>Booking Direct = Missed Perks</strong> &mdash; while <strong>TravelPerks = The Ultimate Value.</strong>
+      </p>
+    </div>
+  </div>
+  
+  <!-- Implementation Slide -->
+  <div class="slide" id="implementation">
+    <h2>Implementation Options</h2>
+    <div class="implementation-container">
+      <div class="effort-level">
+        <div class="level-header minimal">
+          <h3>Bare Minimum</h3>
+          <div class="effort-indicator">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+        <div class="level-content">
+          <h4>Static Graphic in Emails</h4>
+          <ul>
+            <li>Embed a static graphic in every email.</li>
+            <li>Communicate a consistent stacked value message.</li>
+            <li>No weekly updates required.</li>
+            <li>Universal and evergreen usage.</li>
+          </ul>
+          <p class="benefit">Simple yet powerful.</p>
+        </div>
+      </div>
+      <div class="effort-level">
+        <div class="level-header moderate">
+          <h3>Alternative Approach</h3>
+          <div class="effort-indicator">
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+        <div class="level-content">
+          <h4>Weekly Hot Deals Feature</h4>
+          <ul>
+            <li>Replace or merge with the "Super Hot Itinerary" section.</li>
+            <li>Feature current supplier deals weekly.</li>
+            <li>Showcase real examples of savings.</li>
+            <li>Requires moderate research and updates.</li>
+          </ul>
+          <p class="benefit">Strikes a balance between impact and effort.</p>
+        </div>
+      </div>
+      <div class="effort-level">
+        <div class="level-header maximum">
+          <h3>Big Picture Strategy</h3>
+          <div class="effort-indicator">
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+          </div>
+        </div>
+        <div class="level-content">
+          <h4>Integrated Real-Time Value Demo</h4>
+          <ul>
+            <li>Integrate across website and email campaigns.</li>
+            <li>Perform real-time analysis of cruise deals.</li>
+            <li>Provide detailed price and savings comparisons.</li>
+            <li>Requires significant research and weekly effort.</li>
+          </ul>
+          <p class="benefit">Maximum impact with comprehensive effort.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Navigation Buttons -->
+  <div class="navigation">
+    <button id="prevSlide">Previous</button>
+    <button id="nextSlide">Next</button>
+  </div>
+  
+  <!-- Fullscreen Image Overlay -->
+  <div class="fullscreen-overlay" id="fullscreenOverlay">
+    <img src="" alt="Expanded View" class="fullscreen-image" id="fullscreenImage">
+  </div>
+  
+  <!-- JavaScript to handle slide navigation and fullscreen image -->
   <script>
-    /**
-     * Dynamically fetches the list of pages from the "pages" folder.
-     * Works differently in local mode (fetching a directory listing) and on GitHub Pages (using the GitHub API).
-     */
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const dashboard = document.getElementById('dashboard');
-    const nav = document.getElementById('nav');
-    const mainContent = document.getElementById('mainContent');
-
-    // Adjust these values to match your GitHub repository details
-    const githubOwner = 'junovhs';       
-    const githubRepo  = 'pooltool';        
-    const pagesFolder = 'pages';          
-
-    async function fetchPages() {
-      let pages = [];
-      try {
-        if (isLocal) {
-          // In local mode, fetch the directory listing from the pages folder.
-          const response = await fetch(pagesFolder + '/');
-          if (!response.ok) throw new Error('Failed to fetch local pages directory');
-          const text = await response.text();
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(text, 'text/html');
-          const links = Array.from(doc.querySelectorAll('a'));
-          links.forEach(link => {
-            const href = link.getAttribute('href');
-            if (href.endsWith('.html')) {
-              pages.push({ type: 'file', name: href.replace('.html', ''), path: pagesFolder + '/' + href });
-            }
-          });
-        } else {
-          // On GitHub Pages, use the GitHub API to list the contents of the pages folder.
-          const apiURL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${pagesFolder}`;
-          const response = await fetch(apiURL);
-          if (!response.ok) throw new Error('Failed to fetch pages list from GitHub API');
-          const items = await response.json();
-          for (const item of items) {
-            if (item.type === 'file' && item.name.endsWith('.html')) {
-              pages.push({ type: 'file', name: item.name.replace('.html', ''), path: pagesFolder + '/' + item.name });
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching pages:', error);
+    document.addEventListener('DOMContentLoaded', () => {
+      const slides = document.querySelectorAll('.slide');
+      let currentSlide = 0;
+      
+      function showSlide(index) {
+        if (index < 0) index = slides.length - 1;
+        if (index >= slides.length) index = 0;
+        currentSlide = index;
+        // Use scrollIntoView for smooth navigation
+        slides[index].scrollIntoView({ behavior: 'smooth' });
       }
-      return pages;
-    }
-
-    // Create navigation links and dashboard cards based on fetched pages.
-    function createNavAndCards(pages) {
-      pages.forEach(page => {
-        // Create nav link
-        const navLink = document.createElement('a');
-        navLink.href = '#' + page.path;
-        navLink.textContent = page.name;
-        nav.appendChild(navLink);
-
-        // Create a card for the dashboard view.
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `<h2>${page.name}</h2>
-                          <p>Click to view this page</p>`;
-        card.addEventListener('click', () => {
-          window.location.hash = page.path;
-        });
-        dashboard.appendChild(card);
+      
+      // Button Navigation
+      document.getElementById('prevSlide').addEventListener('click', () => {
+        showSlide(currentSlide - 1);
       });
-    }
-
-    function loadContent(pagePath) {
-      // Remove any existing iframe.
-      const existingFrame = document.getElementById('contentFrame');
-      if (existingFrame) existingFrame.remove();
-    
-      // Create an iframe that fills the entire viewport.
-      const iframe = document.createElement('iframe');
-      iframe.id = 'contentFrame';
-      iframe.src = pagePath;
-      iframe.style.position = 'fixed';
-      iframe.style.top = '0';
-      iframe.style.left = '0';
-      iframe.style.width = '100vw';
-      iframe.style.height = '100vh';
-      iframe.style.border = 'none';
-      iframe.style.zIndex = '500'; // Ensure it appears beneath the fixed nav bar.
-    
-      // When the iframe loads, inject CSS to:
-      // - Push content down by 60px so it starts below the nav bar.
-      // - Hide any automatically inserted "pooltool" headers.
-      // - Ensure full-screen layout for all content.
-      iframe.onload = function() {
-        try {
-          const doc = iframe.contentDocument;
-          const style = doc.createElement('style');
-          style.textContent = `
-            html, body { 
-              margin: 0 !important; 
-              padding: 0 !important; 
-              height: 100vh; 
-              width: 100vw;
-              overflow: hidden;
-            }
-            
-            /* Push content down to avoid navbar overlap */
-            body { padding-top: 60px !important; }
-            
-            /* Hide injected GitHub headers (like 'pooltool') */
-            body > h1:first-of-type { display: none !important; }
-            
-            /* Ensure WebGL or Three.js canvases take up full screen */
-            #container, canvas {
-              width: 100vw !important; 
-              height: 100vh !important; 
-              position: absolute; 
-              top: 0; 
-              left: 0;
-            }
-          `;
-          doc.head.appendChild(style);
-        } catch (e) {
-          console.error('Error injecting CSS into iframe:', e);
-        }
-      };
-    
-      document.body.appendChild(iframe);
-    }
-
-
-    // Handle URL hash changes:
-    // When the hash is not "home", hide the home layout and load the page.
-    // When "home", remove any iframe and show the home layout.
-    function handleHashChange() {
-      const hash = window.location.hash.substring(1);
-      if (!hash || hash === 'home') {
-        // Remove any full-page iframe.
-        const iframe = document.getElementById('contentFrame');
-        if (iframe) iframe.remove();
-        // Show the home layout.
-        mainContent.style.display = 'block';
-        return;
+      document.getElementById('nextSlide').addEventListener('click', () => {
+        showSlide(currentSlide + 1);
+      });
+      
+      // Arrow keys navigation
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+        if (e.key === 'ArrowRight') showSlide(currentSlide + 1);
+      });
+      
+      // Update currentSlide on manual scroll
+      window.addEventListener('scroll', () => {
+        const scrollPos = window.scrollY;
+        slides.forEach((slide, index) => {
+          if (Math.abs(scrollPos - slide.offsetTop) < window.innerHeight / 2) {
+            currentSlide = index;
+          }
+        });
+      });
+      
+      // Fullscreen Image Functionality
+      const emailCardImage = document.getElementById('expandableImage');
+      const fullscreenOverlay = document.getElementById('fullscreenOverlay');
+      const fullscreenImage = document.getElementById('fullscreenImage');
+      
+      if (emailCardImage) {
+        emailCardImage.addEventListener('click', () => {
+          fullscreenImage.src = emailCardImage.src;
+          fullscreenOverlay.classList.add('active');
+        });
       }
-      // Hide the home layout and load the external page.
-      mainContent.style.display = 'none';
-      loadContent(hash);
-    }
-
-    // Mobile nav toggle behavior.
-    const navToggle = document.getElementById('navToggle');
-    navToggle.addEventListener('click', () => {
-      nav.classList.toggle('open');
+      fullscreenOverlay.addEventListener('click', () => {
+        fullscreenOverlay.classList.remove('active');
+      });
     });
-
-    // Initialize on page load.
-    document.addEventListener('DOMContentLoaded', async () => {
-      const pages = await fetchPages();
-      createNavAndCards(pages);
-      // Default to "home" if no hash is set.
-      if (!window.location.hash) window.location.hash = 'home';
-      else handleHashChange();
-    });
-    window.addEventListener('hashchange', handleHashChange);
   </script>
 </body>
 </html>
