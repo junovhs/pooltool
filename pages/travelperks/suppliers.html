@@ -1,81 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
+<style>
+  /* Minimal Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  padding: 20px;
+}
+
+/* Container for the categories organized in a masonry layout using CSS columns */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  column-width: 300px;
+  column-gap: 20px;
+}
+
+/* Each category block: avoid breaking across columns and add a consistent bottom margin */
+.category {
+  margin-bottom: 30px;
+  break-inside: avoid;
+}
+
+.category h2 {
+  margin-bottom: 10px;
+}
+
+.category ul {
+  list-style: none;
+}
+
+.category li {
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+/* Minimal Alphabet Filter Styles */
+#alphabet-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 20px;
+  justify-content: center; /* Center the letters */
+}
+
+.letter {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  background: #fff;
+}
+
+/* The dropdown for each letter */
+.supplier-group {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%; /* Position at the horizontal center */
+  transform: translateX(-50%); /* Center the dropdown */
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 5px;
+  z-index: 100;
+  min-width: 150px;
+}
+
+.letter:hover .supplier-group {
+  display: block;
+}
+
+.supplier-item {
+  padding: 3px 5px;
+  cursor: pointer;
+  text-align: center; /* Center the text within the items */
+}
+
+.highlight {
+  background: yellow;
+}
+</style><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Supplier Categories Visualization</title>
-  <!-- Use the same font as your index -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    /* Minimal Reset and Base Styles */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Montserrat', sans-serif;
-      padding: 20px;
-      /* No background or extra padding so that your index styles take over */
-    }
-    /* Container for the categories */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    /* Each category is simply a section with a heading and a list */
-    .category {
-      margin-bottom: 20px;
-    }
-    .category h2 {
-      margin-bottom: 10px;
-    }
-    .category ul {
-      list-style: none;
-    }
-    .category li {
-      margin-bottom: 5px;
-      cursor: pointer;
-    }
-    /* Minimal Alphabet Filter Styles */
-    #alphabet-filter {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-bottom: 20px;
-    }
-    .letter {
-      padding: 5px 10px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      cursor: pointer;
-      position: relative;
-      background: #fff;
-    }
-    /* The dropdown for each letter */
-    .supplier-group {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      padding: 5px;
-      z-index: 100;
-      min-width: 150px;
-    }
-    .letter:hover .supplier-group {
-      display: block;
-    }
-    .supplier-item {
-      padding: 3px 5px;
-      cursor: pointer;
-    }
-    .highlight {
-      background: yellow;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <!-- Alphabet Filter -->
@@ -220,68 +235,67 @@
       </ul>
     </section>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const categories = document.querySelectorAll('.category');
-      const alphabetFilter = document.getElementById('alphabet-filter');
-      
-      let suppliers = new Map();
-      
-      categories.forEach(category => {
-        const items = category.querySelectorAll('li');
-        items.forEach(item => {
-          const supplierName = item.dataset.parent || item.textContent.trim();
-          suppliers.set(supplierName, (suppliers.get(supplierName) || 0) + 1);
-        });
-      });
-      
-      const sortedSuppliers = [...suppliers.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-      
-      function getColorForCount(count) {
-        if (count === 1) return '#4CAF50';
-        if (count === 2) return '#FFC107';
-        return '#F44336';
-      }
-      
-      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      alphabet.split('').forEach(letter => {
-        const suppliersForLetter = sortedSuppliers.filter(([supplier]) => supplier.toUpperCase().startsWith(letter));
-        if (suppliersForLetter.length > 0) {
-          const letterDiv = document.createElement('div');
-          letterDiv.classList.add('letter');
-          letterDiv.textContent = letter;
-          
-          const supplierGroup = document.createElement('div');
-          supplierGroup.classList.add('supplier-group');
-          
-          suppliersForLetter.forEach(([supplier, count]) => {
-            const item = document.createElement('div');
-            item.classList.add('supplier-item');
-            item.textContent = supplier + " (" + count + ")";
-            // Minimal inline coloring (you can remove or adjust these as needed)
-            item.style.backgroundColor = getColorForCount(count);
-            item.style.color = count > 1 ? '#041317' : '#FFFFFF';
-            item.addEventListener('click', () => filterSuppliers(supplier));
-            supplierGroup.appendChild(item);
-          });
-          
-          letterDiv.appendChild(supplierGroup);
-          alphabetFilter.appendChild(letterDiv);
-        }
-      });
-      
-      function filterSuppliers(supplierName) {
-        const allItems = document.querySelectorAll('.category li');
-        allItems.forEach(item => {
-          if (item.textContent.trim() === supplierName || item.dataset.parent === supplierName) {
-            item.classList.add('highlight');
-          } else {
-            item.classList.remove('highlight');
-          }
-        });
-      }
-    });
-  </script>
 </body>
 </html>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  const categories = document.querySelectorAll('.category');
+  const alphabetFilter = document.getElementById('alphabet-filter');
+  
+  let suppliers = new Map();
+  
+  categories.forEach(category => {
+    const items = category.querySelectorAll('li');
+    items.forEach(item => {
+      const supplierName = item.dataset.parent || item.textContent.trim();
+      suppliers.set(supplierName, (suppliers.get(supplierName) || 0) + 1);
+    });
+  });
+  
+  const sortedSuppliers = [...suppliers.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  
+  function getColorForCount(count) {
+    if (count === 1) return '#4CAF50';
+    if (count === 2) return '#FFC107';
+    return '#F44336';
+  }
+  
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  alphabet.split('').forEach(letter => {
+    const suppliersForLetter = sortedSuppliers.filter(([supplier]) => supplier.toUpperCase().startsWith(letter));
+    if (suppliersForLetter.length > 0) {
+      const letterDiv = document.createElement('div');
+      letterDiv.classList.add('letter');
+      letterDiv.textContent = letter;
+      
+      const supplierGroup = document.createElement('div');
+      supplierGroup.classList.add('supplier-group');
+      
+      suppliersForLetter.forEach(([supplier, count]) => {
+        const item = document.createElement('div');
+        item.classList.add('supplier-item');
+        item.textContent = supplier + " (" + count + ")";
+        item.style.backgroundColor = getColorForCount(count);
+        item.style.color = count > 1 ? '#041317' : '#FFFFFF';
+        item.addEventListener('click', () => filterSuppliers(supplier));
+        supplierGroup.appendChild(item);
+      });
+      
+      letterDiv.appendChild(supplierGroup);
+      alphabetFilter.appendChild(letterDiv);
+    }
+  });
+  
+  function filterSuppliers(supplierName) {
+    const allItems = document.querySelectorAll('.category li');
+    allItems.forEach(item => {
+      if (item.textContent.trim() === supplierName || item.dataset.parent === supplierName) {
+        item.classList.add('highlight');
+      } else {
+        item.classList.remove('highlight');
+      }
+    });
+  }
+});
+</script>
