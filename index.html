@@ -387,14 +387,16 @@
             html, body { 
               margin: 0 !important; 
               padding: 0 !important; 
-              height: 100vh; 
+              min-height: 100vh; 
               width: 100vw;
-              overflow: hidden;
+              overflow-y: auto; /* Allow vertical scrolling */
             }
             /* Push content down to avoid navbar overlap */
             body { padding-top: 60px !important; }
+            
             /* Hide injected GitHub headers (like 'pooltool') */
             body > h1:first-of-type { display: none !important; }
+            
             /* Ensure WebGL/Three.js canvases and other content take up full screen */
             #container, canvas {
               width: 100vw !important; 
@@ -409,6 +411,7 @@
           console.error('Error injecting CSS into iframe:', e);
         }
       };
+
     
       document.body.appendChild(iframe);
     }
