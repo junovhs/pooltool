@@ -16,7 +16,6 @@
       --nav-bg: rgba(255, 255, 255, 0.95);
       --nav-hover: rgba(0, 123, 255, 0.1);
       --transition-speed: 0.3s;
-      --modal-bg: rgba(0, 0, 0, 0.05);
     }
     *, *::before, *::after {
       margin: 0;
@@ -30,7 +29,6 @@
       overflow-x: hidden;
       line-height: 1.6;
     }
-
     /* ========== Fixed Header & Navigation ========== */
     header {
       position: fixed;
@@ -89,10 +87,9 @@
         max-height: 400px;
       }
     }
-
     /* ========== Main Dashboard Grid ========== */
     main {
-      margin-top: 70px; /* Allow space for the fixed header */
+      margin-top: 70px; /* Space for fixed header */
       padding: 20px;
       animation: fadeIn 0.6s ease forwards;
       opacity: 0;
@@ -126,50 +123,6 @@
     }
     .card p {
       font-size: 0.9rem;
-    }
-
-    /* ========== Modal Overlay for Page Content ========== */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      padding: 20px;
-      animation: fadeInModal 0.3s ease forwards;
-    }
-    @keyframes fadeInModal {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-    .modal-content {
-      background: var(--primary-color);
-      padding: 20px;
-      border: 2px solid var(--accent-color);
-      border-radius: 8px;
-      max-height: 90vh;
-      overflow-y: auto;
-      width: 90%;
-      max-width: 800px;
-      position: relative;
-    }
-    .modal-close {
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: var(--accent-color);
-      border: none;
-      color: var(--primary-color);
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background var(--transition-speed);
-    }
-    .modal-close:hover {
-      background: #0056b3;
     }
   </style>
 </head>
@@ -207,17 +160,17 @@
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const dashboard = document.getElementById('dashboard');
     const nav = document.getElementById('nav');
+    const mainContent = document.getElementById('mainContent');
 
     // Adjust these values to match your GitHub repository details
-    const githubOwner = 'junovhs';       // Replace with your GitHub username if needed
-    const githubRepo  = 'pooltool';        // Replace with your repository name
-    const pagesFolder = 'pages';          // The folder where your HTML files live
+    const githubOwner = 'junovhs';       
+    const githubRepo  = 'pooltool';        
+    const pagesFolder = 'pages';          
 
     async function fetchPages() {
       let pages = [];
       try {
         if (isLocal) {
-          // In local mode, fetch the directory listing from "pages/"
           const response = await fetch(pagesFolder + '/');
           if (!response.ok) throw new Error('Failed to fetch local pages directory');
           const text = await response.text();
@@ -226,13 +179,11 @@
           const links = Array.from(doc.querySelectorAll('a'));
           links.forEach(link => {
             const href = link.getAttribute('href');
-            // Only include HTML files (ignore parent links and directories unless needed)
             if (href.endsWith('.html')) {
               pages.push({ type: 'file', name: href.replace('.html', ''), path: pagesFolder + '/' + href });
             }
           });
         } else {
-          // On GitHub Pages, use the GitHub API to list contents of the pages folder
           const apiURL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${pagesFolder}`;
           const response = await fetch(apiURL);
           if (!response.ok) throw new Error('Failed to fetch pages list from GitHub API');
@@ -241,7 +192,6 @@
             if (item.type === 'file' && item.name.endsWith('.html')) {
               pages.push({ type: 'file', name: item.name.replace('.html', ''), path: pagesFolder + '/' + item.name });
             }
-            // Optionally, you can add folder support here if you want nested pages.
           }
         }
       } catch (error) {
@@ -271,41 +221,43 @@
       });
     }
 
-    // Load content from a given page path and show it in a modal overlay
-    async function loadContent(pagePath) {
-      try {
-        const response = await fetch(pagePath);
-        if (!response.ok) throw new Error('Failed to fetch page content');
-        const html = await response.text();
-        showModal(html);
-      } catch (error) {
-        console.error('Error loading content:', error);
-        showModal(`<h2>Error</h2><p>Failed to load the content.</p>`);
-      }
+    // Load content in a full-page iframe (with isolated styling)
+    function loadContent(pagePath) {
+      // Remove any existing iframe
+      const existingFrame = document.getElementById('contentFrame');
+      if (existingFrame) existingFrame.remove();
+
+      // Create an iframe that fills the entire viewport.
+      // It is placed directly in the body so it can cover the whole page.
+      const iframe = document.createElement('iframe');
+      iframe.id = 'contentFrame';
+      iframe.src = pagePath;
+      iframe.style.position = 'fixed';
+      iframe.style.top = '0';
+      iframe.style.left = '0';
+      iframe.style.width = '100vw';
+      iframe.style.height = '100vh';
+      iframe.style.border = 'none';
+      // Ensure the iframe appears beneath the nav bar
+      iframe.style.zIndex = '500';
+      document.body.appendChild(iframe);
     }
 
-    // Display the fetched content in a modal overlay
-    function showModal(content) {
-      const overlay = document.createElement('div');
-      overlay.className = 'modal-overlay';
-      overlay.innerHTML = `
-        <div class="modal-content">
-          <div id="modalContent">${content}</div>
-          <button class="modal-close" id="modalClose">Close</button>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-      document.getElementById('modalClose').addEventListener('click', () => {
-        overlay.remove();
-        window.location.hash = 'home';
-      });
-    }
-
-    // Handle URL hash changes to load content dynamically
+    // Handle URL hash changes:
+    // When not "home", load the page in an iframe.
+    // When "home", remove the iframe and show the dashboard.
     function handleHashChange() {
       const hash = window.location.hash.substring(1);
-      // If "home" or empty hash, do nothing (dashboard remains visible)
-      if (!hash || hash === 'home') return;
+      if (!hash || hash === 'home') {
+        // Remove any full-page iframe
+        const iframe = document.getElementById('contentFrame');
+        if (iframe) iframe.remove();
+        // Show the main dashboard
+        mainContent.style.display = 'block';
+        return;
+      }
+      // Hide the dashboard and load the external page.
+      mainContent.style.display = 'none';
       loadContent(hash);
     }
 
@@ -319,7 +271,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const pages = await fetchPages();
       createNavAndCards(pages);
-      // Default to home if no hash is set
+      // Default to "home" if no hash is set
       if (!window.location.hash) window.location.hash = 'home';
       else handleHashChange();
     });
