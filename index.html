@@ -76,7 +76,7 @@
       }
       nav {
         position: fixed;
-        top: calc(var(--nav-height));
+        top: var(--nav-height);
         right: 0;
         background: var(--nav-bg);
         flex-direction: column;
@@ -192,7 +192,7 @@
   <script>
     /**
      * Dynamically fetches the list of pages from the "pages" folder.
-     * Works differently in local mode (fetching a directory listing) and on GitHub pages (using the GitHub API).
+     * Works differently in local mode (fetching a directory listing) and on GitHub Pages (using the GitHub API).
      */
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const dashboard = document.getElementById('dashboard');
@@ -208,6 +208,7 @@
       let pages = [];
       try {
         if (isLocal) {
+          // In local mode, fetch the directory listing from the pages folder.
           const response = await fetch(pagesFolder + '/');
           if (!response.ok) throw new Error('Failed to fetch local pages directory');
           const text = await response.text();
@@ -221,6 +222,7 @@
             }
           });
         } else {
+          // On GitHub Pages, use the GitHub API to list the contents of the pages folder.
           const apiURL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${pagesFolder}`;
           const response = await fetch(apiURL);
           if (!response.ok) throw new Error('Failed to fetch pages list from GitHub API');
@@ -237,7 +239,7 @@
       return pages;
     }
 
-    // Create navigation links and dashboard cards based on fetched pages
+    // Create navigation links and dashboard cards based on fetched pages.
     function createNavAndCards(pages) {
       pages.forEach(page => {
         // Create nav link
@@ -246,7 +248,7 @@
         navLink.textContent = page.name;
         nav.appendChild(navLink);
 
-        // Create a card for the dashboard view
+        // Create a card for the dashboard view.
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `<h2>${page.name}</h2>
@@ -260,12 +262,11 @@
 
     // Load content in a full-page iframe (with isolated styling)
     function loadContent(pagePath) {
-      // Remove any existing iframe
+      // Remove any existing iframe.
       const existingFrame = document.getElementById('contentFrame');
       if (existingFrame) existingFrame.remove();
 
       // Create an iframe that fills the entire viewport.
-      // It is placed directly in the body so that it covers the whole page.
       const iframe = document.createElement('iframe');
       iframe.id = 'contentFrame';
       iframe.src = pagePath;
@@ -275,23 +276,36 @@
       iframe.style.width = '100vw';
       iframe.style.height = '100vh';
       iframe.style.border = 'none';
-      // Ensure the iframe appears beneath the nav bar (which has z-index 1000)
+      // Ensure the iframe appears beneath the fixed nav bar.
       iframe.style.zIndex = '500';
 
-      // When the iframe loads, inject CSS into its document.
+      // When the iframe loads, inject CSS to:
+      // - Push content down 60px (below the nav bar)
+      // - Hide any internal header, nav, or footer
+      // - Hide the first h1 (to remove an injected "POOLTOOL" if present)
+      // - Center the content (with a max-width)
       iframe.onload = function() {
         try {
           const doc = iframe.contentDocument;
           const style = doc.createElement('style');
           style.textContent = `
-            /* Ensure the loaded page's content is pushed down by 60px so it starts beneath the nav bar */
-            body { margin: 0 !important; padding-top: 60px !important; }
-            /* Make any container or main element full-width and centered */
-            .container, #container, main { width: 100%; max-width: var(--max-width); margin: 0 auto; }
-            /* Hide the header element inside the loaded page */
-            header { display: none !important; }
+            body { 
+              margin: 0 !important; 
+              padding-top: 60px !important; 
+              text-align: center; 
+            }
+            header, nav, footer { 
+              display: none !important; 
+            }
+            h1:first-of-type { 
+              display: none !important; 
+            }
+            .container, main, body { 
+              width: 100%; 
+              max-width: 1200px; 
+              margin: 0 auto; 
+            }
           `;
-          // Append the style to the loaded page's head
           doc.head.appendChild(style);
         } catch (e) {
           console.error('Error injecting CSS into iframe:', e);
@@ -307,10 +321,10 @@
     function handleHashChange() {
       const hash = window.location.hash.substring(1);
       if (!hash || hash === 'home') {
-        // Remove any full-page iframe
+        // Remove any full-page iframe.
         const iframe = document.getElementById('contentFrame');
         if (iframe) iframe.remove();
-        // Show the home layout
+        // Show the home layout.
         mainContent.style.display = 'block';
         return;
       }
@@ -319,17 +333,17 @@
       loadContent(hash);
     }
 
-    // Mobile nav toggle behavior
+    // Mobile nav toggle behavior.
     const navToggle = document.getElementById('navToggle');
     navToggle.addEventListener('click', () => {
       nav.classList.toggle('open');
     });
 
-    // Initialize on page load
+    // Initialize on page load.
     document.addEventListener('DOMContentLoaded', async () => {
       const pages = await fetchPages();
       createNavAndCards(pages);
-      // Default to "home" if no hash is set
+      // Default to "home" if no hash is set.
       if (!window.location.hash) window.location.hash = 'home';
       else handleHashChange();
     });
