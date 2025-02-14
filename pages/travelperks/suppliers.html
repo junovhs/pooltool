@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="https://websim.creation/supplier-categories-v7/" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supplier Categories Visualization</title>
+  <!-- Importing the 'Press Start 2P' font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Reset and Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #041317;
+      font-family: 'Press Start 2P', 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      color: #CDCCBB;
+      padding: 20px;
+    }
+
+    /* Container Styles */
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: flex-start;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #041317;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Category Card Styles */
+    .category {
+      background-color: #041317;
+      border: 4px solid #CDCCBB;
+      border-radius: 8px;
+      padding: 15px;
+      width: calc(25% - 20px); /* Standard width: 25% for four columns */
+      min-width: 250px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .category:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+    }
+
+    /* Wide Category Styles */
+    .category.wide {
+      width: calc(50% - 20px); /* Double width: 50% for two columns */
+    }
+
+    /* Heading Styles */
+    h2 {
+      color: #CDCCBB;
+      border-bottom: 2px solid #B04438;
+      padding-bottom: 5px;
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* List Styles */
+    .category ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      flex-grow: 1;
+      column-count: 1;
+      column-gap: 20px;
+    }
+
+    /* Adjust columns for wide categories */
+    .category.wide ul {
+      column-count: 2; /* Two columns for wide categories */
+    }
+
+    li {
+      background-color: #1F2B2F;
+      margin: 0 0 5px 0;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.3s, transform 0.3s;
+      font-size: 12px;
+      break-inside: avoid-column;
+      cursor: pointer;
+      border: 2px solid transparent;
+      white-space: normal;        /* Allow text to wrap naturally */
+      overflow-wrap: break-word;  /* Break words only when necessary */
+      word-break: normal;         /* Use normal word break rules */
+      hyphens: auto;              /* Enable hyphenation */
+    }
+
+    li:hover {
+      background-color: #B04438;
+      color: #FFFFFF;
+      transform: translateX(5px);
+      border-color: #CDCCBB;
+    }
+
+    /* Alphabet Filter Styles */
+    #alphabet-filter {
+      display: flex;
+      justify-content: center; /* Center the alphabet filter */
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .letter {
+      cursor: pointer;
+      padding: 5px 10px;
+      background-color: #1F2B2F;
+      border-radius: 4px;
+      position: relative;
+      margin: 0 5px 5px 0;
+      border: 2px solid #CDCCBB;
+      transition: background-color 0.3s, transform 0.3s;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .letter:hover {
+      background-color: #B04438;
+      color: #FFFFFF;
+      transform: scale(1.1);
+    }
+
+    .supplier-group {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #1F2B2F;
+      border: 2px solid #CDCCBB;
+      border-radius: 4px;
+      padding: 5px;
+      z-index: 10;
+      width: 220px;        /* Increased width to accommodate longer names */
+      max-width: 300px;    /* Set a maximum width */
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      overflow: hidden;    /* Prevent overflow */
+    }
+
+    .letter:hover .supplier-group {
+      display: block;
+    }
+
+    .supplier-item {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      cursor: pointer;
+      margin: 2px 0;
+      background-color: #B04438;
+      color: #FFFFFF;
+      transition: background-color 0.3s, transform 0.3s;
+      white-space: normal;        /* Allow text to wrap naturally */
+      overflow-wrap: break-word;  /* Break words only when necessary */
+      word-break: normal;         /* Use normal word break rules */
+      hyphens: auto;              /* Enable hyphenation */
+    }
+
+    .supplier-item:hover {
+      background-color: #CDCCBB;
+      color: #041317;
+      transform: translateX(5px);
+    }
+
+    .highlight {
+      background-color: #ffeb3b !important;
+      color: #041317 !important;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 1200px) {
+      .category {
+        width: calc(33.333% - 20px); /* Three columns */
+      }
+
+      .category.wide {
+        width: calc(66.666% - 20px); /* Two wide categories per row */
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .category {
+        width: calc(33.333% - 20px);
+      }
+
+      .category.wide {
+        width: calc(66.666% - 20px);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .category {
+        width: calc(50% - 20px); /* Two columns */
+      }
+
+      .category.wide {
+        width: 100%; /* Full width */
+      }
+
+      .supplier-group {
+        width: 180px;    /* Adjust width for smaller screens */
+        max-width: 250px;
+      }
+
+      .category.wide ul {
+        column-count: 2; /* Maintain two columns internally */
+      }
+    }
+
+    @media (max-width: 480px) {
+      .category {
+        width: 100%;
+      }
+
+      .letter {
+        font-size: 10px;
+      }
+
+      li {
+        font-size: 10px;
+      }
+
+      .supplier-group {
+        width: 150px;    /* Further adjust for very small screens */
+        max-width: 200px;
+      }
+
+      .supplier-item {
+        font-size: 9px;
+        padding: 4px 8px;
+      }
+
+      .category.wide ul {
+        column-count: 1; /* Single column on very small screens */
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Alphabet Filter -->
+  <div id="alphabet-filter"></div>
+
+  <!-- Categories Container -->
+  <div class="container">
+    <!-- Popular Cruises -->
+    <div class="category">
+      <h2>Popular Cruises</h2>
+      <ul>
+        <li>Norwegian</li>
+        <li>Royal Caribbean</li>
+        <li>Celebrity Cruises</li>
+        <li>Disney Cruise Line</li>
+        <li>Virgin Voyages</li>
+        <li>Holland America Line</li>
+        <li>Princess</li>
+        <li>Carnival</li>
+        <li>MSC Cruises</li>
+        <li data-parent="Viking Ocean">Viking Ocean</li>
+      </ul>
+    </div>
+    
+    <!-- Luxury Cruises -->
+    <div class="category wide">
+      <h2>Luxury Cruises</h2>
+      <ul>
+        <li data-parent="Viking Ocean">Viking Ocean</li>
+        <li>American Cruise Line</li>
+        <li>Atlas Ocean Voyages</li>
+        <li>Azamara</li>
+        <li>Crystal Cruises</li>
+        <li>Cunard</li>
+        <li>Emerald Cruises</li>
+        <li>Explora Journeys</li>
+        <li>Four Seasons Yachts*</li>
+        <li>Funjet*</li>
+        <li>Oceania Cruises</li>
+        <li>Paul Gauguin Cruises</li>
+        <li>Ponant</li>
+        <li>Regent Seven Seas Cruises</li>
+        <li>Ritz-Carlton Yacht Collection*</li>
+        <li>Scenic Eclipse Ocean Voyages</li>
+        <li>Seabourn</li>
+        <li>Silversea</li>
+        <li>Star Clippers</li>
+        <li>Tauck Cruises</li>
+        <li>Windstar</li>
+      </ul>
+    </div>
+    
+    <!-- River Cruises -->
+    <div class="category">
+      <h2>River Cruises</h2>
+      <ul>
+        <li data-parent="Viking River">Viking River</li>
+        <li>Avalon Waterways</li>
+        <li>Ama Waterways</li>
+        <li>CroisiEurope</li>
+        <li>Riverside Cruises</li>
+        <li>Riviera River Cruises</li>
+        <li>Tauck Tours</li>
+        <li>Uniworld</li>
+        <li>Scenic River</li>
+      </ul>
+    </div>
+    
+    <!-- Adventure Cruising -->
+    <div class="category">
+      <h2>Adventure Cruising</h2>
+      <ul>
+        <li>Lindblad Expeditions &amp; National Geographic</li>
+        <li>Hurtigruten</li>
+        <li>UnCruise Adventures</li>
+      </ul>
+    </div>
+    
+    <!-- Disney -->
+    <div class="category">
+      <h2>Disney</h2>
+      <ul>
+        <li>Adventures by Disney</li>
+        <li>Disneyland</li>
+        <li>DisneyWorld</li>
+        <li>Aulani, A Disney Resort &amp; Spa</li>
+      </ul>
+    </div>
+    
+    <!-- Resorts and Hawaii -->
+    <div class="category">
+      <h2>Resorts and Hawaii</h2>
+      <ul>
+        <li>Sandals</li>
+        <li>Beaches</li>
+        <li>Breathless</li>
+        <li>Club Med</li>
+        <li>El Dorado Spa Resorts &amp; Hotels</li>
+        <li>Dreams</li>
+        <li>Excellence Resorts</li>
+        <li>Hard Rock Hotels</li>
+        <li>Iberostar Hotels &amp; Resorts</li>
+        <li>Karisma Hotels &amp; Resorts</li>
+        <li>Outrigger Hotels &amp; Resorts</li>
+        <li>Palace Resorts</li>
+        <li>RIU Hotels &amp; Resorts</li>
+        <li>Secrets</li>
+        <li>American Airline Vacations</li>
+        <li>Delta Vacations</li>
+        <li>Southwest Vacations</li>
+        <li>United Vacations</li>
+        <li>Villas of Distinction</li>
+        <li>Zoëtry Wellness &amp; Spa Resorts</li>
+        <li>Atlantis Paradise Island Bahamas</li>
+      </ul>
+    </div>
+    
+    <!-- Tours and Custom Trips -->
+    <div class="category">
+      <h2>Tours and Custom Trips</h2>
+      <ul>
+        <li>Great Safaris</li>
+        <li>African Travel</li>
+        <li>Abercrombie &amp; Kent</li>
+        <li>G Adventures</li>
+        <li>Globus Journeys</li>
+        <li>Rocky Mountaineer</li>
+        <li>Trafalgar</li>
+        <li>BlueSky Tours*</li>
+        <li>CIE Tours*</li>
+        <li>Collette*</li>
+      </ul>
+    </div>
+    
+    <!-- Shore Excursions -->
+    <div class="category">
+      <h2>Shore Excursions</h2>
+      <ul>
+        <li>Shore Excursions Group</li>
+        <li>TourSales.com</li>
+        <li>Viator</li>
+        <li>Project Expedition</li>
+      </ul>
+    </div>
+    
+    <!-- Rail Vacations -->
+    <div class="category">
+      <h2>Rail Vacations</h2>
+      <ul>
+        <li>Rocky Mountaineer</li>
+      </ul>
+    </div>
+    
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      const categories = document.querySelectorAll('.category');
+      const alphabetFilter = document.getElementById('alphabet-filter');
+      
+      let suppliers = new Map();
+    
+      categories.forEach(category => {
+        const items = category.querySelectorAll('li');
+        items.forEach(item => {
+          const supplierName = item.dataset.parent || item.textContent;
+          if (suppliers.has(supplierName)) {
+            suppliers.set(supplierName, suppliers.get(supplierName) + 1);
+          } else {
+            suppliers.set(supplierName, 1);
+          }
+        });
+      });
+    
+      const sortedSuppliers = [...suppliers.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+    
+      function getColorForCount(count) {
+        if (count === 1) return '#4CAF50';  // Green
+        if (count === 2) return '#FFC107';  // Amber
+        return '#F44336';  // Red for 3 or more
+      }
+    
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      alphabet.split('').forEach(letter => {
+        const suppliersForLetter = sortedSuppliers.filter(([supplier]) => supplier.toUpperCase().startsWith(letter));
+        
+        if (suppliersForLetter.length > 0) {
+          const letterDiv = document.createElement('div');
+          letterDiv.classList.add('letter');
+          letterDiv.textContent = letter;
+          
+          const supplierGroup = document.createElement('div');
+          supplierGroup.classList.add('supplier-group');
+          
+          suppliersForLetter.forEach(([supplier, count]) => {
+            const item = document.createElement('div');
+            item.classList.add('supplier-item');
+            item.textContent = `${supplier} (${count})`;
+            item.style.backgroundColor = getColorForCount(count);
+            item.style.color = count > 1 ? '#041317' : '#FFFFFF';
+            item.addEventListener('click', () => filterSuppliers(supplier));
+            supplierGroup.appendChild(item);
+          });
+          
+          letterDiv.appendChild(supplierGroup);
+          alphabetFilter.appendChild(letterDiv);
+        }
+      });
+    
+      function filterSuppliers(supplierName) {
+        const allItems = document.querySelectorAll('.category li');
+        allItems.forEach(item => {
+          if (item.textContent === supplierName || item.dataset.parent === supplierName) {
+            item.classList.add('highlight');
+          } else {
+            item.classList.remove('highlight');
+          }
+        });
+      }
+    
+      // Automatically add 'wide' class to categories with more than 14 suppliers
+      categories.forEach(category => {
+        const list = category.querySelector('ul');
+        const items = list.querySelectorAll('li');
+        if (items.length > 14) {
+          category.classList.add('wide'); /* Automatically add 'wide' class */
+        }
+      });
+    });
+  </script>
+</body>
+</html>
