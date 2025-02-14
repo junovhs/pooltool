@@ -1,20 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Removed the <base> tag so it won’t interfere with relative URLs -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Supplier Categories Visualization</title>
-  <!-- Use the same Montserrat font as your index.html -->
+  <!-- Use the same font as your index -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* Minimal Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      padding: 20px;
+      /* No background or extra padding so that your index styles take over */
+    }
+    /* Container for the categories */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    /* Each category is simply a section with a heading and a list */
+    .category {
+      margin-bottom: 20px;
+    }
+    .category h2 {
+      margin-bottom: 10px;
+    }
+    .category ul {
+      list-style: none;
+    }
+    .category li {
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    /* Minimal Alphabet Filter Styles */
+    #alphabet-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+    .letter {
+      padding: 5px 10px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+      position: relative;
+      background: #fff;
+    }
+    /* The dropdown for each letter */
+    .supplier-group {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 5px;
+      z-index: 100;
+      min-width: 150px;
+    }
+    .letter:hover .supplier-group {
+      display: block;
+    }
+    .supplier-item {
+      padding: 3px 5px;
+      cursor: pointer;
+    }
+    .highlight {
+      background: yellow;
+    }
+  </style>
 </head>
 <body>
-  <!-- Alphabet Filter (this element will be positioned and styled by the parent if needed) -->
+  <!-- Alphabet Filter -->
   <div id="alphabet-filter"></div>
 
   <!-- Categories Container -->
   <div class="container">
-    <!-- Each category is now a plain section with a heading and an unordered list -->
     <section class="category">
       <h2>Popular Cruises</h2>
       <ul>
@@ -27,14 +95,14 @@
         <li>Princess</li>
         <li>Carnival</li>
         <li>MSC Cruises</li>
-        <li>Viking Ocean</li>
+        <li data-parent="Viking Ocean">Viking Ocean</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Luxury Cruises</h2>
       <ul>
-        <li>Viking Ocean</li>
+        <li data-parent="Viking Ocean">Viking Ocean</li>
         <li>American Cruise Line</li>
         <li>Atlas Ocean Voyages</li>
         <li>Azamara</li>
@@ -57,11 +125,11 @@
         <li>Windstar</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>River Cruises</h2>
       <ul>
-        <li>Viking River</li>
+        <li data-parent="Viking River">Viking River</li>
         <li>Avalon Waterways</li>
         <li>Ama Waterways</li>
         <li>CroisiEurope</li>
@@ -72,7 +140,7 @@
         <li>Scenic River</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Adventure Cruising</h2>
       <ul>
@@ -81,7 +149,7 @@
         <li>UnCruise Adventures</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Disney</h2>
       <ul>
@@ -91,7 +159,7 @@
         <li>Aulani, A Disney Resort &amp; Spa</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Resorts and Hawaii</h2>
       <ul>
@@ -118,7 +186,7 @@
         <li>Atlantis Paradise Island Bahamas</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Tours and Custom Trips</h2>
       <ul>
@@ -134,7 +202,7 @@
         <li>Collette*</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Shore Excursions</h2>
       <ul>
@@ -144,7 +212,7 @@
         <li>Project Expedition</li>
       </ul>
     </section>
-
+    
     <section class="category">
       <h2>Rail Vacations</h2>
       <ul>
@@ -163,7 +231,7 @@
       categories.forEach(category => {
         const items = category.querySelectorAll('li');
         items.forEach(item => {
-          const supplierName = item.dataset.parent || item.textContent;
+          const supplierName = item.dataset.parent || item.textContent.trim();
           suppliers.set(supplierName, (suppliers.get(supplierName) || 0) + 1);
         });
       });
@@ -191,6 +259,7 @@
             const item = document.createElement('div');
             item.classList.add('supplier-item');
             item.textContent = supplier + " (" + count + ")";
+            // Minimal inline coloring (you can remove or adjust these as needed)
             item.style.backgroundColor = getColorForCount(count);
             item.style.color = count > 1 ? '#041317' : '#FFFFFF';
             item.addEventListener('click', () => filterSuppliers(supplier));
@@ -205,7 +274,7 @@
       function filterSuppliers(supplierName) {
         const allItems = document.querySelectorAll('.category li');
         allItems.forEach(item => {
-          if (item.textContent === supplierName || item.dataset.parent === supplierName) {
+          if (item.textContent.trim() === supplierName || item.dataset.parent === supplierName) {
             item.classList.add('highlight');
           } else {
             item.classList.remove('highlight');
