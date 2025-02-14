@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List Processor</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; height: 200px; margin-bottom: 10px; }
+        button { padding: 10px 20px; font-size: 16px; }
+        .output { width: 100%; height: 300px; margin-top: 10px; }
+        h2 { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<h2>Input List</h2>
+<textarea id="inputList"></textarea>
+<button onclick="processList()">Process List</button>
+
+<h2>Main List Output</h2>
+<textarea id="mainListOutput" class="output" readonly></textarea>
+
+<h2>Other MKTGSOURCES Output</h2>
+<textarea id="otherSourcesOutput" class="output" readonly></textarea>
+
+<script>
+function processList() {
+    const inputText = document.getElementById('inputList').value;
+    const lines = inputText.trim().split('\n');
+
+    // Initialize dictionaries to store counts
+    const inputCounts = {};
+    const inputCountsWithPrefix = {};
+
+    // Parse the input list and store counts
+    lines.forEach(line => {
+        if (line.trim() === '') return; // Skip empty lines
+
+        // Split the line into name and number
+        const parts = line.trim().split(/\s+/);
+        if (parts.length < 2) return; // Skip invalid lines
+
+        const nameWithPrefix = parts[0];
+        const number = parseInt(parts[1]);
+
+        // Store counts with and without prefix
+        const nameWithoutPrefix = nameWithPrefix.replace(/^\d+/, '');
+
+        // Sum counts for names without prefix
+        if (inputCounts[nameWithoutPrefix]) {
+            inputCounts[nameWithoutPrefix] += number;
+        } else {
+            inputCounts[nameWithoutPrefix] = number;
+        }
+
+        // Store counts for names with prefix
+        inputCountsWithPrefix[nameWithPrefix] = number;
+    });
+
+    // Main list names in the exact order
+    const mainListNames = [
+        'AMAC',
+        'Bells of the Cascades',
+        'CCNY',
+        'Dlindberg',
+        'Dmenkhaus',
+        'FOP',
+        'FRA',
+        'Hcosta',
+        'KIA',
+        'LaneLeaders',
+        'LifeBalance',
+        'Lnanakul',
+        'MyEdDiscount',
+        'NPN',
+        'Oregon State',
+        'Passport',
+        'PGI',
+        'PollinGroup',
+        'Rpunch',
+        'SDC',
+        'Shepherd Univ AA',
+        'Sparkfly',
+        'TeamBenStone',
+        'TPMAIN',
+        'UTSA',
+        'WOAR',
+        'YouDecide'
+    ];
+
+    // Mapping from input names to main list names
+    const nameMapping = {
+        'AMAC': 'AMAC',
+        'BellsoftheCascades': 'Bells of the Cascades',
+        'CityCollegeNYCCNY': 'CCNY',
+        'DLindberg': 'Dlindberg',
+        'DMenkhaus': 'Dmenkhaus',
+        'FOP': 'FOP',
+        // FRA not mapped, count will be zero
+        'HCosta': 'Hcosta',
+        // KIA not mapped, count will be zero
+        'LaneLead': 'LaneLeaders',
+        'LifeBalance': 'LifeBalance',
+        'LNanakul': 'Lnanakul',
+        'MyEdDiscount': 'MyEdDiscount',
+        'NPN': 'NPN',
+        'OregonStateORST': 'Oregon State',
+        'Passport': 'Passport',
+        'ProctorGallagher': 'PGI',
+        'Pollin': 'PollinGroup',
+        'RPunch': 'Rpunch',
+        // SDC not mapped, count will be zero
+        'ShepherdUAASUAA': 'Shepherd Univ AA',
+        // Sparkfly not mapped, count will be zero
+        // TeamBenStone not mapped, count will be zero
+        'TPMAIN': 'TPMAIN',
+        'UTSanAntonioUTSA': 'UTSA',
+        'WOAR': 'WOAR',
+        'YouDecide': 'YouDecide'
+    };
+
+    // Build main list output
+    let mainListOutput = '';
+    mainListNames.forEach(mainName => {
+        let count = 0;
+        // Find the input name(s) that map to this main name
+        for (let inputName in nameMapping) {
+            if (nameMapping[inputName] === mainName) {
+                count = inputCounts[inputName] || 0;
+                break;
+            }
+        }
+        mainListOutput += mainName + '\t' + count + '\n';
+    });
+
+    // Other MKTGSOURCES names in the exact order
+    const otherSourcesNames = [
+        '1NeedsResearch',
+        '1WalkIn',
+        '2BNI',
+        '2GeneralAdsOther',
+        '2OtherBenefits',
+        '2OtherEvents',
+        '2OtherNetworking',
+        '2OtherNonProfit',
+        '2ShipTourEvent',
+        '2SocialMedia',
+        '2VacayPerks',
+        '3AlumniPastPrg',
+        '4AirportEUG',
+        '4AirportMFR',
+        '4CruiseClick',
+        '4CruiseNightEvent',
+        '4HomeShowEUG',
+        '4HomeShowOther',
+        '4InternalOld',
+        '4InternetNonProgram',
+        '4ORContempTheatre',
+        '4OtherEvents',
+        '4OtherNetworking',
+        '4OtherNonProfit',
+        '4TheShedd',
+        '4TUNNAA',
+        '4TVRadio',
+        '4WordofMouth',
+        '5BrellaProductions',
+        '7ACurtis',
+        '7CDenley',
+        '7DSoben',
+        '7EButler',
+        '7Gary',
+        '7KLawson',
+        '7MBunner',
+        '7MMeyi',
+        '7Other-Benefits',
+        '7PastEmployee',
+        '7RPirwitz',
+        '7RyanTaylor',
+        '7Theresa',
+        '8CherylRosen',
+        '8FormerAssoc',
+        '8NealAlyseTMGHandles',
+        '8SKevins',
+        '9InternalOld',
+        '9OtherBenefits',
+        '9Siemens',
+        '9HQ'
+    ];
+
+    // Build other sources output
+    let otherSourcesOutput = 'OTHER MKTGSOURCES\n';
+    otherSourcesNames.forEach(nameWithPrefix => {
+        let count = inputCountsWithPrefix[nameWithPrefix] || 0;
+        otherSourcesOutput += nameWithPrefix + '\t' + count + '\n';
+    });
+
+    // Display outputs
+    document.getElementById('mainListOutput').value = mainListOutput.trim();
+    document.getElementById('otherSourcesOutput').value = otherSourcesOutput.trim();
+}
+</script>
+
+</body>
+</html>
