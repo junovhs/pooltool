@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Email Deal Sorter - Fancy Edition (Updated Commit)</title>
+  <!-- Include SortableJS via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-light: #e8f0fe;
+      --surface: #ffffff;
+      --background: #f8f9fa;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --border: #dadce0;
+      --shadow-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+      --shadow-2: 0 2px 6px 2px rgba(60,64,67,0.15);
+      --animation: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Google Sans', Arial, sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding: 2rem;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--primary);
+    }
+    
+    .card {
+      background: var(--surface);
+      border-radius: 8px;
+      box-shadow: var(--shadow-1);
+      padding: 2rem;
+      transition: box-shadow var(--animation);
+    }
+    
+    .card:hover {
+      box-shadow: var(--shadow-2);
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      transition: border-color var(--animation);
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+    
+    .partner-select {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    
+    select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      appearance: none;
+      background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%235f6368' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1em;
+      transition: all var(--animation);
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+    
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color var(--animation);
+    }
+    
+    .btn:hover {
+      background: #1557b0;
+    }
+    
+    .deals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .supplier-card {
+      background: var(--surface);
+      border-radius: 8px;
+      box-shadow: var(--shadow-1);
+      overflow: hidden;
+      transition: all var(--animation);
+      cursor: pointer;
+    }
+    
+    .supplier-card.swap-target {
+      outline: 3px solid var(--primary);
+    }
+    
+    .card-header {
+      background: var(--primary-light);
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--primary);
+    }
+    
+    .deal-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .deal-section {
+      padding: 1rem;
+    }
+    
+    .deal-item {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      cursor: move;
+      background: var(--surface);
+      transition: background-color var(--animation);
+      position: relative;
+    }
+    
+    .deal-item:last-child {
+      border-bottom: none;
+    }
+    
+    .deal-item:hover {
+      background: var(--background);
+    }
+    
+    .deal-item.exclusive {
+      background: #fce8e6;
+    }
+    
+    .deal-item.exclusive:hover {
+      background: #fad2cf;
+    }
+    
+    .deal-title {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+    
+    .deal-description {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      display: inline-block;
+    }
+    
+    .copy-btn, .remove-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      padding: 0.25rem;
+    }
+    
+    .copy-notice {
+      display: inline-block;
+      font-size: 0.75rem;
+      color: var(--primary);
+      margin-left: 0.5rem;
+      opacity: 0;
+      transition: opacity var(--animation);
+    }
+    
+    .final-output {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      font-family: 'Google Sans', Arial, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .slide-in {
+      animation: slideIn var(--animation);
+    }
+    
+    /* Statistics Section */
+    .stats-section {
+      margin-top: 2rem;
+      padding: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    
+    .stats-row:last-child {
+      border-bottom: none;
+    }
+    
+    .stats-row:hover {
+      background: var(--background);
+    }
+    
+    .stats-row.selected {
+      background: var(--primary-light);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Final Output Section (Always at Top After Commit) -->
+    <div id="final-section" class="card slide-in" style="display:none;">
+      <h2 class="section-title">Final Selected Deals</h2>
+      <div id="final-output" class="final-output"></div>
+      <button class="btn" onclick="copyFinalOutput()">Copy to Clipboard</button>
+    </div>
+    
+    <h1>Email Deal Sorter</h1>
+    
+    <!-- Input Section -->
+    <div id="input-section" class="card slide-in">
+      <h2 class="section-title">Paste Your Deals Here</h2>
+      <textarea id="deals-input" placeholder="Paste deals here..."></textarea>
+      
+      <h3 class="section-title">Partners of the Month</h3>
+      <div class="partner-select">
+        <div>
+          <label for="potm1">Partner 1:</label>
+          <select id="potm1">
+            <option value="">--Select Partner--</option>
+          </select>
+        </div>
+        <div>
+          <label for="potm2">Partner 2:</label>
+          <select id="potm2">
+            <option value="">--Select Partner--</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" onclick="processDeals()">Sort Deals</button>
+    </div>
+    
+    <!-- Waiting Mode Section (Manual Selection) -->
+    <div id="waiting-section" class="card slide-in" style="display:none;">
+      <h2 class="section-title">Review & Select Deals</h2>
+      <p>Click a deal to toggle selection (max 4 per supplier). Drag & drop within each section. Exclusive and non‑exclusive deals are in separate sections and cannot be mixed.</p>
+      <div id="supplier-cards" class="deals-grid"></div>
+      
+      <!-- Statistics Section -->
+      <div id="stats-section" class="stats-section">
+        <h3 class="section-title">Statistics</h3>
+        <div id="stats-rows"></div>
+        <p>Click a supplier in the stats (sorted by exclusive count) to swap with a selected supplier card (click a card header first).</p>
+      </div>
+      
+      <button class="btn" onclick="commitSelection()">Commit Selection</button>
+    </div>
+  </div>
+  
+  <script>
+    /*******************
+     * Global variable to store groups for swap functionality.
+     *******************/
+    let globalGroups = {};
+    let swapTargetCard = null; // reference to the card selected for swap
+    
+    /*******************
+     * 1. Predefined Supplier List (for POTM)
+     *******************/
+    const allSuppliers = [
+      "Viking", "Norwegian Cruise Line", "Royal Caribbean", "Disney Cruise Line",
+      "Celebrity Cruises", "Virgin Voyages", "Holland America Line", "Princess",
+      "Avalon Waterways", "AmaWaterways", "Scenic Luxury Cruises & Tours", "Silversea",
+      "Regent Seven Seas Cruises", "Seabourn", "Azamara", "Sandals", "Oceania Cruises",
+      "MSC Cruises", "Carnival", "Trafalgar", "Globus", "Aulani, a Disney Resort & Spa",
+      "Disneyland Resort", "Walt Disney World", "Rocky Mountaineer", "Hard Rock Hotel & Casino",
+      "Palace Resorts", "Iberostar Beachfront Resorts", "G Adventures", "RIU Hotels & Resorts",
+      "Hurtigruten"
+    ];
+    
+    /*******************
+     * 2. Populate POTM Dropdowns
+     *******************/
+    function populateDropdowns() {
+      const potm1 = document.getElementById("potm1");
+      const potm2 = document.getElementById("potm2");
+      allSuppliers.forEach(supplier => {
+        const opt1 = document.createElement("option");
+        opt1.value = supplier;
+        opt1.textContent = supplier;
+        potm1.appendChild(opt1);
+  
+        const opt2 = document.createElement("option");
+        opt2.value = supplier;
+        opt2.textContent = supplier;
+        potm2.appendChild(opt2);
+      });
+    }
+    window.onload = populateDropdowns;
+    
+    /*******************
+     * 3. Normalization Function
+     *******************/
+    function normalizeSupplier(name) {
+      const lowerName = name.toLowerCase().trim();
+      if (lowerName.includes("viking")) return "viking";
+      return lowerName;
+    }
+    
+    /*******************
+     * 4. Parse Deals
+     *
+     * Expects each deal as three consecutive lines (Supplier, Title, Description) separated by blank lines.
+     * Skips lines containing "logo" or "expires soon".
+     *******************/
+    function parseDeals(rawText) {
+      const blocks = rawText.split(/\n\s*\n/);
+      const deals = [];
+      blocks.forEach(block => {
+        const lines = block.split("\n").map(line => line.trim()).filter(line => line !== "");
+        const filtered = lines.filter(line =>
+          !line.toLowerCase().includes("logo") && !line.toLowerCase().includes("expires soon")
+        );
+        if (filtered.length < 3) return;
+        let supplierLine = filtered[0];
+        if (supplierLine.toLowerCase().includes("viking")) {
+          supplierLine = "Viking";
+        } else {
+          for (let s of allSuppliers) {
+            if (s.toLowerCase() === supplierLine.toLowerCase()) {
+              supplierLine = s;
+              break;
+            }
+          }
+        }
+        const title = filtered[1];
+        const description = filtered[2];
+        const exclusive = title.toUpperCase().includes("EXCLUSIVE");
+        deals.push({ supplier: supplierLine, title, description, exclusive });
+      });
+      console.log("Parsed Deals:", deals);
+      return deals;
+    }
+    
+    /*******************
+     * 5. Group Deals by Supplier (Using Normalized Key)
+     *******************/
+    function groupDealsBySupplier(deals) {
+      const groups = {};
+      deals.forEach(deal => {
+        if (!deal.supplier || !deal.title || !deal.description) {
+          console.warn("Skipping invalid deal:", deal);
+          return;
+        }
+        const key = normalizeSupplier(deal.supplier);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(deal);
+      });
+      console.log("Grouped Deals:", groups);
+      return groups;
+    }
+    
+    /*******************
+     * 6. Qualification for Non‑Forced Suppliers
+     *
+     * Rule:
+     *   - For suppliers with 3+ deals: must have at least 2 exclusive deals.
+     *   - For suppliers with exactly 2 deals: they qualify only if both are exclusive.
+     *   - And if any supplier qualifies with 3+ deals, then suppliers with only 2 deals are excluded.
+     *******************/
+    function qualifies(deals) {
+      if (deals.length >= 3) {
+        return deals.filter(d => d.exclusive).length >= 2;
+      }
+      if (deals.length === 2 && deals.every(d => d.exclusive)) return true;
+      return false;
+    }
+    
+    /*******************
+     * 7. Build Candidate List for Non‑Forced Suppliers
+     *******************/
+    function buildCandidateList(groups) {
+      const candidates = [];
+      for (let key in groups) {
+        const ds = groups[key];
+        if (qualifies(ds)) {
+          candidates.push({ supplier: key, deals: ds.slice(0, 3), count: ds.length, exclusiveCount: ds.filter(d => d.exclusive).length, score: ds.length * 100 + ds.filter(d => d.exclusive).length * 10 });
+        }
+      }
+      const hasThreePlus = candidates.some(c => c.count >= 3);
+      let finalCandidates = candidates;
+      if (hasThreePlus) {
+        finalCandidates = candidates.filter(c => c.count >= 3);
+      }
+      finalCandidates.sort((a, b) => b.score - a.score);
+      return finalCandidates;
+    }
+    
+    /*******************
+     * 8. Forced Inclusion of POTM Suppliers
+     *******************/
+    function getForcedCandidates(groups) {
+      const forced = [];
+      const potm1 = document.getElementById("potm1").value;
+      const potm2 = document.getElementById("potm2").value;
+      [potm1, potm2].forEach(partner => {
+        if (!partner) return;
+        const norm = normalizeSupplier(partner);
+        if (groups[norm] && groups[norm].length > 0) {
+          forced.push({
+            supplier: partner, // Display name from dropdown
+            deals: groups[norm].slice(0, 3)
+          });
+        } else {
+          console.warn("No deals found for forced partner:", partner);
+        }
+      });
+      return forced;
+    }
+    
+    /*******************
+     * 9. Combine Forced and Candidate Suppliers
+     *******************/
+    function combineCandidates(forced, candidates) {
+      const forcedNorms = forced.map(c => normalizeSupplier(c.supplier));
+      const remaining = candidates.filter(c => !forcedNorms.includes(c.supplier));
+      const finalList = forced.slice(); // Already in dropdown order.
+      const spotsLeft = 4 - finalList.length;
+      if (spotsLeft > 0) {
+        finalList.push(...remaining.slice(0, spotsLeft));
+      }
+      return finalList;
+    }
+    
+    /*******************
+     * 10. Display Waiting Mode UI (Manual Selection)
+     *******************/
+    function displaySupplierCards(finalGroups) {
+      const container = document.getElementById("supplier-cards");
+      container.innerHTML = "";
+      finalGroups.forEach(group => {
+        const card = document.createElement("div");
+        card.className = "supplier-card slide-in";
+        card.dataset.supplier = normalizeSupplier(group.supplier); // store normalized key
+      
+        const header = document.createElement("div");
+        header.className = "card-header";
+        const h2 = document.createElement("h2");
+        h2.textContent = group.supplier;
+        // When header is clicked, mark card as swap target.
+        h2.addEventListener("click", function(e) {
+          document.querySelectorAll(".supplier-card").forEach(c => c.classList.remove("swap-target"));
+          card.classList.add("swap-target");
+          swapTargetCard = card;
+        });
+        header.appendChild(h2);
+        card.appendChild(header);
+      
+        // Separate deals into exclusive and non-exclusive arrays.
+        const exclusiveDeals = group.deals.filter(d => d.exclusive);
+        const nonExclusiveDeals = group.deals.filter(d => !d.exclusive);
+      
+        // Create container for exclusive deals.
+        if (exclusiveDeals.length > 0) {
+          const exclusiveSection = document.createElement("div");
+          exclusiveSection.className = "deal-section";
+          const exclusiveList = document.createElement("ul");
+          exclusiveList.className = "deal-list exclusive";
+          exclusiveDeals.forEach(deal => {
+            const li = document.createElement("li");
+            li.className = "deal-item exclusive";
+            li.innerHTML = `<div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
+              <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>`;
+            li.addEventListener("click", function() {
+              const selected = exclusiveList.querySelectorAll(".deal-item.selected");
+              if (!li.classList.contains("selected")) {
+                if (selected.length >= 4) {
+                  alert("You can select up to 4 deals per supplier.");
+                  return;
+                }
+                li.classList.add("selected");
+              } else {
+                li.classList.remove("selected");
+              }
+            });
+            exclusiveList.appendChild(li);
+          });
+          exclusiveSection.appendChild(exclusiveList);
+          card.appendChild(exclusiveSection);
+        }
+      
+        // Create container for non-exclusive deals.
+        if (nonExclusiveDeals.length > 0) {
+          const nonExclusiveSection = document.createElement("div");
+          nonExclusiveSection.className = "deal-section";
+          const hr = document.createElement("hr");
+          nonExclusiveSection.appendChild(hr);
+          const nonExclusiveList = document.createElement("ul");
+          nonExclusiveList.className = "deal-list nonexclusive";
+          nonExclusiveDeals.forEach(deal => {
+            const li = document.createElement("li");
+            li.className = "deal-item";
+            li.innerHTML = `<div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
+              <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>`;
+            li.addEventListener("click", function() {
+              const selected = nonExclusiveList.querySelectorAll(".deal-item.selected");
+              if (!li.classList.contains("selected")) {
+                if (selected.length >= 4) {
+                  alert("You can select up to 4 deals per supplier.");
+                  return;
+                }
+                li.classList.add("selected");
+              } else {
+                li.classList.remove("selected");
+              }
+            });
+            nonExclusiveList.appendChild(li);
+          });
+          nonExclusiveSection.appendChild(nonExclusiveList);
+          card.appendChild(nonExclusiveSection);
+        }
+      
+        // Initialize SortableJS on each list.
+        const exList = card.querySelector(".deal-list.exclusive");
+        if (exList) {
+          Sortable.create(exList, {
+            animation: 150,
+            group: { name: "exclusive-" + card.dataset.supplier, pull: true, put: false }
+          });
+        }
+        const nonExList = card.querySelector(".deal-list.nonexclusive");
+        if (nonExList) {
+          Sortable.create(nonExList, {
+            animation: 150,
+            group: { name: "nonexclusive-" + card.dataset.supplier, pull: true, put: false }
+          });
+        }
+      
+        container.appendChild(card);
+      });
+      // After cards are displayed, show the statistics section.
+      displayStatistics(globalGroups);
+    }
+    
+    /*******************
+     * 11. Display Statistics Section (Sorted by Exclusive Count Descending)
+     *******************/
+    function displayStatistics(groups) {
+      const statsContainer = document.getElementById("stats-rows");
+      const statsArray = [];
+      for (let key in groups) {
+        const deals = groups[key];
+        statsArray.push({
+          key: key,
+          displayName: (key === "viking") ? "Viking" : key,
+          total: deals.length,
+          exclusive: deals.filter(d => d.exclusive).length
+        });
+      }
+      statsArray.sort((a, b) => b.exclusive - a.exclusive);
+      statsContainer.innerHTML = "";
+      statsArray.forEach(stat => {
+        const row = document.createElement("div");
+        row.className = "stats-row";
+        row.innerHTML = `<span>${stat.displayName}</span><span>${stat.total} deals (${stat.exclusive} exclusive)</span>`;
+        row.addEventListener("click", function() {
+          if (!swapTargetCard) {
+            alert("First click on a supplier card header to mark it for swapping.");
+            return;
+          }
+          const currentSupplier = swapTargetCard.dataset.supplier;
+          const newSupplier = stat.key;
+          if (newSupplier === currentSupplier) {
+            alert("Selected supplier is already displayed.");
+            return;
+          }
+          const currentExCount = globalGroups[currentSupplier].filter(d => d.exclusive).length;
+          const newExCount = groups[newSupplier].filter(d => d.exclusive).length;
+          if (newExCount <= currentExCount) {
+            alert("Swap not allowed. The new supplier must have more exclusive deals.");
+            return;
+          }
+          // Swap the card's content.
+          swapTargetCard.querySelector(".card-header h2").textContent = (newSupplier === "viking") ? "Viking" : newSupplier;
+          const newGroup = groups[newSupplier];
+          const exclusiveDeals = newGroup.filter(d => d.exclusive);
+          const nonExclusiveDeals = newGroup.filter(d => !d.exclusive);
+          let cardBody = "";
+          if (exclusiveDeals.length > 0) {
+            cardBody += `<div class="deal-section"><ul class="deal-list exclusive">`;
+            exclusiveDeals.slice(0, 3).forEach(deal => {
+              cardBody += `<li class="deal-item exclusive">
+                <div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
+                <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>
+              </li>`;
+            });
+            cardBody += `</ul></div>`;
+          }
+          if (nonExclusiveDeals.length > 0) {
+            cardBody += `<div class="deal-section"><hr><ul class="deal-list nonexclusive">`;
+            nonExclusiveDeals.slice(0, 3).forEach(deal => {
+              cardBody += `<li class="deal-item">
+                <div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
+                <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>
+              </li>`;
+            });
+            cardBody += `</ul></div>`;
+          }
+          while (swapTargetCard.childNodes.length > 1) {
+            swapTargetCard.removeChild(swapTargetCard.lastChild);
+          }
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = cardBody;
+          while (tempDiv.firstChild) {
+            swapTargetCard.appendChild(tempDiv.firstChild);
+          }
+          const newExList = swapTargetCard.querySelector(".deal-list.exclusive");
+          if (newExList) {
+            Sortable.create(newExList, {
+              animation: 150,
+              group: { name: "exclusive-" + newSupplier, pull: true, put: false }
+            });
+          }
+          const newNonExList = swapTargetCard.querySelector(".deal-list.nonexclusive");
+          if (newNonExList) {
+            Sortable.create(newNonExList, {
+              animation: 150,
+              group: { name: "nonexclusive-" + newSupplier, pull: true, put: false }
+            });
+          }
+          swapTargetCard.dataset.supplier = newSupplier;
+          swapTargetCard.classList.remove("swap-target");
+          swapTargetCard = null;
+        });
+        statsContainer.appendChild(row);
+      });
+    }
+    
+    /*******************
+     * 12. Copy Button Handler for Individual Deal Text
+     * Shows a small inline notice.
+     *******************/
+    function copyText(event, type, btn) {
+      event.stopPropagation();
+      let textToCopy = "";
+      if (type === "title") {
+        textToCopy = btn.parentElement.innerText.replace("Copy", "").trim();
+      } else if (type === "description") {
+        textToCopy = btn.parentElement.innerText.replace("Copy", "").trim();
+      }
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        let notice = document.createElement("span");
+        notice.className = "copy-notice";
+        notice.innerText = "Copied!";
+        btn.parentElement.appendChild(notice);
+        setTimeout(() => {
+          notice.style.opacity = 1;
+          setTimeout(() => {
+            notice.style.opacity = 0;
+            setTimeout(() => { notice.remove(); }, 200);
+          }, 2000);
+        }, 10);
+      }).catch(err => {
+        console.error("Failed to copy text:", err);
+      });
+    }
+    
+    /*******************
+     * 13. Remove Deal Handler
+     *******************/
+    function removeDeal(event, btn) {
+      event.stopPropagation();
+      const li = btn.closest(".deal-item");
+      li.remove();
+    }
+    
+    /*******************
+     * 14. Commit Selection and Build Final Output
+     *
+     * If no deals are selected on a supplier card, then all deals from that card are used.
+     * The final output is plain text with each supplier’s name in square brackets, followed by each deal’s title and description.
+     *******************/
+    function commitSelection() {
+      const container = document.getElementById("supplier-cards");
+      const finalTextArr = [];
+      const cards = container.querySelectorAll(".supplier-card");
+      cards.forEach(card => {
+        const supplierName = card.querySelector(".card-header h2").textContent;
+        // If no deal is selected in this card, use all deal items.
+        let selectedItems = card.querySelectorAll(".deal-item.selected");
+        if (selectedItems.length === 0) {
+          selectedItems = card.querySelectorAll(".deal-item");
+        }
+        if (selectedItems.length > 0) {
+          finalTextArr.push("[" + supplierName + "]");
+          selectedItems.forEach(item => {
+            const title = item.querySelector(".deal-title").innerText.replace("Copy", "").trim();
+            const description = item.querySelector(".deal-description").innerText.replace("Copy", "").trim();
+            finalTextArr.push(title);
+            finalTextArr.push(description);
+          });
+          finalTextArr.push(""); // blank line between suppliers
+        }
+      });
+      const finalText = finalTextArr.join("\n");
+      document.getElementById("final-output").innerText = finalText;
+      document.getElementById("final-section").style.display = "block";
+    }
+    
+    /*******************
+     * 15. Copy Final Output to Clipboard
+     *******************/
+    function copyFinalOutput() {
+      const text = document.getElementById("final-output").innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector("#final-section .btn");
+        btn.innerText = "Copied!";
+        setTimeout(() => { btn.innerText = "Copy to Clipboard"; }, 2000);
+      }).catch(err => {
+        console.error("Failed to copy final output:", err);
+      });
+    }
+    
+    /*******************
+     * 16. Main Processing Function
+     *******************/
+    function processDeals() {
+      const rawInput = document.getElementById("deals-input").value;
+      if (!rawInput.trim()) {
+        alert("Please paste your deals.");
+        return;
+      }
+      const deals = parseDeals(rawInput);
+      if (deals.length === 0) {
+        alert("No deals were parsed. Please check your input format.");
+        return;
+      }
+      const groups = groupDealsBySupplier(deals);
+      globalGroups = groups; // Save for swap functionality
+      const forcedCandidates = getForcedCandidates(groups);
+      const candidateList = buildCandidateList(groups);
+      const finalGroups = combineCandidates(forcedCandidates, candidateList);
+      console.log("Final Candidates for Display:", finalGroups);
+      if (finalGroups.length === 0) {
+        alert("No suppliers qualify.");
+        return;
+      }
+      document.getElementById("input-section").style.display = "none";
+      document.getElementById("waiting-section").style.display = "block";
+      displaySupplierCards(finalGroups);
+    }
+  </script>
+</body>
+</html>
