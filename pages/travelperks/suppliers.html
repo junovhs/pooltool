@@ -1,260 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base href="https://websim.creation/supplier-categories-v7/" />
+  <!-- All CSS has been stripped out; no <style> tag, no <base> tag -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Supplier Categories Visualization</title>
-  <!-- Importing the 'Press Start 2P' font from Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  
-  <style>
-    /* Reset and Base Styles */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #041317;
-      font-family: 'Press Start 2P', 'Courier New', monospace;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      color: #CDCCBB;
-      padding: 20px;
-    }
-
-    /* Container Styles */
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      justify-content: flex-start;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #041317;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
-    }
-
-    /* Category Card Styles */
-    .category {
-      background-color: #041317;
-      border: 4px solid #CDCCBB;
-      border-radius: 8px;
-      padding: 15px;
-      width: calc(25% - 20px); /* Standard width: 25% for four columns */
-      min-width: 250px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .category:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
-    }
-
-    /* Wide Category Styles */
-    .category.wide {
-      width: calc(50% - 20px); /* Double width: 50% for two columns */
-    }
-
-    /* Heading Styles */
-    h2 {
-      color: #CDCCBB;
-      border-bottom: 2px solid #B04438;
-      padding-bottom: 5px;
-      margin-top: 0;
-      margin-bottom: 10px;
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    /* List Styles */
-    .category ul {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-      flex-grow: 1;
-      column-count: 1;
-      column-gap: 20px;
-    }
-
-    /* Adjust columns for wide categories */
-    .category.wide ul {
-      column-count: 2; /* Two columns for wide categories */
-    }
-
-    li {
-      background-color: #1F2B2F;
-      margin: 0 0 5px 0;
-      padding: 8px;
-      border-radius: 4px;
-      transition: background-color 0.3s, transform 0.3s;
-      font-size: 12px;
-      break-inside: avoid-column;
-      cursor: pointer;
-      border: 2px solid transparent;
-      white-space: normal;        /* Allow text to wrap naturally */
-      overflow-wrap: break-word;  /* Break words only when necessary */
-      word-break: normal;         /* Use normal word break rules */
-      hyphens: auto;              /* Enable hyphenation */
-    }
-
-    li:hover {
-      background-color: #B04438;
-      color: #FFFFFF;
-      transform: translateX(5px);
-      border-color: #CDCCBB;
-    }
-
-    /* Alphabet Filter Styles */
-    #alphabet-filter {
-      display: flex;
-      justify-content: center; /* Center the alphabet filter */
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .letter {
-      cursor: pointer;
-      padding: 5px 10px;
-      background-color: #1F2B2F;
-      border-radius: 4px;
-      position: relative;
-      margin: 0 5px 5px 0;
-      border: 2px solid #CDCCBB;
-      transition: background-color 0.3s, transform 0.3s;
-      font-size: 12px;
-      text-transform: uppercase;
-    }
-
-    .letter:hover {
-      background-color: #B04438;
-      color: #FFFFFF;
-      transform: scale(1.1);
-    }
-
-    .supplier-group {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background-color: #1F2B2F;
-      border: 2px solid #CDCCBB;
-      border-radius: 4px;
-      padding: 5px;
-      z-index: 10;
-      width: 220px;        /* Increased width to accommodate longer names */
-      max-width: 300px;    /* Set a maximum width */
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-      overflow: hidden;    /* Prevent overflow */
-    }
-
-    .letter:hover .supplier-group {
-      display: block;
-    }
-
-    .supplier-item {
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 10px;
-      cursor: pointer;
-      margin: 2px 0;
-      background-color: #B04438;
-      color: #FFFFFF;
-      transition: background-color 0.3s, transform 0.3s;
-      white-space: normal;        /* Allow text to wrap naturally */
-      overflow-wrap: break-word;  /* Break words only when necessary */
-      word-break: normal;         /* Use normal word break rules */
-      hyphens: auto;              /* Enable hyphenation */
-    }
-
-    .supplier-item:hover {
-      background-color: #CDCCBB;
-      color: #041317;
-      transform: translateX(5px);
-    }
-
-    .highlight {
-      background-color: #ffeb3b !important;
-      color: #041317 !important;
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 1200px) {
-      .category {
-        width: calc(33.333% - 20px); /* Three columns */
-      }
-
-      .category.wide {
-        width: calc(66.666% - 20px); /* Two wide categories per row */
-      }
-    }
-
-    @media (max-width: 1024px) {
-      .category {
-        width: calc(33.333% - 20px);
-      }
-
-      .category.wide {
-        width: calc(66.666% - 20px);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .category {
-        width: calc(50% - 20px); /* Two columns */
-      }
-
-      .category.wide {
-        width: 100%; /* Full width */
-      }
-
-      .supplier-group {
-        width: 180px;    /* Adjust width for smaller screens */
-        max-width: 250px;
-      }
-
-      .category.wide ul {
-        column-count: 2; /* Maintain two columns internally */
-      }
-    }
-
-    @media (max-width: 480px) {
-      .category {
-        width: 100%;
-      }
-
-      .letter {
-        font-size: 10px;
-      }
-
-      li {
-        font-size: 10px;
-      }
-
-      .supplier-group {
-        width: 150px;    /* Further adjust for very small screens */
-        max-width: 200px;
-      }
-
-      .supplier-item {
-        font-size: 9px;
-        padding: 4px 8px;
-      }
-
-      .category.wide ul {
-        column-count: 1; /* Single column on very small screens */
-      }
-    }
-  </style>
 </head>
 <body>
   <!-- Alphabet Filter -->
@@ -407,11 +157,10 @@
         <li>Rocky Mountaineer</li>
       </ul>
     </div>
-    
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
+    document.addEventListener('DOMContentLoaded', () => {
       const categories = document.querySelectorAll('.category');
       const alphabetFilter = document.getElementById('alphabet-filter');
       
@@ -432,9 +181,10 @@
       const sortedSuppliers = [...suppliers.entries()].sort((a, b) => a[0].localeCompare(b[0]));
     
       function getColorForCount(count) {
-        if (count === 1) return '#4CAF50';  // Green
-        if (count === 2) return '#FFC107';  // Amber
-        return '#F44336';  // Red for 3 or more
+        // Arbitrary color logic. Will have no effect if there's no CSS.
+        if (count === 1) return '#4CAF50';
+        if (count === 2) return '#FFC107';
+        return '#F44336';
       }
     
       const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -474,13 +224,13 @@
           }
         });
       }
-    
-      // Automatically add 'wide' class to categories with more than 14 suppliers
+      
+      // Example logic: if a category has more than 14 items, we mark it "wide"
       categories.forEach(category => {
         const list = category.querySelector('ul');
         const items = list.querySelectorAll('li');
         if (items.length > 14) {
-          category.classList.add('wide'); /* Automatically add 'wide' class */
+          category.classList.add('wide');
         }
       });
     });
