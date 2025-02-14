@@ -226,9 +226,9 @@
       // Remove any existing iframe
       const existingFrame = document.getElementById('contentFrame');
       if (existingFrame) existingFrame.remove();
-
+    
       // Create an iframe that fills the entire viewport.
-      // It is placed directly in the body so it can cover the whole page.
+      // It is placed directly in the body so it covers the whole page.
       const iframe = document.createElement('iframe');
       iframe.id = 'contentFrame';
       iframe.src = pagePath;
@@ -240,8 +240,30 @@
       iframe.style.border = 'none';
       // Ensure the iframe appears beneath the nav bar
       iframe.style.zIndex = '500';
+    
+      // When the iframe loads, inject CSS into its document to remove unwanted margins
+      // and hide its header (which contains the duplicate "pool tool" logo).
+      iframe.onload = function() {
+        try {
+          const doc = iframe.contentDocument;
+          const style = doc.createElement('style');
+          style.textContent = `
+            /* Remove extra margins/padding that might cause misalignment */
+            body { margin: 0 !important; padding: 0 !important; }
+            /* Hide any header element in the loaded page */
+            header { display: none !important; }
+            /* Optional: force the main container to center if needed */
+            #container { margin: 0 auto !important; }
+          `;
+          doc.head.appendChild(style);
+        } catch (e) {
+          console.error('Error injecting CSS into iframe:', e);
+        }
+      };
+    
       document.body.appendChild(iframe);
     }
+
 
     // Handle URL hash changes:
     // When not "home", load the page in an iframe.
