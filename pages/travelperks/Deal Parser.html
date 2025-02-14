@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deal Parser – Token Matching with Adjustable Threshold</title>
+  <!-- Minimal Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" crossorigin="anonymous" />
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous" />
+  <style>
+    .icon-btn { cursor: pointer; margin: 0 5px; }
+    .icon-btn:hover { color: #333; }
+    table td small { color: #555; }
+  </style>
+</head>
+<body>
+<div class="container my-4">
+  <h1 class="mb-3">Deal Parser (Token Matching + Adjustable Threshold)</h1>
+  
+  <!-- User-adjustable threshold -->
+  <div class="mb-3">
+    <label for="minScoreThreshold" class="form-label">Minimum Match Score Threshold:</label>
+    <input type="number" id="minScoreThreshold" class="form-control" value="3" min="0" step="1">
+  </div>
+
+  <p class="text-muted">
+    • Supplier lines are detected if the line ends with ":" or matches a known supplier.<br>
+    • Tokens are extracted from deal text and expanded with synonyms.<br>
+    • End dates are normalized; "Ends today" becomes today’s date (MM/DD/YYYY).<br>
+    • Each HQ deal is matched to the best available site deal (if score ≥ threshold); otherwise, it's classified as new.<br>
+    • Thumbs up/down buttons let you manually override the classification.<br>
+    • Click "Copy New Deals" to export in c/v/d/ed format.
+  </p>
+
+  <div class="row">
+    <!-- HQ deals input -->
+    <div class="col-md-6 mb-3">
+      <label for="hqDealsInput" class="form-label">HQ Deals (Raw Text):</label>
+      <textarea id="hqDealsInput" class="form-control" rows="10">Crystal Cruises:
+Upgrade & Pre or Post Hotel Night – 12/3/2024-2/2/2025
+Cunard
+EXCLUSIVE Up to $300 OBC – Ends 1/31/2025
+
+Norwegian:
+50% Off All Cruises (DISC50) - Ends 1/31/2025</textarea>
+    </div>
+    <!-- Site deals JSON input -->
+    <div class="col-md-6 mb-3">
+      <label for="siteDealsInput" class="form-label">Site Deals JSON:</label>
+      <textarea id="siteDealsInput" class="form-control" rows="10">[
+  {
+    "id": 456,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2024-12-01 08:00:00",
+    "expiryDate": "2025-02-03 00:00:00",
+    "title": "Upgrade & Pre or Post Hotel Night",
+    "field_shopOverline_cmsuxrfz": "Crystal Cruises",
+    "field_shopListing_gxrjxnpo": "Enjoy an upgraded journey plus a complimentary pre or post-cruise hotel stay."
+  },
+  {
+    "id": 789,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2025-01-01 08:00:00",
+    "expiryDate": "2025-02-01 00:00:00",
+    "title": "EXCLUSIVE: Up To 2 Bonus Nights Specialty Dining",
+    "field_shopOverline_cmsuxrfz": "Norwegian Cruise Line",
+    "field_shopListing_gxrjxnpo": "Enjoy two specialty dining nights for balcony guests and one for oceanview and insider."
+  }
+]</textarea>
+    </div>
+  </div>
+
+  <button id="parseButton" class="btn btn-primary mb-3">Parse & Classify</button>
+  <button id="copyButton" class="btn btn-secondary mb-3">Copy New Deals (c/v/d/ed format)</button>
+
+  <!-- Results Section -->
+  <div id="resultsSection" class="d-none">
+    <h3>Duplicates (Auto-matched)</h3>
+    <div class="table-responsive mb-4">
+      <table class="table table-striped" id="duplicatesTable">
+        <thead class="table-danger">
+          <tr>
+            <th>Supplier / HQ Deal</th>
+            <th>Start / End</th>
+            <th>Score</th>
+            <th>Site Deal (Active?)</th>
+            <th>Exclusive?</th>
+            <th>Move</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h3>New Deals</h3>
+    <div class="table-responsive mb-4">
+      <table class="table table-striped" id="newDealsTable">
+        <thead class="table-dark">
+          <tr>
+            <th>Supplier / HQ Deal</th>
+            <th>Start / End</th>
+            <th>Score</th>
+            <th>Exclusive?</th>
+            <th>Move</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------
+// 1) Known suppliers list (add as needed)
+const knownSuppliers = [
+  "Cunard", "Crystal Cruises", "Norwegian", "Royal Caribbean", "MSC Cruises", "Princess", "Celebrity", "Holland"
+];
+
+// ---------------
+// 2) Synonyms dictionary (expanded)
+const synonymsDict = {
+  'obc': ['onboard','credit','onboardcredit'],
+  'credit': ['onboard','credit','onboardcredit'],
+  'ppg': ['free','gratuities','freegratuities'],
+  'gratuities': ['ppg','freegratuities','free','tips','complimentary'],
+  'exclusive': ['exclusive','only','special'],
+  'dining': ['meals','restaurants','food','dining','specialtydining','bonusnights']
+};
+
+// ---------------
+// 3) Tokenize a deal text with synonyms expansion
+function tokenizeDealText(text) {
+  let tokens = (text.toLowerCase().match(/[a-z0-9$%]+/g) || []);
+  let expanded = [];
+  tokens.forEach(token => {
+    expanded.push(token);
+    if (synonymsDict[token]) {
+      expanded.push(...synonymsDict[token]);
+    }
+  });
+  return expanded;
+}
+
+// ---------------
+// 4) Normalize "Ends today" to today's date in MM/DD/YYYY format
+function getTodayMMDDYYYY() {
+  const today = new Date();
+  const mm = String(today.getMonth()+1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  return `${mm}/${dd}/${yyyy}`;
+}
+
+// ---------------
+// 5) Parse dates from a line (extract start/end if available)
+//    If "Ends today" is present, set endDate to today's date.
+function extractDates(line) {
+  const obj = { startDate:'', endDate:'', endsToday:false };
+  if (/Ends\s+today/i.test(line)) {
+    obj.endsToday = true;
+    obj.endDate = getTodayMMDDYYYY();
+  }
+  let m = line.match(/Ends\s+(\d{1,2}\/\d{1,2}\/\d{4})/i);
+  if (m) {
+    obj.endDate = m[1];
+  }
+  const rangeRegex = /(\d{1,2}\/\d{1,2}\/\d{4})-(\d{1,2}\/\d{1,2}\/\d{4})|(\d{1,2}\/\d{1,2})-(\d{1,2}\/\d{1,2}\/\d{4})/;
+  m = line.match(rangeRegex);
+  if (m) {
+    const [ , fs, fe, hs, he ] = m;
+    if (fs && fe) {
+      obj.startDate = fs;
+      obj.endDate = fe;
+    } else if (hs && he) {
+      obj.startDate = hs + '/' + ((he.match(/\d{4}$/) || [''])[0] || '');
+      obj.endDate = he;
+    }
+  }
+  return obj;
+}
+
+// ---------------
+// 6) Parse HQ deals
+function parseHqDeals(rawText) {
+  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
+  const results = [];
+  let currentSupplier = '';
+  
+  for (let line of lines) {
+    // New supplier if line ends with ":" or exactly matches a known supplier
+    if (line.endsWith(':') || knownSuppliers.includes(line)) {
+      currentSupplier = line.replace(':','').trim();
+      continue;
+    }
+    // If line starts with "*" (bullet) then append to previous deal
+    if (line.startsWith('*') && results.length) {
+      results[results.length - 1].dealText += ' ' + line.slice(1).trim();
+      continue;
+    }
+    const deal = {
+      supplier: currentSupplier,
+      dealText: line, // preserve full text, including "EXCLUSIVE"
+      exclusive: /\bEXCLUSIVE\b/i.test(line),
+      startDate: '',
+      endDate: '',
+      score: 0
+    };
+    const dateObj = extractDates(line);
+    deal.startDate = dateObj.startDate;
+    deal.endDate = dateObj.endDate;
+    results.push(deal);
+  }
+  return results;
+}
+
+// ---------------
+// 7) Parse site deals (with active check)
+function parseDbDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = dateStr.split(' ');
+  return new Date(parts[0] + 'T00:00:00');
+}
+function isCraftActive(item) {
+  if (item.enabled !== 1) return false;
+  if (item.enabledForSite !== 1) return false;
+  const now = new Date();
+  const post = parseDbDate(item.postDate);
+  if (!post || post > now) return false;
+  const exp = parseDbDate(item.expiryDate);
+  if (exp && exp <= now) return false;
+  return true;
+}
+function parseSiteDeals(jsonArr) {
+  return jsonArr.map(item => {
+    const supplier = (item.field_shopOverline_cmsuxrfz || '').trim();
+    const text = ((item.title || '') + ' ' + (item.field_shopListing_gxrjxnpo || '')).trim();
+    let endDate = '';
+    if (item.expiryDate) {
+      endDate = item.expiryDate.split(' ')[0];
+    }
+    return {
+      supplier,
+      dealText: text,
+      endDate,
+      isActive: isCraftActive(item),
+      exclusive: /exclusive/i.test(text),
+      used: false
+    };
+  });
+}
+
+// ---------------
+// 8) Date & Supplier Matching Functions
+function parseDate(dStr) {
+  if (!dStr) return null;
+  let m = dStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m) return new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
+  m = dStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return new Date(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T00:00:00`);
+  return null;
+}
+function roughlySameDate(a, b) {
+  const d1 = parseDate(a), d2 = parseDate(b);
+  if (!d1 || !d2) return false;
+  return Math.abs(d1 - d2) <= 24*60*60*1000; // within ±1 day
+}
+function sameSupplier(a, b) {
+  const A = (a||'').toLowerCase(), B = (b||'').toLowerCase();
+  return A.includes(B) || B.includes(A);
+}
+
+// ---------------
+// 9) Weighted Token Matching & Scoring
+function calculateMatchScore(hqDeal, siteDeal) {
+  const hqTokens = tokenizeDealText(hqDeal.dealText);
+  const siteTokens = tokenizeDealText(siteDeal.dealText);
+  let score = 0;
+  
+  // For each token in HQ, add points if found in site
+  hqTokens.forEach(token => {
+    // If token is solely numeric, skip or weight lower
+    if (/^\d+$/.test(token)) return;
+    if (siteTokens.includes(token)) {
+      if (token === 'gratuities' || token === 'ppg') score += 5;
+      else score += 1;
+    }
+    if (synonymsDict[token]) {
+      synonymsDict[token].forEach(syn => {
+        if (siteTokens.includes(syn)) {
+          if (token === 'gratuities' || token === 'ppg') score += 5;
+          else score += 1;
+        }
+      });
+    }
+  });
+  // Boost for supplier exact match
+  if (hqDeal.supplier.toLowerCase() === siteDeal.supplier.toLowerCase()) {
+    score += 10;
+  }
+  // Boost for date match (±1 day)
+  if (roughlySameDate(hqDeal.endDate, siteDeal.endDate)) {
+    score += 5;
+  }
+  return score;
+}
+
+function findBestSiteMatch(hqDeal, siteDeals, minThreshold) {
+  let bestIndex = -1;
+  let bestScore = 0;
+  for (let i = 0; i < siteDeals.length; i++) {
+    const s = siteDeals[i];
+    if (s.used) continue;
+    if (!sameSupplier(hqDeal.supplier, s.supplier)) continue;
+    if (!roughlySameDate(hqDeal.endDate, s.endDate)) continue;
+    const sc = calculateMatchScore(hqDeal, s);
+    if (sc > bestScore) {
+      bestScore = sc;
+      bestIndex = i;
+    }
+  }
+  // If best score is below the threshold, treat as no match.
+  if (bestScore < minThreshold) return { index: -1, score: 0 };
+  return { index: bestIndex, score: bestScore };
+}
+
+// ---------------
+// 10) MAIN LOGIC: CLASSIFY INTO DUPLICATES vs NEW DEALS
+document.getElementById('parseButton').addEventListener('click', () => {
+  const minThreshold = parseInt(document.getElementById('minScoreThreshold').value, 10) || 3;
+  const rawHq = document.getElementById('hqDealsInput').value;
+  const hqDeals = parseHqDeals(rawHq);
+
+  let siteJson = [];
+  try {
+    siteJson = JSON.parse(document.getElementById('siteDealsInput').value);
+  } catch (e) {
+    alert("Error parsing site JSON. Check your formatting!");
+    return;
+  }
+  const siteDeals = parseSiteDeals(siteJson);
+
+  // Clear results and show section
+  const duplicatesBody = document.getElementById('duplicatesTable').querySelector('tbody');
+  const newDealsBody = document.getElementById('newDealsTable').querySelector('tbody');
+  duplicatesBody.innerHTML = '';
+  newDealsBody.innerHTML = '';
+  document.getElementById('resultsSection').classList.remove('d-none');
+
+  // For each HQ deal, find best matching site deal
+  for (const deal of hqDeals) {
+    const { index, score } = findBestSiteMatch(deal, siteDeals, minThreshold);
+    deal.score = score;
+    if (index === -1 || score === 0) {
+      // No match → New Deal row
+      addNewDealRow(deal, newDealsBody);
+    } else {
+      const matchedSite = siteDeals[index];
+      matchedSite.used = true; // mark as used
+      addDuplicateRow(deal, matchedSite, duplicatesBody);
+    }
+  }
+});
+
+// ---------------
+// 11) Table UI Helper Functions (Thumbs Up/Down)
+// Note the addition of data-fa-i2svg="false" prevents auto-replacement of the icons
+function addDuplicateRow(hqDeal, siteDeal, tableBody) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><strong>${hqDeal.supplier}</strong><br/>${hqDeal.dealText}</td>
+    <td><small>Start: ${hqDeal.startDate || '-'}<br/>End: ${hqDeal.endDate || '-'}</small></td>
+    <td>${hqDeal.score}</td>
+    <td><strong>${siteDeal.supplier}</strong> (Active: ${siteDeal.isActive ? 'Yes' : 'No'})<br/>
+      ${siteDeal.dealText}<br/><small>End: ${siteDeal.endDate || '(n/a)'}</small></td>
+    <td>${hqDeal.exclusive ? 'Yes' : 'No'}</td>
+    <td><i data-fa-i2svg="false" class="icon-btn fas fa-thumbs-down" title="Move to New Deals"></i></td>
+  `;
+  const downBtn = tr.querySelector('.fa-thumbs-down');
+  downBtn.addEventListener('click', () => {
+    tr.parentNode.removeChild(tr);
+    addNewDealRow(hqDeal, document.getElementById('newDealsTable').querySelector('tbody'));
+  });
+  tableBody.appendChild(tr);
+}
+
+function addNewDealRow(hqDeal, tableBody) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><strong>${hqDeal.supplier}</strong><br/>${hqDeal.dealText}</td>
+    <td><small>Start: ${hqDeal.startDate || '-'}<br/>End: ${hqDeal.endDate || '-'}</small></td>
+    <td>${hqDeal.score || 0}</td>
+    <td>${hqDeal.exclusive ? 'Yes' : 'No'}</td>
+    <td><i data-fa-i2svg="false" class="icon-btn fas fa-thumbs-up" title="Move to Duplicates"></i></td>
+  `;
+  const upBtn = tr.querySelector('.fa-thumbs-up');
+  upBtn.addEventListener('click', () => {
+    tr.parentNode.removeChild(tr);
+    // Move to duplicates with a placeholder since no real site match exists.
+    addDuplicateRow(hqDeal, { supplier: "(No Site)", dealText: "(none)", endDate: "", isActive: false }, 
+      document.getElementById('duplicatesTable').querySelector('tbody'));
+  });
+  tableBody.appendChild(tr);
+}
+
+// ---------------
+// 12) Copy New Deals to Clipboard (c/v/d/ed format)
+document.getElementById('copyButton').addEventListener('click', () => {
+  const newTableBody = document.getElementById('newDealsTable').querySelector('tbody');
+  const rows = Array.from(newTableBody.querySelectorAll('tr'));
+  let lastSupplier = "";
+  let lines = [];
+  rows.forEach(row => {
+    const tds = row.querySelectorAll('td');
+    if (!tds.length) return;
+    const supplierLine = tds[0].innerText.split('\n');
+    const supplier = supplierLine[0].trim();
+    const dealText = supplierLine.slice(1).join(' ').trim();
+    // In our table, the "Exclusive?" column is the fourth TD (index 3) in newDealsTable rows.
+    const isExclusive = (tds[3].innerText.trim() === "Yes");
+    if (supplier !== lastSupplier) {
+      lines.push(`v\t${supplier}:`);
+      lastSupplier = supplier;
+    }
+    if (isExclusive) {
+      lines.push(`ed\t${dealText}`);
+    } else {
+      lines.push(`d\t${dealText}`);
+    }
+  });
+  const finalText = lines.join('\n');
+  navigator.clipboard.writeText(finalText)
+    .then(() => alert("Copied new deals in c/v/d/ed format!"))
+    .catch(err => console.error("Copy failed:", err));
+});
+</script>
+
+<!-- Bootstrap JS and FontAwesome JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" crossorigin="anonymous"></script>
+</body>
+</html>
