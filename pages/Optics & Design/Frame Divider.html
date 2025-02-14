@@ -1,0 +1,169 @@
+<html><head><base href="/" />
+  <meta charset="UTF-8">
+  <title>Image Frame Divider</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <!-- JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- FileSaver.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <!-- Alpine.js -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    .spinner {
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-r from-blue-100 to-purple-100 min-h-screen flex items-center justify-center p-4" x-data="imageDivider()">
+  <!-- Loading Overlay -->
+  <div x-show="isProcessing" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="w-16 h-16 border-4 border-t-4 border-gray-200 rounded-full spinner animate-spin"></div>
+  </div>
+
+  <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
+    <h1 class="text-2xl font-semibold text-center text-gray-800 mb-4">Image Frame Divider</h1>
+    <div class="mb-4">
+      <label for="imageUpload" class="block text-gray-700 mb-2">Upload Image:</label>
+      <input type="file" id="imageUpload" accept="image/*" @change="handleImageUpload" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    <div class="mb-4">
+      <label for="frameCount" class="block text-gray-700 mb-2">Number of Frames:</label>
+      <input type="number" id="frameCount" min="1" x-model.number="frameCount" class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+    <div class="mb-4">
+      <p class="text-gray-700 mb-2">Are frames stacked vertically or horizontally?</p>
+      <div class="flex space-x-4">
+        <label class="flex flex-col items-center cursor-pointer">
+          <input type="radio" name="splitDirection" value="vertical" x-model="splitDirection" class="hidden">
+          <div :class="{'border-blue-500': splitDirection === 'vertical'}" class="w-16 h-20 flex flex-col space-y-2 p-2 border rounded-md hover:shadow-lg transition">
+            <div class="w-full h-full bg-green-500"></div>
+            <div class="w-full h-full bg-green-500"></div>
+            <div class="w-full h-full bg-green-500"></div>
+          </div>
+          <span class="mt-2 text-gray-600">Vertical</span>
+        </label>
+        <label class="flex flex-col items-center cursor-pointer">
+          <input type="radio" name="splitDirection" value="horizontal" x-model="splitDirection" class="hidden">
+          <div :class="{'border-blue-500': splitDirection === 'horizontal'}" class="w-20 h-16 flex space-x-2 p-2 border rounded-md hover:shadow-lg transition">
+            <div class="w-full h-full bg-blue-500"></div>
+            <div class="w-full h-full bg-blue-500"></div>
+            <div class="w-full h-full bg-blue-500"></div>
+          </div>
+          <span class="mt-2 text-gray-600">Horizontal</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex justify-between items-center mb-4">
+      <button @click="processImage" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">Process Image</button>
+      <button @click="exportZip" :class="{'hidden': !frames.length}" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition">Export as ZIP</button>
+    </div>
+    <div class="mb-4" x-show="frames.length">
+      <input type="range" min="1" :max="frames.length" x-model.number="currentFrame" class="w-full">
+      <div class="text-center mt-2 text-gray-700" x-text="`Frame ${currentFrame} of ${frameCount}`"></div>
+    </div>
+    <div class="mt-6 max-h-64 overflow-y-auto">
+      <div class="flex justify-center">
+        <template x-if="frames.length">
+          <img :src="frames[currentFrame -1]" :alt="'Frame ' + currentFrame" class="w-full max-w-full rounded-md animate__animated animate__fadeIn">
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function imageDivider() {
+      return {
+        frameCount: 2,
+        splitDirection: 'vertical',
+        frames: [],
+        isProcessing: false,
+        imageFile: null,
+        currentFrame: 1,
+        handleImageUpload(event) {
+          this.imageFile = event.target.files[0];
+        },
+        async processImage() {
+          if (!this.imageFile) {
+            alert('Please upload an image.');
+            return;
+          }
+          if (this.frameCount < 1) {
+            alert('Number of frames must be at least 1.');
+            return;
+          }
+          this.isProcessing = true;
+          try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              const img = new Image();
+              img.src = e.target.result;
+              img.onload = async () => {
+                const width = img.width;
+                const height = img.height;
+                let frameWidth, frameHeight;
+                if (this.splitDirection === 'vertical') {
+                  frameWidth = width;
+                  frameHeight = Math.floor(height / this.frameCount);
+                } else {
+                  frameWidth = Math.floor(width / this.frameCount);
+                  frameHeight = height;
+                }
+                this.frames = [];
+                for (let i = 0; i < this.frameCount; i++) {
+                  await new Promise(resolve => setTimeout(resolve, 0));
+                  const canvas = document.createElement('canvas');
+                  canvas.width = frameWidth;
+                  canvas.height = frameHeight;
+                  const ctx = canvas.getContext('2d');
+                  if (this.splitDirection === 'vertical') {
+                    ctx.drawImage(img, 0, i * frameHeight, width, frameHeight, 0, 0, frameWidth, frameHeight);
+                  } else {
+                    ctx.drawImage(img, i * frameWidth, 0, frameWidth, height, 0, 0, frameWidth, frameHeight);
+                  }
+                  this.frames.push(canvas.toDataURL('image/png'));
+                }
+                this.currentFrame = 1;
+                this.isProcessing = false;
+              }
+              img.onerror = () => {
+                alert('Failed to load image.');
+                this.isProcessing = false;
+              }
+            }
+            reader.onerror = () => {
+              alert('Failed to read image.');
+              this.isProcessing = false;
+            }
+            reader.readAsDataURL(this.imageFile);
+          } catch (error) {
+            console.error(error);
+            alert('An error occurred while processing the image.');
+            this.isProcessing = false;
+          }
+        },
+        exportZip() {
+          if (this.frames.length === 0) return;
+          const zip = new JSZip();
+          this.frames.forEach((dataURL, index) => {
+            const base64 = dataURL.split(',')[1];
+            zip.file(`frame_${index + 1}.png`, base64, {base64: true});
+          });
+          zip.generateAsync({type:"blob"}).then((content) => {
+            saveAs(content, "frames.zip");
+          }).catch(() => {
+            alert('Failed to generate ZIP file.');
+          });
+        }
+      }
+    }
+  </script>
+</body>
+</html>
