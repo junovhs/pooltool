@@ -53,10 +53,10 @@
       margin: 0;
     }
     
-    /* Preview Container: fixed 800×800; no background or border */
+    /* Preview Container: now set to 968×600 */
     #preview-container {
-      width: 800px;
-      height: 800px;
+      width: 968px;
+      height: 600px;
       position: relative;
       margin-bottom: 20px;
       background: transparent;
@@ -134,6 +134,8 @@
       margin-top: 10px;
     }
   </style>
+  <!-- Include JSZip -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
   <!-- Title -->
@@ -157,8 +159,9 @@
     <!-- Aspect Ratio Slider -->
     <div>
       <label for="aspectRatioSlider">Aspect Ratio:</label>
-      <input type="range" id="aspectRatioSlider" min="0.3333" max="3" step="0.01" value="1">
-      <span id="ratioDisplay">1:1</span>
+      <!-- Default value now set to 968/600 ≈ 1.6133 -->
+      <input type="range" id="aspectRatioSlider" min="0.3333" max="3" step="0.01" value="1.6133">
+      <span id="ratioDisplay">1.61:1</span>
     </div>
     <!-- Keystone Aspect Ratio Buttons -->
     <div class="ratio-btns" id="keystoneButtons"></div>
@@ -173,7 +176,7 @@
       <label for="zoomSlider">Zoom:</label>
       <input type="range" id="zoomSlider" step="0.01">
       <span id="zoomDisplay">1.00</span>
-      <div class="zoom-label">Left = Fit to Canvas | Middle = 100% native | Right = 200%</div>
+      <div class="zoom-label">Slide left to view the entire image</div>
     </div>
     <!-- Export Options -->
     <div>
@@ -199,8 +202,6 @@
     <button id="downloadZipBtn" style="display:none;">Download ZIP</button>
   </div>
   
-  <!-- Include JSZip -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script>
     /***********************
      * Global Variables & Setup
@@ -227,18 +228,17 @@
     const zoomSlider = document.getElementById('zoomSlider');
     const zoomDisplay = document.getElementById('zoomDisplay');
     
-    // For preview, the container is fixed at 800×800.
-    const previewSize = 800;
+    // Instead of a single previewSize, we now have separate width and height.
+    const previewWidth = 968;
+    const previewHeight = 600;
     
-    // The displayed crop area dimensions (for preview) are computed from the current aspect ratio.
-    let aspectRatio = parseFloat(aspectRatioSlider.value); // default 1:1
-    let displayTargetWidth = previewSize;
-    let displayTargetHeight = previewSize;
+    // The crop area dimensions will be computed based on the container and aspect ratio.
+    let aspectRatio = parseFloat(aspectRatioSlider.value); // default ~1.6133 (968:600)
+    let displayTargetWidth, displayTargetHeight;
     
     // Image transformation state.
     let currentImage = null;
     let currentFileType = 'image/jpeg';
-    let sourceDomain = "";
     let offsetX = 0, offsetY = 0;
     let currentRotation = 0; // in degrees (from rotation slider)
     let userZoom = 1;        // from zoom slider
@@ -246,11 +246,8 @@
     // For dragging.
     let isDragging = false, dragStartX = 0, dragStartY = 0;
     
-    // Computed cover scale for the preview.
+    // Computed scale value to ensure the crop area is fully covered (used for panning constraints).
     let coverScale = 1;
-    
-    // Flag for manual export dimensions override.
-    let useCustomExportDims = false;
     
     // Batch mode variables.
     let batchQueue = [];
@@ -282,7 +279,6 @@
       const btn = document.createElement('button');
       btn.textContent = ratioObj.label;
       btn.addEventListener('click', () => {
-        useCustomExportDims = false;
         aspectRatio = ratioObj.value;
         aspectRatioSlider.value = ratioObj.value;
         updateCropAreaDimensions();
@@ -306,7 +302,6 @@
     aspectRatioSlider.addEventListener('input', () => {
       canvasWidthInput.value = "";
       canvasHeightInput.value = "";
-      useCustomExportDims = false;
       aspectRatio = parseFloat(aspectRatioSlider.value);
       updateCropAreaDimensions();
       updateRatioDisplay();
@@ -316,17 +311,19 @@
     
     /***********************
      * Update Crop Area Dimensions (Display Only)
+     * The crop area will fit within the preview container.
      ***********************/
     function updateCropAreaDimensions() {
-      if (aspectRatio < 1) {
-        displayTargetHeight = previewSize;
-        displayTargetWidth = Math.round(previewSize * aspectRatio);
-      } else if (aspectRatio > 1) {
-        displayTargetWidth = previewSize;
-        displayTargetHeight = Math.round(previewSize / aspectRatio);
+      // Compute container ratio.
+      const containerRatio = previewWidth / previewHeight;
+      if (aspectRatio > containerRatio) {
+        // Crop area takes full width of container.
+        displayTargetWidth = previewWidth;
+        displayTargetHeight = Math.round(previewWidth / aspectRatio);
       } else {
-        displayTargetWidth = previewSize;
-        displayTargetHeight = previewSize;
+        // Crop area takes full height of container.
+        displayTargetHeight = previewHeight;
+        displayTargetWidth = Math.round(previewHeight * aspectRatio);
       }
       cropArea.style.width = displayTargetWidth + "px";
       cropArea.style.height = displayTargetHeight + "px";
@@ -343,7 +340,6 @@
       const cw = parseFloat(canvasWidthInput.value);
       const ch = parseFloat(canvasHeightInput.value);
       if (cw > 0 && ch > 0) {
-        useCustomExportDims = true;
         aspectRatio = cw / ch;
         aspectRatioSlider.value = aspectRatio;
         updateRatioDisplay();
@@ -357,7 +353,7 @@
     canvasHeightInput.addEventListener('input', handleCustomExportDims);
     
     /***********************
-     * Drop Zone & File Loading (with fallback to dt.files)
+     * Drop Zone & File Loading
      ***********************/
     ['dragenter','dragover','dragleave','drop'].forEach(eventName => {
       dropZone.addEventListener(eventName, preventDefaults, false);
@@ -439,6 +435,12 @@
             cropArea.appendChild(preview);
           }
           preview.src = e.target.result;
+          // Set up the zoom slider: its minimum is the "fit-to-crop" scale.
+          const fitScale = Math.min(displayTargetWidth / currentImage.naturalWidth, displayTargetHeight / currentImage.naturalHeight);
+          zoomSlider.min = fitScale;
+          zoomSlider.max = 2; // up to 200%
+          userZoom = fitScale;
+          zoomSlider.value = fitScale;
           updatePreview();
         };
         img.src = e.target.result;
@@ -458,14 +460,10 @@
     });
     
     /***********************
-     * Zoom Controls (Live with Snapping)
+     * Zoom Controls (Live)
      ***********************/
     zoomSlider.addEventListener('input', () => {
       userZoom = parseFloat(zoomSlider.value);
-      if (Math.abs(userZoom - 1) < 0.03) {
-        userZoom = 1;
-        zoomSlider.value = 1;
-      }
       updatePreview();
       constrainOffsets();
       updatePreview();
@@ -477,9 +475,6 @@
         userZoom = Math.min(userZoom + step, parseFloat(zoomSlider.max));
       } else {
         userZoom = Math.max(userZoom - step, parseFloat(zoomSlider.min));
-      }
-      if (Math.abs(userZoom - 1) < 0.03) {
-        userZoom = 1;
       }
       zoomSlider.value = userZoom;
       updatePreview();
@@ -494,6 +489,8 @@
       if (!currentImage) return;
       const preview = document.getElementById('preview');
       if (!preview) return;
+      
+      // Calculate the scale required to fully cover the crop area (for panning constraints)
       let scale0 = Math.max(displayTargetWidth / currentImage.naturalWidth, displayTargetHeight / currentImage.naturalHeight);
       const rad = Math.abs(currentRotation * Math.PI / 180);
       const requiredScale = Math.max(
@@ -502,16 +499,7 @@
       );
       coverScale = (currentRotation !== 0) ? Math.max(scale0, requiredScale) : scale0;
       
-      // Define baseZoom as the "fit-to-canvas" scale.
-      const baseZoom = (coverScale < 1 ? coverScale : 1);
-      
-      // Set zoom slider range: minimum is 1 (fit-to-canvas), maximum is 2 (200% native).
-      zoomSlider.min = 1;
-      zoomSlider.max = 2;
-      if (!zoomSlider.value || parseFloat(zoomSlider.value) < zoomSlider.min) {
-        zoomSlider.value = 1;
-      }
-      // The final applied zoom is simply the zoomSlider value.
+      // The final applied zoom is simply the userZoom value (which is at least the fit-to-crop scale).
       const finalScale = userZoom;
       
       // Update preview transform.
@@ -561,7 +549,6 @@
     });
     function constrainOffsets() {
       if (!currentImage) return;
-      const baseZoom = (coverScale < 1 ? coverScale : 1);
       const finalScale = userZoom; 
       const w = currentImage.naturalWidth * finalScale;
       const h = currentImage.naturalHeight * finalScale;
@@ -576,17 +563,6 @@
       offsetX = clamp(offsetX, minOffsetX, maxOffsetX);
       offsetY = clamp(offsetY, minOffsetY, maxOffsetY);
     }
-    
-    /***********************
-     * Rotation Slider (Live)
-     ***********************/
-    rotationSlider.addEventListener('input', () => {
-      currentRotation = parseInt(rotationSlider.value);
-      rotationDisplay.textContent = rotationSlider.value + "°";
-      updatePreview();
-      constrainOffsets();
-      updatePreview();
-    });
     
     /***********************
      * Download / Export (Single Mode)
@@ -607,8 +583,6 @@
       canvas.width = exportWidth;
       canvas.height = exportHeight;
       const ctx = canvas.getContext('2d');
-      const baseZoom = (coverScale < 1 ? coverScale : 1);
-      const finalScale = userZoom;
       ctx.save();
       ctx.translate(exportWidth / 2, exportHeight / 2);
       const exportRatioX = exportWidth / displayTargetWidth;
@@ -646,15 +620,13 @@
       canvas.width = exportWidth;
       canvas.height = exportHeight;
       const ctx = canvas.getContext('2d');
-      const baseZoom = (coverScale < 1 ? coverScale : 1);
-      const finalScale = userZoom;
       ctx.save();
       ctx.translate(exportWidth / 2, exportHeight / 2);
       const exportRatioX = exportWidth / displayTargetWidth;
       const exportRatioY = exportHeight / displayTargetHeight;
       ctx.translate(offsetX * exportRatioX, offsetY * exportRatioY);
       ctx.rotate((currentRotation * Math.PI) / 180);
-      ctx.scale(finalScale * exportRatioX, finalScale * exportRatioY);
+      ctx.scale(userZoom * exportRatioX, userZoom * exportRatioY);
       ctx.drawImage(currentImage, -currentImage.naturalWidth / 2, -currentImage.naturalHeight / 2);
       ctx.restore();
       const dataURL = canvas.toDataURL(currentFileType === 'image/webp' ? 'image/webp' : 'image/jpeg', 0.9);
@@ -713,6 +685,12 @@
             cropArea.appendChild(preview);
           }
           preview.src = e.target.result;
+          // Recompute zoom slider minimum.
+          const fitScale = Math.min(displayTargetWidth / img.naturalWidth, displayTargetHeight / img.naturalHeight);
+          zoomSlider.min = fitScale;
+          zoomSlider.max = 2;
+          userZoom = fitScale;
+          zoomSlider.value = fitScale;
           updatePreview();
         };
         img.src = e.target.result;
