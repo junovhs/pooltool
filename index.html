@@ -282,8 +282,8 @@
       // When the iframe loads, inject CSS to:
       // - Push content down 60px (below the nav bar)
       // - Hide any internal header, nav, or footer
-      // - Hide the first h1 (to remove an injected "POOLTOOL" if present)
-      // - Center the content (with a max-width)
+      // - Hide any h1 that is a direct child of body (to remove injected "POOLTOOL")
+      // - Center the content within a maximum width.
       iframe.onload = function() {
         try {
           const doc = iframe.contentDocument;
@@ -297,7 +297,7 @@
             header, nav, footer { 
               display: none !important; 
             }
-            h1:first-of-type { 
+            body > h1 { 
               display: none !important; 
             }
             .container, main, body { 
