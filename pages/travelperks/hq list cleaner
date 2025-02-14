@@ -1,0 +1,203 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deal List Formatter – Supplier Enhanced</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>Deal List Formatter – Supplier Enhanced</h1>
+  <p>
+    Paste your messy deal list below. This tool removes category lines, standardizes vendor names based on our suppliers’ database, and reformats vendor–deal lines so that each vendor appears on its own line (with bold–italic styling followed by a colon) and each deal appears beneath it.
+  </p>
+  <textarea id="input" placeholder="Paste your list here…"></textarea>
+  <br>
+  <button onclick="processInput()">Format Deals</button>
+  <button id="copyButton" onclick="copyOutput()">Copy to Clipboard</button>
+  <h2>Formatted Output:</h2>
+  <div id="output" class="output"></div>
+  <script src="/script.js"></script>
+</body>
+</html>
+<style>
+  body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  line-height: 1.5;
+}
+textarea {
+  width: 100%;
+  height: 200px;
+  font-family: monospace;
+  padding: 10px;
+  box-sizing: border-box;
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  margin-right: 10px;
+}
+.output {
+  white-space: pre;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  padding: 10px;
+  font-family: monospace;
+}
+</style>
+<script>
+  "use strict";
+
+// Our known suppliers database – this is used to match and normalize vendor names
+const knownSuppliers = [
+  "Norwegian", "Royal Caribbean", "Celebrity", "Disney Cruise Line", "Virgin Voyages", "Holland America Line",
+  "Princess", "Carnival", "MSC Cruises", "Costa Cruises",
+  "Viking Ocean", "Seabourn", "Regent Seven Seas Cruises", "Oceania Cruises", "Silversea", "Explora Journeys",
+  "Azamara", "Scenic Eclipse Ocean Voyages", "Atlas Ocean Voyages", "Crystal Cruises", "Emerald Cruises",
+  "Cunard", "Windstar", "Paul Gauguin Cruises", "Ponant", "American Cruise Line", "Tauck Cruises", "Star Clippers",
+  "Four Seasons Yachts", "Ritz-Carlton Yacht Collection", 
+  "Viking River", "Avalon Waterways", "Ama Waterways", "CroisiEurope", "Riverside Cruises",
+  "Scenic River", "Tauck Tours", "Riviera River Cruises", "Uniworld",
+  // Adventure cruising
+  "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures",
+  // Disney and Resorts/Hawaii
+  "DisneyWorld", "Disneyland", "Aulani, A Disney Resort & Spa", "Adventures by Disney", 
+  "Sandals", "Beaches", "Breathless", "Club Med", "El Dorado Spa Resorts & Hotels", "Excellence Resorts", 
+  "Hard Rock Hotels", "Iberostar Hotels & Resorts", "Dreams", "Karisma Hotels & Resorts", "Villas of Distinction",
+  "Palace Resorts", "Atlantis Paradise Island Bahamas", "Melia", "RIU Hotels & Resorts", "Outrigger Hotels & Resorts",
+  "Zoëtry Wellness & Spa Resorts", "Secrets", "American Airline Vacations", "Delta Vacations", "Southwest Vacations",
+  "United Vacations"
+];
+
+// Given a vendor name, try to match it to a known supplier (ignoring case and extra punctuation)
+function normalizeSupplier(name) {
+  let trimmed = name.trim().replace(/:$/, "").trim();
+  let lowerTrimmed = trimmed.toLowerCase();
+  for (let supplier of knownSuppliers) {
+    if (lowerTrimmed === supplier.toLowerCase()) {
+      return supplier;
+    }
+    // If the supplier name occurs in the string, return the standardized name.
+    if (lowerTrimmed.indexOf(supplier.toLowerCase()) !== -1) {
+      return supplier;
+    }
+  }
+  return trimmed;
+}
+
+// Helper to escape HTML characters for deal text.
+function escapeHTML(s) {
+  return s.replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+}
+
+// Regular expression to split on the first dash (or en-dash) with optional spaces.
+const dashRegex = /^(.*?)[\s]*[-–][\s]*(.*)$/;
+
+function processInput() {
+  const input = document.getElementById("input").value;
+  const lines = input.split("\n");
+  const outputLines = [];
+  let currentVendor = ""; // Keeps track of the last explicit vendor line ("v" lines)
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (line === "") continue;
+    
+    // Expect code + whitespace + content.
+    let match = line.match(/^(\w+)\s+(.*)$/);
+    if (!match) continue;
+    let code = match[1];
+    let content = match[2];
+
+    // Category lines ("c") are ignored and reset vendor context.
+    if (code.toLowerCase() === "c") {
+      currentVendor = "";
+      continue;
+    }
+
+    // Process vendor line ("v")
+    if (code === "v") {
+      let vendorName = normalizeSupplier(content);
+      currentVendor = vendorName;
+      outputLines.push("v\t" + "<b><i>" + vendorName + ":</i></b>");
+      continue;
+    }
+
+    // Process vendor–deal lines ("vd" or "ved")
+    if (code === "vd" || code === "ved") {
+      let raw = content;
+      let newVendor = "";
+      let dealText = "";
+      
+      // Special handling when the current vendor is "Disney" (case‑insensitive)
+      if (currentVendor && currentVendor.toLowerCase() === "disney") {
+        let parts = raw.match(dashRegex);
+        if (parts) {
+          newVendor = normalizeSupplier(currentVendor + " " + parts[1].trim());
+          dealText = parts[2].trim();
+        } else {
+          newVendor = normalizeSupplier(currentVendor + " " + raw.trim());
+          dealText = "";
+        }
+        outputLines.push("v\t" + "<b><i>" + newVendor + ":</i></b>");
+        outputLines.push("d\t" + escapeHTML(dealText));
+      } else {
+        // If the raw text starts with "Tauck" (special case, case‑insensitive)
+        if (/^tauck\b/i.test(raw)) {
+          let idx = raw.search(/[\s]*[-–][\s]*/);
+          if (idx >= 0) {
+            let delimMatch = raw.match(/[\s]*[-–][\s]*/);
+            let delimLength = delimMatch ? delimMatch[0].length : 0;
+            newVendor = normalizeSupplier(raw.substring(0, idx).trim());
+            dealText = raw.substring(idx + delimLength).trim();
+          } else {
+            newVendor = normalizeSupplier(raw.trim());
+            dealText = "";
+          }
+        } else {
+          // Default: split on the first dash.
+          let parts = raw.match(dashRegex);
+          if (parts) {
+            newVendor = normalizeSupplier(parts[1].trim());
+            dealText = parts[2].trim();
+          } else {
+            newVendor = normalizeSupplier(raw.trim());
+            dealText = "";
+          }
+        }
+        outputLines.push("v\t" + "<b><i>" + newVendor + ":</i></b>");
+        outputLines.push("d\t" + escapeHTML(dealText));
+      }
+      continue;
+    }
+
+    // For plain deal lines (d or ed), output them unchanged (with HTML escaping for safety)
+    if (code === "d" || code === "ed") {
+      outputLines.push(code + "\t" + escapeHTML(content));
+      continue;
+    }
+
+    // Any other lines – fall back to output the line as-is.
+    outputLines.push(code + "\t" + escapeHTML(content));
+  }
+  
+  // Build final output, replacing newline characters with <br> for HTML display.
+  const finalOutput = outputLines.join("\n");
+  document.getElementById("output").innerHTML = finalOutput.replace(/\n/g, "<br>");
+}
+
+function copyOutput() {
+  const outputEl = document.getElementById("output");
+  const text = outputEl.innerText; // Copy as plain text
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      alert("Formatted output copied to clipboard!");
+    })
+    .catch(err => {
+      alert("Failed to copy output. Please try again.");
+      console.error("Error copying output: ", err);
+    });
+}
+</script>
