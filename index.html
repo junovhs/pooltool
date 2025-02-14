@@ -201,8 +201,8 @@
   <!-- ========== JavaScript ========== -->
   <script>
     /**
-     * Dynamically fetches the list of pages from the "Pages" folder.
-     * Works differently in local mode (fetching a directory listing) and on GitHub Pages (using the GitHub API).
+     * Dynamically fetches the list of pages from the "pages" folder.
+     * Works differently in local mode (fetching a directory listing) and on GitHub pages (using the GitHub API).
      */
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const dashboard = document.getElementById('dashboard');
@@ -211,15 +211,15 @@
     // Adjust these values to match your GitHub repository details
     const githubOwner = 'junovhs';       // Replace with your GitHub username if needed
     const githubRepo  = 'redleaf';        // Replace with your repository name
-    const pagesFolder = 'Pages';          // The folder where your HTML files live
+    const pagesFolder = 'pages';          // The folder where your HTML files live
 
     async function fetchPages() {
       let pages = [];
       try {
         if (isLocal) {
-          // In local mode, fetch the directory listing from "Pages/"
+          // In local mode, fetch the directory listing from "pages/"
           const response = await fetch(pagesFolder + '/');
-          if (!response.ok) throw new Error('Failed to fetch local Pages directory');
+          if (!response.ok) throw new Error('Failed to fetch local pages directory');
           const text = await response.text();
           const parser = new DOMParser();
           const doc = parser.parseFromString(text, 'text/html');
@@ -232,10 +232,10 @@
             }
           });
         } else {
-          // On GitHub Pages, use the GitHub API to list contents of the Pages folder
+          // On GitHub Pages, use the GitHub API to list contents of the pages folder
           const apiURL = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${pagesFolder}`;
           const response = await fetch(apiURL);
-          if (!response.ok) throw new Error('Failed to fetch Pages list from GitHub API');
+          if (!response.ok) throw new Error('Failed to fetch pages list from GitHub API');
           const items = await response.json();
           for (const item of items) {
             if (item.type === 'file' && item.name.endsWith('.html')) {
