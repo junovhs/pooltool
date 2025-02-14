@@ -16,6 +16,8 @@
       --nav-bg: rgba(255, 255, 255, 0.95);
       --nav-hover: rgba(0, 123, 255, 0.1);
       --transition-speed: 0.3s;
+      --nav-height: 60px;
+      --max-width: 1200px;
     }
     *, *::before, *::after {
       margin: 0;
@@ -41,6 +43,7 @@
       padding: 10px 20px;
       background: var(--nav-bg);
       border-bottom: 1px solid var(--accent-color);
+      height: var(--nav-height);
     }
     header h1 {
       font-size: 1.5rem;
@@ -73,7 +76,7 @@
       }
       nav {
         position: fixed;
-        top: 60px;
+        top: calc(var(--nav-height));
         right: 0;
         background: var(--nav-bg);
         flex-direction: column;
@@ -87,16 +90,33 @@
         max-height: 400px;
       }
     }
-    /* ========== Main Dashboard Grid ========== */
-    main {
-      margin-top: 70px; /* Space for fixed header */
-      padding: 20px;
-      animation: fadeIn 0.6s ease forwards;
-      opacity: 0;
+    /* ========== Home Page Layout ========== */
+    main#mainContent {
+      margin-top: var(--nav-height);
+      width: 100%;
+      max-width: var(--max-width);
+      margin-left: auto;
+      margin-right: auto;
     }
-    @keyframes fadeIn {
-      to { opacity: 1; }
+    /* Hero section */
+    section.hero {
+      background: var(--accent-color);
+      color: var(--primary-color);
+      padding: 60px 20px;
+      text-align: center;
     }
+    section.hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    section.hero p {
+      font-size: 1.2rem;
+    }
+    /* Body section */
+    section.body {
+      padding: 40px 20px;
+    }
+    /* Dashboard cards (for dynamic pages) */
     .dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -109,7 +129,6 @@
       padding: 20px;
       transition: transform var(--transition-speed), box-shadow var(--transition-speed);
       cursor: pointer;
-      position: relative;
       overflow: hidden;
     }
     .card:hover {
@@ -123,6 +142,14 @@
     }
     .card p {
       font-size: 0.9rem;
+    }
+    /* Footer */
+    footer {
+      background: #eaeaea;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
     }
   </style>
 </head>
@@ -144,11 +171,21 @@
     </nav>
   </header>
 
-  <!-- ========== Main Dashboard (Project Cards) ========== -->
+  <!-- ========== Home Page (Dashboard) ========== -->
   <main id="mainContent">
-    <section class="dashboard" id="dashboard">
-      <!-- Project cards will be inserted here dynamically -->
+    <section class="hero">
+      <h1>Welcome to My Dynamic Website</h1>
+      <p>Discover our curated apps and pages, all just a click away.</p>
     </section>
+    <section class="body">
+      <h2>Explore Our Pages</h2>
+      <div class="dashboard" id="dashboard">
+        <!-- Dynamic project cards will be inserted here -->
+      </div>
+    </section>
+    <footer>
+      <p>&copy; 2025 My Website. All rights reserved.</p>
+    </footer>
   </main>
 
   <!-- ========== JavaScript ========== -->
@@ -226,9 +263,9 @@
       // Remove any existing iframe
       const existingFrame = document.getElementById('contentFrame');
       if (existingFrame) existingFrame.remove();
-    
+
       // Create an iframe that fills the entire viewport.
-      // It is placed directly in the body so it covers the whole page.
+      // It is placed directly in the body so that it covers the whole page.
       const iframe = document.createElement('iframe');
       iframe.id = 'contentFrame';
       iframe.src = pagePath;
@@ -238,47 +275,46 @@
       iframe.style.width = '100vw';
       iframe.style.height = '100vh';
       iframe.style.border = 'none';
-      // Ensure the iframe appears beneath the nav bar
+      // Ensure the iframe appears beneath the nav bar (which has z-index 1000)
       iframe.style.zIndex = '500';
-    
-      // When the iframe loads, inject CSS into its document to remove unwanted margins
-      // and hide its header (which contains the duplicate "pool tool" logo).
+
+      // When the iframe loads, inject CSS into its document.
       iframe.onload = function() {
         try {
           const doc = iframe.contentDocument;
           const style = doc.createElement('style');
           style.textContent = `
-            /* Remove extra margins/padding that might cause misalignment */
-            body { margin: 0 !important; padding: 0 !important; }
-            /* Hide any header element in the loaded page */
+            /* Ensure the loaded page's content is pushed down by 60px so it starts beneath the nav bar */
+            body { margin: 0 !important; padding-top: 60px !important; }
+            /* Make any container or main element full-width and centered */
+            .container, #container, main { width: 100%; max-width: var(--max-width); margin: 0 auto; }
+            /* Hide the header element inside the loaded page */
             header { display: none !important; }
-            /* Optional: force the main container to center if needed */
-            #container { margin: 0 auto !important; }
           `;
+          // Append the style to the loaded page's head
           doc.head.appendChild(style);
         } catch (e) {
           console.error('Error injecting CSS into iframe:', e);
         }
       };
-    
+
       document.body.appendChild(iframe);
     }
 
-
     // Handle URL hash changes:
-    // When not "home", load the page in an iframe.
-    // When "home", remove the iframe and show the dashboard.
+    // When the hash is not "home", hide the home layout and load the page.
+    // When "home", remove any iframe and show the home layout.
     function handleHashChange() {
       const hash = window.location.hash.substring(1);
       if (!hash || hash === 'home') {
         // Remove any full-page iframe
         const iframe = document.getElementById('contentFrame');
         if (iframe) iframe.remove();
-        // Show the main dashboard
+        // Show the home layout
         mainContent.style.display = 'block';
         return;
       }
-      // Hide the dashboard and load the external page.
+      // Hide the home layout and load the external page.
       mainContent.style.display = 'none';
       loadContent(hash);
     }
