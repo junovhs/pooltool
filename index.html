@@ -260,12 +260,11 @@
       });
     }
 
-    // Load content in a full-page iframe (with isolated styling)
     function loadContent(pagePath) {
       // Remove any existing iframe.
       const existingFrame = document.getElementById('contentFrame');
       if (existingFrame) existingFrame.remove();
-
+    
       // Create an iframe that fills the entire viewport.
       const iframe = document.createElement('iframe');
       iframe.id = 'contentFrame';
@@ -276,34 +275,38 @@
       iframe.style.width = '100vw';
       iframe.style.height = '100vh';
       iframe.style.border = 'none';
-      // Ensure the iframe appears beneath the fixed nav bar.
-      iframe.style.zIndex = '500';
-
+      iframe.style.zIndex = '500'; // Ensure it appears beneath the fixed nav bar.
+    
       // When the iframe loads, inject CSS to:
-      // - Push content down 60px (below the nav bar)
-      // - Hide any internal header, nav, or footer
-      // - Hide any h1 that is a direct child of body (to remove injected "POOLTOOL")
-      // - Center the content within a maximum width.
+      // - Push content down by 60px so it starts below the nav bar.
+      // - Hide any automatically inserted "pooltool" headers.
+      // - Ensure full-screen layout for all content.
       iframe.onload = function() {
         try {
           const doc = iframe.contentDocument;
           const style = doc.createElement('style');
           style.textContent = `
-            body { 
+            html, body { 
               margin: 0 !important; 
-              padding-top: 60px !important; 
-              text-align: center; 
+              padding: 0 !important; 
+              height: 100vh; 
+              width: 100vw;
+              overflow: hidden;
             }
-            header, nav, footer { 
-              display: none !important; 
-            }
-            body > h1 { 
-              display: none !important; 
-            }
-            .container, main, body { 
-              width: 100%; 
-              max-width: 1200px; 
-              margin: 0 auto; 
+            
+            /* Push content down to avoid navbar overlap */
+            body { padding-top: 60px !important; }
+            
+            /* Hide injected GitHub headers (like 'pooltool') */
+            body > h1:first-of-type { display: none !important; }
+            
+            /* Ensure WebGL or Three.js canvases take up full screen */
+            #container, canvas {
+              width: 100vw !important; 
+              height: 100vh !important; 
+              position: absolute; 
+              top: 0; 
+              left: 0;
             }
           `;
           doc.head.appendChild(style);
@@ -311,9 +314,10 @@
           console.error('Error injecting CSS into iframe:', e);
         }
       };
-
+    
       document.body.appendChild(iframe);
     }
+
 
     // Handle URL hash changes:
     // When the hash is not "home", hide the home layout and load the page.
