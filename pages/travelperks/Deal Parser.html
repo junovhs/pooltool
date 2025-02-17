@@ -10,7 +10,10 @@
   <style>
     .icon-btn { cursor: pointer; margin: 0 5px; }
     .icon-btn:hover { color: #333; }
+    th.sortable { cursor: pointer; }
+    th.sortable:hover { color: #007bff; }
     table td small { color: #555; }
+    .clickable { cursor: pointer; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -27,9 +30,15 @@
     • Supplier lines are detected if the line ends with ":" or matches a known supplier.<br>
     • Tokens are extracted from deal text and expanded with synonyms.<br>
     • End dates are normalized; "Ends today" becomes today’s date (MM/DD/YYYY).<br>
-    • Each HQ deal is matched to the best available site deal (if score ≥ threshold); otherwise, it's classified as new.<br>
-    • Thumbs up/down buttons let you manually override the classification.<br>
-    • Click "Copy New Deals" to export in c/v/d/ed format.
+    • Each HQ deal is matched to the best available site deal; if the score is below threshold, it’s listed as a new deal but the best candidate is stored.<br>
+    • In the duplicates table, the Site Deal expiry is shown as plain text and the Deal Status (Active/Expired) is shown.<br>
+    • In the new deals table, click the score (or the "Match" button) to view candidate match details; then click "Match" to move the deal into duplicates.<br>
+    • Thumbs down in duplicates moves the deal back to new deals.<br><br>
+    <strong>New Scoring Weighting (with mandatory monetary & expiry matching):</strong><br>
+    - Supplier match: REQUIRED (must match exactly) and adds +10 points.<br>
+    - Monetary tokens: For each token in the HQ deal that contains digits and a non‑empty sign (like “$6000” or “5%”), an exact match must be found in the site deal, and vice versa. If any such token is missing or mismatched, the match is rejected (score = 0). Each matching numeric token adds +10 points.<br>
+    - Expiry date: If the expiry dates do not match within a ±3‑day window, the match is rejected (score = 0). If they do match, add +10 bonus points.<br>
+    - Non‑numeric tokens: For each matching non‑numeric token, add +1 point; if the token is a key deal term (e.g. obc, onboard, credit, ppg, gratuities, free, cashback, dinner, spa, upgrade, prepaid, complimentary), add an extra +2 points.
   </p>
 
   <div class="row">
@@ -37,12 +46,25 @@
     <div class="col-md-6 mb-3">
       <label for="hqDealsInput" class="form-label">HQ Deals (Raw Text):</label>
       <textarea id="hqDealsInput" class="form-control" rows="10">Crystal Cruises:
-Upgrade & Pre or Post Hotel Night – 12/3/2024-2/2/2025
-Cunard
-EXCLUSIVE Up to $300 OBC – Ends 1/31/2025
+Upgrade & Pre or Post Hotel Night – Ends 3/2/2025
 
 Norwegian:
-50% Off All Cruises (DISC50) - Ends 1/31/2025</textarea>
+50% Off All Cruises (DISC50) - Ends 1/31/2025
+
+Silversea:
+2025 Flash Sale-Save Up to $6000: Ends 2/28/2025
+
+Tauck:
+Take Off with Tauck Sale - One Flat Price for Airfare to Europe - $990/Economy, $1,790/Premium Economy, $3,890/Business Per Person + Tour. Ends 2/28/25
+
+Holland:
+Wave Offer: *Balcony Upgrade *Up to $500 OBC *Kids Sail Free Ends 2/28/2025
+
+Princess:
+Princess Plus Sale: *Free Premium Beverage Package *Free Unlimited Wi-Fi *Free Prepaid Gratuities Ends 2/28/2025
+
+Princess:
+EXCLUSIVE Coupon Booklet: Ends 2/26/2025</textarea>
     </div>
     <!-- Site deals JSON input -->
     <div class="col-md-6 mb-3">
@@ -53,10 +75,10 @@ Norwegian:
     "enabled": 1,
     "enabledForSite": 1,
     "postDate": "2024-12-01 08:00:00",
-    "expiryDate": "2025-02-03 00:00:00",
+    "expiryDate": "2025-02-02 00:00:00",
     "title": "Upgrade & Pre or Post Hotel Night",
     "field_shopOverline_cmsuxrfz": "Crystal Cruises",
-    "field_shopListing_gxrjxnpo": "Enjoy an upgraded journey plus a complimentary pre or post-cruise hotel stay."
+    "field_shopListing_gxrjxnpo": "How about an upgrade plus a complimentary hotel night for your luxury getaway? Elevate your travel experience with an upgrade and enjoy a hotel night on us."
   },
   {
     "id": 789,
@@ -66,7 +88,49 @@ Norwegian:
     "expiryDate": "2025-02-01 00:00:00",
     "title": "EXCLUSIVE: Up To 2 Bonus Nights Specialty Dining",
     "field_shopOverline_cmsuxrfz": "Norwegian Cruise Line",
-    "field_shopListing_gxrjxnpo": "Enjoy two specialty dining nights for balcony guests and one for oceanview and insider."
+    "field_shopListing_gxrjxnpo": "Enjoy two specialty dining nights for balcony guests and one for oceanview and insider.",
+    "dealCategory": [94, 39542],
+    "status": "live"
+  },
+  {
+    "id": 1011,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2025-01-15 08:00:00",
+    "expiryDate": "2025-02-28 00:00:00",
+    "title": "EXCLUSIVE: Enjoy Up To $600 Onboard Credit with Silversea!",
+    "field_shopOverline_cmsuxrfz": "Silversea",
+    "field_shopListing_gxrjxnpo": "Set sail with Silversea and snag your $600 onboard credit, available through 2/28/2025."
+  },
+  {
+    "id": 2022,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2025-01-20 08:00:00",
+    "expiryDate": "2025-02-28 00:00:00",
+    "title": "Affordable Airfare to Europe",
+    "field_shopOverline_cmsuxrfz": "Tauck Tours",
+    "field_shopListing_gxrjxnpo": "Affordable Airfare to Europe: $990/Economy, $1,790/Premium, $3,890/Business + Tour Discover a flat price for European airfare, enhancing your travel adventure."
+  },
+  {
+    "id": 3033,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2025-01-25 08:00:00",
+    "expiryDate": "2025-02-28 00:00:00",
+    "title": "EXCLUSIVE: Enjoy Up To $200 Onboard Credit with Holland!",
+    "field_shopOverline_cmsuxrfz": "Holland America Line",
+    "field_shopListing_gxrjxnpo": "Treat yourself to extra perks; offer valid through 2/28/2025."
+  },
+  {
+    "id": 4044,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2025-01-30 08:00:00",
+    "expiryDate": "2025-02-26 00:00:00",
+    "title": "EXCLUSIVE: Unlock Up To $1800 in Savings with Princess!",
+    "field_shopOverline_cmsuxrfz": "Princess",
+    "field_shopListing_gxrjxnpo": "Join us for amazing savings available from 2/11 to 2/26/2025."
   }
 ]</textarea>
     </div>
@@ -82,11 +146,13 @@ Norwegian:
       <table class="table table-striped" id="duplicatesTable">
         <thead class="table-danger">
           <tr>
-            <th>Supplier / HQ Deal</th>
-            <th>Start / End</th>
-            <th>Score</th>
-            <th>Site Deal (Active?)</th>
-            <th>Exclusive?</th>
+            <th class="sortable" data-sort="supplier">Supplier / HQ Deal</th>
+            <th class="sortable" data-sort="start">Start Date</th>
+            <th class="sortable" data-sort="end">End Date</th>
+            <th class="sortable" data-sort="score">Score</th>
+            <th>Site Deal &amp; Expiry</th>
+            <th class="sortable" data-sort="status">Deal Status</th>
+            <th class="sortable" data-sort="exclusive">Exclusive?</th>
             <th>Move</th>
           </tr>
         </thead>
@@ -99,11 +165,12 @@ Norwegian:
       <table class="table table-striped" id="newDealsTable">
         <thead class="table-dark">
           <tr>
-            <th>Supplier / HQ Deal</th>
-            <th>Start / End</th>
-            <th>Score</th>
-            <th>Exclusive?</th>
-            <th>Move</th>
+            <th class="sortable" data-sort="supplier">Supplier / HQ Deal</th>
+            <th class="sortable" data-sort="start">Start Date</th>
+            <th class="sortable" data-sort="end">End Date</th>
+            <th class="sortable" data-sort="score">Score</th>
+            <th class="sortable" data-sort="exclusive">Exclusive?</th>
+            <th>Match</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -112,11 +179,30 @@ Norwegian:
   </div>
 </div>
 
+<!-- Modal for displaying candidate match details -->
+<div class="modal fade" id="matchModal" tabindex="-1" aria-labelledby="matchModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="matchModalLabel">Candidate Match Details</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="candidateDetails"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="modalMatchBtn" type="button" class="btn btn-primary">Match</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ---------------
-// 1) Known suppliers list (add as needed)
+// 1) Known suppliers list (exact match required)
 const knownSuppliers = [
-  "Cunard", "Crystal Cruises", "Norwegian", "Royal Caribbean", "MSC Cruises", "Princess", "Celebrity", "Holland"
+  "Cunard", "Crystal Cruises", "Norwegian", "Royal Caribbean", "MSC Cruises", "Princess", "Celebrity", "Holland", "Silversea", "Tauck Tours", "Holland America Line"
 ];
 
 // ---------------
@@ -156,7 +242,6 @@ function getTodayMMDDYYYY() {
 
 // ---------------
 // 5) Parse dates from a line (extract start/end if available)
-//    If "Ends today" is present, set endDate to today's date.
 function extractDates(line) {
   const obj = { startDate:'', endDate:'', endsToday:false };
   if (/Ends\s+today/i.test(line)) {
@@ -190,23 +275,22 @@ function parseHqDeals(rawText) {
   let currentSupplier = '';
   
   for (let line of lines) {
-    // New supplier if line ends with ":" or exactly matches a known supplier
-    if (line.endsWith(':') || knownSuppliers.includes(line)) {
+    if (line.endsWith(':') || knownSuppliers.some(s => s.toLowerCase() === line.toLowerCase())) {
       currentSupplier = line.replace(':','').trim();
       continue;
     }
-    // If line starts with "*" (bullet) then append to previous deal
     if (line.startsWith('*') && results.length) {
       results[results.length - 1].dealText += ' ' + line.slice(1).trim();
       continue;
     }
     const deal = {
       supplier: currentSupplier,
-      dealText: line, // preserve full text, including "EXCLUSIVE"
+      dealText: line,
       exclusive: /\bEXCLUSIVE\b/i.test(line),
       startDate: '',
       endDate: '',
-      score: 0
+      score: 0,
+      possibleCandidate: null
     };
     const dateObj = extractDates(line);
     deal.startDate = dateObj.startDate;
@@ -217,37 +301,30 @@ function parseHqDeals(rawText) {
 }
 
 // ---------------
-// 7) Parse site deals (with active check)
-function parseDbDate(dateStr) {
-  if (!dateStr) return null;
-  const parts = dateStr.split(' ');
-  return new Date(parts[0] + 'T00:00:00');
-}
-function isCraftActive(item) {
-  if (item.enabled !== 1) return false;
-  if (item.enabledForSite !== 1) return false;
-  const now = new Date();
-  const post = parseDbDate(item.postDate);
-  if (!post || post > now) return false;
-  const exp = parseDbDate(item.expiryDate);
-  if (exp && exp <= now) return false;
-  return true;
-}
+// 7) Parse Site Deals using expanded JSON fields
 function parseSiteDeals(jsonArr) {
   return jsonArr.map(item => {
-    const supplier = (item.field_shopOverline_cmsuxrfz || '').trim();
-    const text = ((item.title || '') + ' ' + (item.field_shopListing_gxrjxnpo || '')).trim();
+    const supplier = (item.shopOverline || item.field_shopOverline_cmsuxrfz || '').trim();
+    const text = ((item.title || '') + ' ' + (item.shopListing || item.field_shopListing_gxrjxnpo || '')).trim();
     let endDate = '';
     if (item.expiryDate) {
-      endDate = item.expiryDate.split(' ')[0];
+      endDate = item.expiryDate.includes('T') ? item.expiryDate.split('T')[0] : item.expiryDate.split(' ')[0];
+    }
+    let isExclusive = false;
+    if (item.dealCategory && Array.isArray(item.dealCategory)) {
+      isExclusive = item.dealCategory.includes(39542);
+    } else {
+      isExclusive = /exclusive/i.test(text);
     }
     return {
       supplier,
       dealText: text,
       endDate,
-      isActive: isCraftActive(item),
-      exclusive: /exclusive/i.test(text),
-      used: false
+      postDate: item.postDate || "",
+      isActive: (item.status && item.status.toLowerCase() === "live") || (item.enabled === 1 && item.enabledForSite === 1),
+      exclusive: isExclusive,
+      used: false,
+      score: 0
     };
   });
 }
@@ -262,72 +339,194 @@ function parseDate(dStr) {
   if (m) return new Date(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T00:00:00`);
   return null;
 }
-function roughlySameDate(a, b) {
+function roughlySameDateExtended(a, b, days) {
   const d1 = parseDate(a), d2 = parseDate(b);
   if (!d1 || !d2) return false;
-  return Math.abs(d1 - d2) <= 24*60*60*1000; // within ±1 day
+  return Math.abs(d1 - d2) <= days * 24 * 60 * 60 * 1000;
 }
+// Require supplier to match exactly.
 function sameSupplier(a, b) {
-  const A = (a||'').toLowerCase(), B = (b||'').toLowerCase();
-  return A.includes(B) || B.includes(A);
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
 // ---------------
-// 9) Weighted Token Matching & Scoring
+// 9) Parse DB Date (supports ISO)
+function parseDbDate(dateStr) {
+  if (!dateStr) return null;
+  if (dateStr.includes("T")) {
+    return new Date(dateStr);
+  }
+  const parts = dateStr.split(' ');
+  return new Date(parts[0] + 'T00:00:00');
+}
+
+// Helper: parse a numeric token with its sign from both prefix and suffix.
+function parseNumericTokenWithSign(token) {
+  // This regex captures any non-digit characters at the beginning (prefix),
+  // the number, and any non-digit characters at the end (suffix).
+  const regex = /^(?<prefix>[^0-9]*)(?<number>\d+(?:\.\d+)?)(?<suffix>[^0-9]*)$/;
+  const match = token.match(regex);
+  if (match && match.groups) {
+    let prefix = match.groups.prefix || "";
+    let suffix = match.groups.suffix || "";
+    // Combine both prefix and suffix as the "sign"
+    let sign = (prefix + suffix).trim();
+    return {
+      raw: token,
+      sign: sign, // e.g. "$", "%", or "$%" etc.
+      num: parseFloat(match.groups.number)
+    };
+  }
+  return null;
+}
+
+// ---------------
+// 10) Weighted Token Matching & Scoring (updated with symmetric mandatory monetary token matching)
+// Requirements:
+// - Supplier must match exactly (enforced in findBestSiteMatch).
+// - For every monetary token in the HQ deal (a numeric token with a non‑empty sign), there must be an exact match in the site deal.
+// - For every monetary token in the site deal, there must be an exact match in the HQ deal.
+//   (This enforces a symmetric requirement.)
+//
+// - The expiry dates must match within ±3 days; otherwise, the match is rejected (score = 0).
+// If these mandatory conditions pass, then:
+//   + Add +10 points for each numeric token in the HQ deal.
+//   + For non‑numeric tokens, add +1 point per match and +2 extra if the token is in a set of key deal terms.
+//   + Add +10 points for supplier match and +10 points for expiry bonus.
 function calculateMatchScore(hqDeal, siteDeal) {
   const hqTokens = tokenizeDealText(hqDeal.dealText);
   const siteTokens = tokenizeDealText(siteDeal.dealText);
+  
+  // Mandatory expiry matching.
+  if (!roughlySameDateExtended(hqDeal.endDate, siteDeal.endDate, 3)) {
+    return 0;
+  }
+  
+  // Collect monetary tokens from both deals (tokens with a non-empty sign).
+  const hqMonetaryTokens = hqTokens.filter(t => {
+    const parsed = parseNumericTokenWithSign(t);
+    return parsed && parsed.sign.length > 0;
+  });
+  const siteMonetaryTokens = siteTokens.filter(t => {
+    const parsed = parseNumericTokenWithSign(t);
+    return parsed && parsed.sign.length > 0;
+  });
+  
+  // Mandatory: For every monetary token in the HQ deal, there must be an exact match in the site deal.
+  for (const token of hqMonetaryTokens) {
+    const parsedHq = parseNumericTokenWithSign(token);
+    const found = siteMonetaryTokens.some(sToken => {
+      const parsedSite = parseNumericTokenWithSign(sToken);
+      return parsedSite && (parsedHq.num === parsedSite.num) && (parsedHq.sign === parsedSite.sign);
+    });
+    if (!found) return 0;
+  }
+  
+  // Mandatory: For every monetary token in the site deal, there must be an exact match in the HQ deal.
+  for (const token of siteMonetaryTokens) {
+    const parsedSite = parseNumericTokenWithSign(token);
+    const found = hqMonetaryTokens.some(hToken => {
+      const parsedHq = parseNumericTokenWithSign(hToken);
+      return parsedHq && (parsedSite.num === parsedHq.num) && (parsedSite.sign === parsedHq.sign);
+    });
+    if (!found) return 0;
+  }
+  
   let score = 0;
   
-  // For each token in HQ, add points if found in site
+  // Numeric bonus: add +10 for each numeric token in the HQ deal.
+  const hqNumericTokens = hqTokens.filter(t => parseNumericTokenWithSign(t) !== null);
+  score += 10 * hqNumericTokens.length;
+  
+  // Define key deal-specific keywords.
+  const dealKeywords = new Set(["obc", "onboard", "credit", "ppg", "gratuities", "free", "cashback", "dinner", "spa", "upgrade", "prepaid", "complimentary"]);
+  
+  // Process non-numeric tokens.
   hqTokens.forEach(token => {
-    // If token is solely numeric, skip or weight lower
-    if (/^\d+$/.test(token)) return;
-    if (siteTokens.includes(token)) {
-      if (token === 'gratuities' || token === 'ppg') score += 5;
-      else score += 1;
-    }
-    if (synonymsDict[token]) {
-      synonymsDict[token].forEach(syn => {
-        if (siteTokens.includes(syn)) {
-          if (token === 'gratuities' || token === 'ppg') score += 5;
-          else score += 1;
+    if (!parseNumericTokenWithSign(token)) {
+      if (siteTokens.includes(token)) {
+        score += 1;
+        if (dealKeywords.has(token)) {
+          score += 2;
         }
-      });
+      }
+      if (synonymsDict[token]) {
+        synonymsDict[token].forEach(syn => {
+          if (siteTokens.includes(syn)) {
+            score += 1;
+            if (dealKeywords.has(syn)) {
+              score += 2;
+            }
+          }
+        });
+      }
     }
   });
-  // Boost for supplier exact match
-  if (hqDeal.supplier.toLowerCase() === siteDeal.supplier.toLowerCase()) {
-    score += 10;
-  }
-  // Boost for date match (±1 day)
-  if (roughlySameDate(hqDeal.endDate, siteDeal.endDate)) {
-    score += 5;
-  }
+  
+  // Add supplier bonus.
+  score += 10;
+  
+  // Add expiry bonus.
+  score += 10;
+  
   return score;
 }
 
+// ---------------
+// 11) Matching Function – skip expired site deals and enforce mandatory requirements.
 function findBestSiteMatch(hqDeal, siteDeals, minThreshold) {
   let bestIndex = -1;
   let bestScore = 0;
   for (let i = 0; i < siteDeals.length; i++) {
     const s = siteDeals[i];
     if (s.used) continue;
+    // Skip expired site deals.
+    const sExpiry = parseDate(s.endDate);
+    if (sExpiry && sExpiry < new Date()) continue;
+    // Supplier must match exactly.
     if (!sameSupplier(hqDeal.supplier, s.supplier)) continue;
-    if (!roughlySameDate(hqDeal.endDate, s.endDate)) continue;
     const sc = calculateMatchScore(hqDeal, s);
     if (sc > bestScore) {
       bestScore = sc;
       bestIndex = i;
     }
   }
-  // If best score is below the threshold, treat as no match.
-  if (bestScore < minThreshold) return { index: -1, score: 0 };
   return { index: bestIndex, score: bestScore };
 }
 
 // ---------------
-// 10) MAIN LOGIC: CLASSIFY INTO DUPLICATES vs NEW DEALS
+// 12) Compute Site Deal Status (Active or Expired)
+function getSiteDealStatus(siteDeal) {
+  const now = new Date();
+  const exp = parseDate(siteDeal.endDate);
+  return (exp && exp < now) ? "Expired" : "Active";
+}
+
+// ---------------
+// 13) Sorting function for table rows based on a given key.
+function sortTableRows(tableBody, sortKey, sortType, ascending = true) {
+  const rows = Array.from(tableBody.querySelectorAll('tr'));
+  rows.sort((a, b) => {
+    let aVal = a.getAttribute(`data-${sortKey}`) || "";
+    let bVal = b.getAttribute(`data-${sortKey}`) || "";
+    
+    if (sortType === "number") {
+      return ascending ? (Number(aVal) - Number(bVal)) : (Number(bVal) - Number(aVal));
+    }
+    if (sortType === "date") {
+      return ascending ? (Date.parse(aVal) - Date.parse(bVal)) : (Date.parse(bVal) - Date.parse(aVal));
+    }
+    aVal = aVal.toLowerCase();
+    bVal = bVal.toLowerCase();
+    if (aVal < bVal) return ascending ? -1 : 1;
+    if (aVal > bVal) return ascending ? 1 : -1;
+    return 0;
+  });
+  rows.forEach(row => tableBody.appendChild(row));
+}
+
+// ---------------
+// 14) MAIN LOGIC: CLASSIFY INTO DUPLICATES vs NEW DEALS
 document.getElementById('parseButton').addEventListener('click', () => {
   const minThreshold = parseInt(document.getElementById('minScoreThreshold').value, 10) || 3;
   const rawHq = document.getElementById('hqDealsInput').value;
@@ -342,39 +541,51 @@ document.getElementById('parseButton').addEventListener('click', () => {
   }
   const siteDeals = parseSiteDeals(siteJson);
 
-  // Clear results and show section
   const duplicatesBody = document.getElementById('duplicatesTable').querySelector('tbody');
   const newDealsBody = document.getElementById('newDealsTable').querySelector('tbody');
   duplicatesBody.innerHTML = '';
   newDealsBody.innerHTML = '';
   document.getElementById('resultsSection').classList.remove('d-none');
 
-  // For each HQ deal, find best matching site deal
   for (const deal of hqDeals) {
-    const { index, score } = findBestSiteMatch(deal, siteDeals, minThreshold);
-    deal.score = score;
-    if (index === -1 || score === 0) {
-      // No match → New Deal row
-      addNewDealRow(deal, newDealsBody);
-    } else {
-      const matchedSite = siteDeals[index];
-      matchedSite.used = true; // mark as used
+    const result = findBestSiteMatch(deal, siteDeals, minThreshold);
+    deal.score = result.score;
+    if (result.index !== -1 && result.score >= minThreshold) {
+      let matchedSite = siteDeals[result.index];
+      matchedSite.used = true;
       addDuplicateRow(deal, matchedSite, duplicatesBody);
+    } else {
+      if (result.index !== -1 && result.score > 0) {
+        deal.possibleCandidate = siteDeals[result.index];
+      }
+      addNewDealRow(deal, newDealsBody);
     }
   }
 });
 
 // ---------------
-// 11) Table UI Helper Functions (Thumbs Up/Down)
-// Note the addition of data-fa-i2svg="false" prevents auto-replacement of the icons
+// 15) Table UI Helper Functions (for duplicates)
 function addDuplicateRow(hqDeal, siteDeal, tableBody) {
+  const dealStatus = getSiteDealStatus(siteDeal);
   const tr = document.createElement('tr');
+  tr.setAttribute('data-supplier', hqDeal.supplier);
+  tr.setAttribute('data-start', hqDeal.startDate);
+  tr.setAttribute('data-end', hqDeal.endDate);
+  tr.setAttribute('data-score', hqDeal.score);
+  tr.setAttribute('data-status', dealStatus);
+  tr.setAttribute('data-exclusive', hqDeal.exclusive ? 'Yes' : 'No');
+  
   tr.innerHTML = `
     <td><strong>${hqDeal.supplier}</strong><br/>${hqDeal.dealText}</td>
-    <td><small>Start: ${hqDeal.startDate || '-'}<br/>End: ${hqDeal.endDate || '-'}</small></td>
+    <td><small>${hqDeal.startDate || '-'}</small></td>
+    <td><small>${hqDeal.endDate || '-'}</small></td>
     <td>${hqDeal.score}</td>
-    <td><strong>${siteDeal.supplier}</strong> (Active: ${siteDeal.isActive ? 'Yes' : 'No'})<br/>
-      ${siteDeal.dealText}<br/><small>End: ${siteDeal.endDate || '(n/a)'}</small></td>
+    <td>
+      <strong>${siteDeal.supplier}</strong><br/>
+      ${siteDeal.dealText}<br/>
+      Expiry: ${siteDeal.endDate || 'n/a'}
+    </td>
+    <td>${dealStatus}</td>
     <td>${hqDeal.exclusive ? 'Yes' : 'No'}</td>
     <td><i data-fa-i2svg="false" class="icon-btn fas fa-thumbs-down" title="Move to New Deals"></i></td>
   `;
@@ -386,40 +597,92 @@ function addDuplicateRow(hqDeal, siteDeal, tableBody) {
   tableBody.appendChild(tr);
 }
 
+// ---------------
+// 16) Table UI Helper Functions (for new deals)
 function addNewDealRow(hqDeal, tableBody) {
   const tr = document.createElement('tr');
+  tr.setAttribute('data-supplier', hqDeal.supplier);
+  tr.setAttribute('data-start', hqDeal.startDate);
+  tr.setAttribute('data-end', hqDeal.endDate);
+  tr.setAttribute('data-score', hqDeal.score);
+  tr.setAttribute('data-exclusive', hqDeal.exclusive ? 'Yes' : 'No');
+  
   tr.innerHTML = `
     <td><strong>${hqDeal.supplier}</strong><br/>${hqDeal.dealText}</td>
-    <td><small>Start: ${hqDeal.startDate || '-'}<br/>End: ${hqDeal.endDate || '-'}</small></td>
-    <td>${hqDeal.score || 0}</td>
+    <td><small>${hqDeal.startDate || '-'}</small></td>
+    <td><small>${hqDeal.endDate || '-'}</small></td>
+    <td><span class="clickable score-cell">${hqDeal.score || 0}</span></td>
     <td>${hqDeal.exclusive ? 'Yes' : 'No'}</td>
-    <td><i data-fa-i2svg="false" class="icon-btn fas fa-thumbs-up" title="Move to Duplicates"></i></td>
+    <td><button class="btn btn-sm btn-outline-primary match-btn">Match</button></td>
   `;
-  const upBtn = tr.querySelector('.fa-thumbs-up');
-  upBtn.addEventListener('click', () => {
-    tr.parentNode.removeChild(tr);
-    // Move to duplicates with a placeholder since no real site match exists.
-    addDuplicateRow(hqDeal, { supplier: "(No Site)", dealText: "(none)", endDate: "", isActive: false }, 
-      document.getElementById('duplicatesTable').querySelector('tbody'));
+  
+  const scoreCell = tr.querySelector('.score-cell');
+  scoreCell.addEventListener('click', () => {
+    if (hqDeal.possibleCandidate) {
+      showCandidateModal(hqDeal, tr);
+    } else {
+      alert("No candidate match was found for this deal.");
+    }
   });
+  
+  const matchBtn = tr.querySelector('.match-btn');
+  matchBtn.addEventListener('click', () => {
+    if (hqDeal.possibleCandidate) {
+      showCandidateModal(hqDeal, tr);
+    } else {
+      alert("No candidate match was found for this deal.");
+    }
+  });
+  
   tableBody.appendChild(tr);
 }
 
 // ---------------
-// 12) Copy New Deals to Clipboard (c/v/d/ed format)
+// 17) Modal Functions
+let currentNewRow = null;
+function showCandidateModal(hqDeal, newRowElement) {
+  currentNewRow = { deal: hqDeal, rowEl: newRowElement };
+  const candidate = hqDeal.possibleCandidate;
+  const candidateStatus = candidate ? getSiteDealStatus(candidate) : "N/A";
+  const detailsHtml = candidate ? `
+    <p><strong>Supplier:</strong> ${candidate.supplier}</p>
+    <p><strong>Deal Text:</strong> ${candidate.dealText}</p>
+    <p><strong>Expiry:</strong> ${candidate.endDate || 'n/a'} (${candidateStatus})</p>
+  ` : "<p>No candidate match found.</p>";
+  document.getElementById('candidateDetails').innerHTML = detailsHtml;
+  const modal = new bootstrap.Modal(document.getElementById('matchModal'));
+  modal.show();
+}
+
+document.getElementById('modalMatchBtn').addEventListener('click', () => {
+  if (!currentNewRow) return;
+  const hqDeal = currentNewRow.deal;
+  const newRow = currentNewRow.rowEl;
+  newRow.parentNode.removeChild(newRow);
+  if (hqDeal.possibleCandidate) {
+    hqDeal.possibleCandidate.used = true;
+    addDuplicateRow(hqDeal, hqDeal.possibleCandidate, document.getElementById('duplicatesTable').querySelector('tbody'));
+  }
+  currentNewRow = null;
+  const modalEl = document.getElementById('matchModal');
+  const modal = bootstrap.Modal.getInstance(modalEl);
+  modal.hide();
+});
+
+// ---------------
+// 18) Copy New Deals to Clipboard (c/v/d/ed format)
 document.getElementById('copyButton').addEventListener('click', () => {
   const newTableBody = document.getElementById('newDealsTable').querySelector('tbody');
   const rows = Array.from(newTableBody.querySelectorAll('tr'));
   let lastSupplier = "";
   let lines = [];
   rows.forEach(row => {
-    const tds = row.querySelectorAll('td');
-    if (!tds.length) return;
-    const supplierLine = tds[0].innerText.split('\n');
+    const cells = row.querySelectorAll('td');
+    if (!cells.length) return;
+    const supplierLine = cells[0].innerText.split('\n');
     const supplier = supplierLine[0].trim();
     const dealText = supplierLine.slice(1).join(' ').trim();
-    // In our table, the "Exclusive?" column is the fourth TD (index 3) in newDealsTable rows.
-    const isExclusive = (tds[3].innerText.trim() === "Yes");
+    const isExclusive = (cells[4].innerText.trim() === "Yes");
     if (supplier !== lastSupplier) {
       lines.push(`v\t${supplier}:`);
       lastSupplier = supplier;
@@ -435,6 +698,50 @@ document.getElementById('copyButton').addEventListener('click', () => {
     .then(() => alert("Copied new deals in c/v/d/ed format!"))
     .catch(err => console.error("Copy failed:", err));
 });
+
+// ---------------
+// 19) Sorting function for table headers.
+function sortTableRows(tableBody, sortKey, sortType, ascending = true) {
+  const rows = Array.from(tableBody.querySelectorAll('tr'));
+  rows.sort((a, b) => {
+    let aVal = a.getAttribute(`data-${sortKey}`) || "";
+    let bVal = b.getAttribute(`data-${sortKey}`) || "";
+    
+    if (sortType === "number") {
+      return ascending ? (Number(aVal) - Number(bVal)) : (Number(bVal) - Number(aVal));
+    }
+    if (sortType === "date") {
+      return ascending ? (Date.parse(aVal) - Date.parse(bVal)) : (Date.parse(bVal) - Date.parse(aVal));
+    }
+    aVal = aVal.toLowerCase();
+    bVal = bVal.toLowerCase();
+    if (aVal < bVal) return ascending ? -1 : 1;
+    if (aVal > bVal) return ascending ? 1 : -1;
+    return 0;
+  });
+  rows.forEach(row => tableBody.appendChild(row));
+}
+
+function enableTableSorting(tableId) {
+  const table = document.getElementById(tableId);
+  const headers = table.querySelectorAll('th.sortable');
+  headers.forEach(header => {
+    let ascending = true;
+    header.addEventListener('click', () => {
+      const sortKey = header.getAttribute('data-sort');
+      let sortType = "string";
+      if (sortKey === "score") sortType = "number";
+      if (sortKey === "start" || sortKey === "end") sortType = "date";
+      if (sortKey === "supplier" || sortKey === "exclusive" || sortKey === "status") sortType = "string";
+      const tbody = table.querySelector('tbody');
+      sortTableRows(tbody, sortKey, sortType, ascending);
+      ascending = !ascending;
+    });
+  });
+}
+
+enableTableSorting("duplicatesTable");
+enableTableSorting("newDealsTable");
 </script>
 
 <!-- Bootstrap JS and FontAwesome JS -->
