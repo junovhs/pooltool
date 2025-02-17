@@ -7,7 +7,7 @@
 <body>
   <h1>Deal List Formatter – Supplier Enhanced</h1>
   <p>
-    Paste your messy deal list below. This tool removes category lines, standardizes vendor names based on our suppliers’ database, and reformats vendor–deal lines so that each vendor appears on its own line (with bold–italic styling followed by a colon) and each deal appears beneath it.
+    Paste your messy deal list below. This tool removes category lines, standardizes vendor names based on our suppliers’ database, and reformats vendor–deal lines so that each vendor appears on its own line (with bold–italic styling followed by a colon) and each deal appears beneath it. If a line is left without a letter (for example, additional deal details), it is appended to the previous deal – with the expiry “Ends …” text kept at the very end.
   </p>
   <textarea id="input" placeholder="Paste your list here…"></textarea>
   <br>
@@ -20,33 +20,33 @@
 </html>
 <style>
   body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-  line-height: 1.5;
-}
-textarea {
-  width: 100%;
-  height: 200px;
-  font-family: monospace;
-  padding: 10px;
-  box-sizing: border-box;
-}
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  margin-bottom: 20px;
-  margin-right: 10px;
-}
-.output {
-  white-space: pre;
-  background: #f9f9f9;
-  border: 1px solid #ccc;
-  padding: 10px;
-  font-family: monospace;
-}
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    line-height: 1.5;
+  }
+  textarea {
+    width: 100%;
+    height: 200px;
+    font-family: monospace;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin-bottom: 20px;
+    margin-right: 10px;
+  }
+  .output {
+    white-space: pre;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-family: monospace;
+  }
 </style>
 <script>
-  "use strict";
+"use strict";
 
 // Our known suppliers database – this is used to match and normalize vendor names
 const knownSuppliers = [
@@ -101,15 +101,45 @@ function processInput() {
   const outputLines = [];
   let currentVendor = ""; // Keeps track of the last explicit vendor line ("v" lines)
 
+  // We'll iterate through each line.
   for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
-    if (line === "") continue;
+    let line = lines[i];
+
+    // If the line is entirely blank, skip it.
+    if (line.trim() === "") continue;
     
-    // Expect code + whitespace + content.
+    // Try to match a letter code at the beginning.
     let match = line.match(/^(\w+)\s+(.*)$/);
-    if (!match) continue;
+    
+    // If the line does NOT match our expected "code + content" format,
+    // treat it as a continuation line for the previous deal.
+    if (!match) {
+      // If we have a previous deal line (starting with "d\t" or "ed\t"), append to it.
+      if (outputLines.length > 0 && /^(d|ed)\t/.test(outputLines[outputLines.length - 1])) {
+        // Extract the current deal text (removing the code and tab)
+        let prevLine = outputLines[outputLines.length - 1];
+        let dealText = prevLine.substring(prevLine.indexOf("\t") + 1).trim();
+        let continuation = line.trim();
+
+        // Try to split the deal text into the main part and the expiry portion ("Ends ...")
+        // This regex splits on the first occurrence of "Ends" (case-insensitive)
+        let expiryMatch = dealText.match(/^(.*?)(\s*Ends\s.*)$/i);
+        if (expiryMatch) {
+          // Insert the continuation text between the base text and the expiry portion.
+          dealText = expiryMatch[1].trim() + " " + continuation + " " + expiryMatch[2].trim();
+        } else {
+          // If no expiry found, simply append.
+          dealText = dealText + " " + continuation;
+        }
+        // Update the last deal line.
+        outputLines[outputLines.length - 1] = prevLine.substring(0, prevLine.indexOf("\t") + 1) + escapeHTML(dealText);
+      }
+      continue;
+    }
+    
+    // Otherwise, we do have a code letter.
     let code = match[1];
-    let content = match[2];
+    let content = match[2].trim();
 
     // Category lines ("c") are ignored and reset vendor context.
     if (code.toLowerCase() === "c") {
@@ -173,7 +203,7 @@ function processInput() {
       continue;
     }
 
-    // For plain deal lines (d or ed), output them unchanged (with HTML escaping for safety)
+    // For plain deal lines ("d" or "ed"), output them (after escaping HTML)
     if (code === "d" || code === "ed") {
       outputLines.push(code + "\t" + escapeHTML(content));
       continue;
