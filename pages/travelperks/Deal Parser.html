@@ -35,7 +35,7 @@
     • In the new deals table, click the score (or the "Match" button) to view candidate match details; then click "Match" to move the deal into duplicates.<br>
     • Thumbs down in duplicates moves the deal back to new deals.<br><br>
     <strong>New Scoring Weighting (with mandatory monetary & expiry matching):</strong><br>
-    - Supplier match: REQUIRED (must match exactly) and adds +10 points.<br>
+    - Supplier match: REQUIRED (must match exactly or be similar) and adds +10 points.<br>
     - Monetary tokens: For each token in the HQ deal that contains digits and a non‑empty sign (like “$6000” or “5%”), an exact match must be found in the site deal, and vice versa. If any such token is missing or mismatched, the match is rejected (score = 0). Each matching numeric token adds +10 points.<br>
     - Expiry date: If the expiry dates do not match within a ±3‑day window, the match is rejected (score = 0). If they do match, add +10 bonus points.<br>
     - Non‑numeric tokens: For each matching non‑numeric token, add +1 point; if the token is a key deal term (e.g. obc, onboard, credit, ppg, gratuities, free, cashback, dinner, spa, upgrade, prepaid, complimentary), add an extra +2 points.
@@ -45,26 +45,13 @@
     <!-- HQ deals input -->
     <div class="col-md-6 mb-3">
       <label for="hqDealsInput" class="form-label">HQ Deals (Raw Text):</label>
-      <textarea id="hqDealsInput" class="form-control" rows="10">Crystal Cruises:
-Upgrade & Pre or Post Hotel Night – Ends 3/2/2025
-
-Norwegian:
-50% Off All Cruises (DISC50) - Ends 1/31/2025
-
-Silversea:
-2025 Flash Sale-Save Up to $6000: Ends 2/28/2025
-
-Tauck:
-Take Off with Tauck Sale - One Flat Price for Airfare to Europe - $990/Economy, $1,790/Premium Economy, $3,890/Business Per Person + Tour. Ends 2/28/25
-
-Holland:
-Wave Offer: *Balcony Upgrade *Up to $500 OBC *Kids Sail Free Ends 2/28/2025
-
-Princess:
-Princess Plus Sale: *Free Premium Beverage Package *Free Unlimited Wi-Fi *Free Prepaid Gratuities Ends 2/28/2025
-
-Princess:
-EXCLUSIVE Coupon Booklet: Ends 2/26/2025</textarea>
+      <textarea id="hqDealsInput" class="form-control" rows="10">c	Cruise Offers
+v	Carnival:
+d	Great Rates Sale (PB4): Ends 2/28/2025
+d	Pack & Go Sale (PUG): Ends today!
+d	More=Merrier Sale-Save up to $125 per room + $25 NRD (PHY): 2/24-2/28/2025
+d	Onboard Credit Sale-Up to $50 OBC (OS5): Ends 2/28/2025
+d	72 Hour Sale-Great Guarantee Rates (P3P): 2/26-2/28/2025</textarea>
     </div>
     <!-- Site deals JSON input -->
     <div class="col-md-6 mb-3">
@@ -131,6 +118,16 @@ EXCLUSIVE Coupon Booklet: Ends 2/26/2025</textarea>
     "title": "EXCLUSIVE: Unlock Up To $1800 in Savings with Princess!",
     "field_shopOverline_cmsuxrfz": "Princess",
     "field_shopListing_gxrjxnpo": "Join us for amazing savings available from 2/11 to 2/26/2025."
+  },
+  {
+    "id": 48047,
+    "enabled": 1,
+    "enabledForSite": 1,
+    "postDate": "2025-01-06T01:00:00-08:00",
+    "expiryDate": "2025-02-28T16:00:00-08:00",
+    "title": "Unlock Amazing Savings with Carnival's Great Rates Sale!",
+    "shopOverline": "Carnival Cruise Line",
+    "field_shopListing_gxrjxnpo": "Enjoy onboard credit and special offers on Carnival's cruise deals!"
   }
 ]</textarea>
     </div>
@@ -202,7 +199,7 @@ EXCLUSIVE Coupon Booklet: Ends 2/26/2025</textarea>
 // ---------------
 // 1) Known suppliers list (exact match required)
 const knownSuppliers = [
-  "Cunard", "Crystal Cruises", "Norwegian", "Royal Caribbean", "MSC Cruises", "Princess", "Celebrity", "Holland", "Silversea", "Tauck Tours", "Holland America Line"
+  "Cunard", "Crystal Cruises", "Norwegian", "Royal Caribbean", "MSC Cruises", "Princess", "Celebrity", "Holland", "Silversea", "Tauck Tours", "Holland America Line", "Carnival"
 ];
 
 // ---------------
@@ -275,13 +272,14 @@ function parseHqDeals(rawText) {
   let currentSupplier = '';
   
   for (let line of lines) {
-    if (line.endsWith(':') || knownSuppliers.some(s => s.toLowerCase() === line.toLowerCase())) {
-      currentSupplier = line.replace(':','').trim();
+    // Identify supplier lines (those starting with "v" or ending with ":")
+    if (line.startsWith('v') || line.endsWith(':') || knownSuppliers.some(s => s.toLowerCase() === line.toLowerCase())) {
+      // Remove any preceding markers (like "c", "v", or "d") and colons.
+      currentSupplier = line.replace(/^[cvd]\s*/i, '').replace(':','').trim();
       continue;
     }
-    if (line.startsWith('*') && results.length) {
-      results[results.length - 1].dealText += ' ' + line.slice(1).trim();
-      continue;
+    if (line.startsWith('d') && results.length) {
+      line = line.replace(/^[d]\s*/i, '');
     }
     const deal = {
       supplier: currentSupplier,
@@ -304,7 +302,11 @@ function parseHqDeals(rawText) {
 // 7) Parse Site Deals using expanded JSON fields
 function parseSiteDeals(jsonArr) {
   return jsonArr.map(item => {
-    const supplier = (item.shopOverline || item.field_shopOverline_cmsuxrfz || '').trim();
+    let supplier = (item.shopOverline || item.field_shopOverline_cmsuxrfz || '').trim();
+    // Normalize supplier names for matching (e.g., "Carnival Cruise Line" -> "Carnival")
+    if (supplier.toLowerCase().includes("carnival")) {
+      supplier = "Carnival";
+    }
     const text = ((item.title || '') + ' ' + (item.shopListing || item.field_shopListing_gxrjxnpo || '')).trim();
     let endDate = '';
     if (item.expiryDate) {
@@ -344,9 +346,11 @@ function roughlySameDateExtended(a, b, days) {
   if (!d1 || !d2) return false;
   return Math.abs(d1 - d2) <= days * 24 * 60 * 60 * 1000;
 }
-// Require supplier to match exactly.
+// Updated sameSupplier to allow partial matching for known variants.
 function sameSupplier(a, b) {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
+  a = a.trim().toLowerCase();
+  b = b.trim().toLowerCase();
+  return a === b || a.includes(b) || b.includes(a);
 }
 
 // ---------------
@@ -362,18 +366,15 @@ function parseDbDate(dateStr) {
 
 // Helper: parse a numeric token with its sign from both prefix and suffix.
 function parseNumericTokenWithSign(token) {
-  // This regex captures any non-digit characters at the beginning (prefix),
-  // the number, and any non-digit characters at the end (suffix).
   const regex = /^(?<prefix>[^0-9]*)(?<number>\d+(?:\.\d+)?)(?<suffix>[^0-9]*)$/;
   const match = token.match(regex);
   if (match && match.groups) {
     let prefix = match.groups.prefix || "";
     let suffix = match.groups.suffix || "";
-    // Combine both prefix and suffix as the "sign"
     let sign = (prefix + suffix).trim();
     return {
       raw: token,
-      sign: sign, // e.g. "$", "%", or "$%" etc.
+      sign: sign,
       num: parseFloat(match.groups.number)
     };
   }
@@ -382,17 +383,6 @@ function parseNumericTokenWithSign(token) {
 
 // ---------------
 // 10) Weighted Token Matching & Scoring (updated with symmetric mandatory monetary token matching)
-// Requirements:
-// - Supplier must match exactly (enforced in findBestSiteMatch).
-// - For every monetary token in the HQ deal (a numeric token with a non‑empty sign), there must be an exact match in the site deal.
-// - For every monetary token in the site deal, there must be an exact match in the HQ deal.
-//   (This enforces a symmetric requirement.)
-//
-// - The expiry dates must match within ±3 days; otherwise, the match is rejected (score = 0).
-// If these mandatory conditions pass, then:
-//   + Add +10 points for each numeric token in the HQ deal.
-//   + For non‑numeric tokens, add +1 point per match and +2 extra if the token is in a set of key deal terms.
-//   + Add +10 points for supplier match and +10 points for expiry bonus.
 function calculateMatchScore(hqDeal, siteDeal) {
   const hqTokens = tokenizeDealText(hqDeal.dealText);
   const siteTokens = tokenizeDealText(siteDeal.dealText);
@@ -402,7 +392,7 @@ function calculateMatchScore(hqDeal, siteDeal) {
     return 0;
   }
   
-  // Collect monetary tokens from both deals (tokens with a non-empty sign).
+  // Collect monetary tokens from both deals.
   const hqMonetaryTokens = hqTokens.filter(t => {
     const parsed = parseNumericTokenWithSign(t);
     return parsed && parsed.sign.length > 0;
@@ -412,7 +402,7 @@ function calculateMatchScore(hqDeal, siteDeal) {
     return parsed && parsed.sign.length > 0;
   });
   
-  // Mandatory: For every monetary token in the HQ deal, there must be an exact match in the site deal.
+  // Mandatory: HQ tokens must have exact match in site tokens.
   for (const token of hqMonetaryTokens) {
     const parsedHq = parseNumericTokenWithSign(token);
     const found = siteMonetaryTokens.some(sToken => {
@@ -422,7 +412,7 @@ function calculateMatchScore(hqDeal, siteDeal) {
     if (!found) return 0;
   }
   
-  // Mandatory: For every monetary token in the site deal, there must be an exact match in the HQ deal.
+  // Mandatory: Site tokens must have exact match in HQ tokens.
   for (const token of siteMonetaryTokens) {
     const parsedSite = parseNumericTokenWithSign(token);
     const found = hqMonetaryTokens.some(hToken => {
@@ -434,11 +424,11 @@ function calculateMatchScore(hqDeal, siteDeal) {
   
   let score = 0;
   
-  // Numeric bonus: add +10 for each numeric token in the HQ deal.
+  // Numeric bonus: add +10 for each numeric token in HQ deal.
   const hqNumericTokens = hqTokens.filter(t => parseNumericTokenWithSign(t) !== null);
   score += 10 * hqNumericTokens.length;
   
-  // Define key deal-specific keywords.
+  // Key deal-specific keywords.
   const dealKeywords = new Set(["obc", "onboard", "credit", "ppg", "gratuities", "free", "cashback", "dinner", "spa", "upgrade", "prepaid", "complimentary"]);
   
   // Process non-numeric tokens.
@@ -463,10 +453,10 @@ function calculateMatchScore(hqDeal, siteDeal) {
     }
   });
   
-  // Add supplier bonus.
+  // Supplier bonus.
   score += 10;
   
-  // Add expiry bonus.
+  // Expiry bonus.
   score += 10;
   
   return score;
@@ -480,10 +470,8 @@ function findBestSiteMatch(hqDeal, siteDeals, minThreshold) {
   for (let i = 0; i < siteDeals.length; i++) {
     const s = siteDeals[i];
     if (s.used) continue;
-    // Skip expired site deals.
     const sExpiry = parseDate(s.endDate);
     if (sExpiry && sExpiry < new Date()) continue;
-    // Supplier must match exactly.
     if (!sameSupplier(hqDeal.supplier, s.supplier)) continue;
     const sc = calculateMatchScore(hqDeal, s);
     if (sc > bestScore) {
@@ -503,7 +491,7 @@ function getSiteDealStatus(siteDeal) {
 }
 
 // ---------------
-// 13) Sorting function for table rows based on a given key.
+// 13) Sorting function for table rows.
 function sortTableRows(tableBody, sortKey, sortType, ascending = true) {
   const rows = Array.from(tableBody.querySelectorAll('tr'));
   rows.sort((a, b) => {
