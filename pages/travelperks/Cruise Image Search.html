@@ -49,6 +49,54 @@
         .hidden {
             display: none;
         }
+        #cropCanvas {
+            display: none;
+        }
+        #cropInfo {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            z-index: 1000;
+            display: none;
+        }
+        #cropModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #cropContainer {
+            position: relative;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            width: 968px;
+            height: 600px;
+        }
+        #cropImage {
+            position: absolute;
+            cursor: move;
+        }
+        .crop-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .crop-buttons {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body class="h-full bg-gradient-to-r from-blue-100 to-indigo-200">
@@ -118,9 +166,32 @@
         <!-- Images Gallery -->
         <div id="imageGallery" class="masonry-container w-full max-w-5xl mt-8"></div>
     </div>
+
+    <!-- Hidden Canvas for Image Cropping -->
+    <canvas id="cropCanvas"></canvas>
+    
+    <!-- Info message for image cropping -->
+    <div id="cropInfo">Click to crop and download (968x600px)</div>
+    
+    <!-- Crop Modal -->
+    <div id="cropModal">
+        <div id="cropContainer">
+            <img id="cropImage" draggable="false">
+        </div>
+        <div class="crop-controls">
+            <div>
+                <label for="zoomControl" class="text-white mr-2">Zoom:</label>
+                <input type="range" id="zoomControl" min="100" max="200" value="100" class="w-32">
+            </div>
+        </div>
+        <div class="crop-buttons">
+            <button id="saveCropBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Save & Download</button>
+            <button id="cancelCropBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Cancel</button>
+        </div>
+    </div>
     
     <script>
-            const brands = [
+        const brands = [
             { name: "Norwegian Cruise Line", domain: "ncl.com" },
             { name: "Royal Caribbean International", domain: "royalcaribbean.com" },
             { name: "Celebrity Cruises", domain: "celebritycruises.com" },
@@ -206,6 +277,22 @@
         const maxWidthInput = document.getElementById('maxWidth');
         const minHeightInput = document.getElementById('minHeight');
         const maxHeightInput = document.getElementById('maxHeight');
+        const cropCanvas = document.getElementById('cropCanvas');
+        const cropInfo = document.getElementById('cropInfo');
+        const cropModal = document.getElementById('cropModal');
+        const cropImage = document.getElementById('cropImage');
+        const cropContainer = document.getElementById('cropContainer');
+        const zoomControl = document.getElementById('zoomControl');
+        const saveCropBtn = document.getElementById('saveCropBtn');
+        const cancelCropBtn = document.getElementById('cancelCropBtn');
+        const ctx = cropCanvas.getContext('2d');
+        
+        // Set fixed crop dimensions
+        const TARGET_WIDTH = 968;
+        const TARGET_HEIGHT = 600;
+
+        // CORS proxy URL
+        const CORS_PROXY = 'https://corsproxy.io/?';
 
         // Populate brand selection dropdown
         brands.forEach(brand => {
@@ -269,7 +356,14 @@
                             img.src = item.link;
                             img.alt = item.title;
                             img.className = 'w-full h-auto rounded shadow-lg animate__animated animate__fadeIn cursor-pointer transition-transform duration-300 transform hover:scale-105';
-                            img.addEventListener('click', () => downloadImage(item));
+                            img.addEventListener('click', () => cropAndDownloadImage(item));
+                            img.addEventListener('mouseenter', () => {
+                                cropInfo.style.display = 'block';
+                            });
+                            img.addEventListener('mouseleave', () => {
+                                cropInfo.style.display = 'none';
+                            });
+                            
                             imgContainer.appendChild(img);
                             imgContainer.appendChild(resolutionTag);
                             imageGallery.appendChild(imgContainer);
@@ -288,7 +382,224 @@
             }
         }
 
-        function downloadImage(item) {
+        let isDragging = false;
+        let startX, startY, initialOffsetX, initialOffsetY;
+        let currentImageData = null;
+
+        cropImage.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialOffsetX = parseInt(cropImage.style.left) || 0;
+            initialOffsetY = parseInt(cropImage.style.top) || 0;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            
+            let dx = e.clientX - startX;
+            let dy = e.clientY - startY;
+            
+            let newLeft = initialOffsetX + dx;
+            let newTop = initialOffsetY + dy;
+            
+            // Calculate boundaries
+            const containerRect = cropContainer.getBoundingClientRect();
+            const imageRect = cropImage.getBoundingClientRect();
+            
+            // Constrain horizontal movement
+            if (imageRect.width > containerRect.width) {
+                const minLeft = containerRect.width - imageRect.width;
+                const maxLeft = 0;
+                newLeft = Math.min(Math.max(newLeft, minLeft), maxLeft);
+            } else {
+                // Center smaller images
+                newLeft = (containerRect.width - imageRect.width) / 2;
+            }
+            
+            // Constrain vertical movement
+            if (imageRect.height > containerRect.height) {
+                const minTop = containerRect.height - imageRect.height;
+                const maxTop = 0;
+                newTop = Math.min(Math.max(newTop, minTop), maxTop);
+            } else {
+                // Center smaller images
+                newTop = (containerRect.height - imageRect.height) / 2;
+            }
+            
+            cropImage.style.left = `${newLeft}px`;
+            cropImage.style.top = `${newTop}px`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        zoomControl.addEventListener('input', () => {
+            const zoomValue = zoomControl.value;
+            const scale = zoomValue / 100;
+            
+            // Get original image dimensions
+            const originalWidth = currentImageData.width;
+            const originalHeight = currentImageData.height;
+            
+            // Apply zoom
+            const newWidth = originalWidth * scale;
+            const newHeight = originalHeight * scale;
+            
+            cropImage.style.width = `${newWidth}px`;
+            cropImage.style.height = `${newHeight}px`;
+            
+            // Center the image
+            centerCropImage();
+        });
+
+        function centerCropImage() {
+            const containerRect = cropContainer.getBoundingClientRect();
+            const imageRect = cropImage.getBoundingClientRect();
+            
+            let left = (containerRect.width - imageRect.width) / 2;
+            let top = (containerRect.height - imageRect.height) / 2;
+            
+            // If image is smaller than container, center it
+            // If larger, ensure it's positioned correctly
+            if (imageRect.width < containerRect.width) {
+                left = (containerRect.width - imageRect.width) / 2;
+            } else {
+                left = Math.min(0, Math.max(containerRect.width - imageRect.width, left));
+            }
+            
+            if (imageRect.height < containerRect.height) {
+                top = (containerRect.height - imageRect.height) / 2;
+            } else {
+                top = Math.min(0, Math.max(containerRect.height - imageRect.height, top));
+            }
+            
+            cropImage.style.left = `${left}px`;
+            cropImage.style.top = `${top}px`;
+        }
+
+        saveCropBtn.addEventListener('click', () => {
+            finalizeAndDownloadCrop();
+        });
+
+        cancelCropBtn.addEventListener('click', () => {
+            cropModal.style.display = 'none';
+            currentImageData = null;
+        });
+
+        async function cropAndDownloadImage(item) {
+            try {
+                const selectedBrand = brandSelect.value;
+                const keywords = document.getElementById('keywords').value.trim().replace(/\s+/g, '_');
+                const imageUrl = item.link;
+                
+                // Create proxied URL to avoid CORS issues
+                const proxiedUrl = `${CORS_PROXY}${encodeURIComponent(imageUrl)}`;
+                
+                // Store current image data for the crop tool
+                currentImageData = {
+                    url: proxiedUrl,
+                    width: item.image.width,
+                    height: item.image.height,
+                    filename: `${selectedBrand.replace(/\s+/g, '_')}_${keywords}_${TARGET_WIDTH}x${TARGET_HEIGHT}.jpg`
+                };
+                
+                // Load image for cropping UI
+                cropImage.onload = function() {
+                    // Calculate initial positioning
+                    const imgAspect = this.naturalWidth / this.naturalHeight;
+                    const containerAspect = TARGET_WIDTH / TARGET_HEIGHT;
+                    
+                    let width, height;
+                    
+                    if (imgAspect > containerAspect) {
+                        // Image is wider than container aspect
+                        height = TARGET_HEIGHT;
+                        width = height * imgAspect;
+                    } else {
+                        // Image is taller than container aspect
+                        width = TARGET_WIDTH;
+                        height = width / imgAspect;
+                    }
+                    
+                    // Set initial image size
+                    cropImage.style.width = `${width}px`;
+                    cropImage.style.height = `${height}px`;
+                    
+                    // Center the image in the container
+                    centerCropImage();
+                    
+                    // Reset zoom control
+                    zoomControl.value = 100;
+                    
+                    // Show the modal
+                    cropModal.style.display = 'flex';
+                };
+                
+                // Set image source with crossOrigin attribute BEFORE setting src
+                cropImage.crossOrigin = "anonymous";
+                cropImage.src = proxiedUrl;
+                
+            } catch (error) {
+                console.error("Error preparing crop:", error);
+                alert("Error preparing image for cropping. Check console for details.");
+                // Fallback to original download method
+                downloadOriginalImage(item);
+            }
+        }
+        
+        function finalizeAndDownloadCrop() {
+            try {
+                // Set canvas dimensions
+                cropCanvas.width = TARGET_WIDTH;
+                cropCanvas.height = TARGET_HEIGHT;
+                
+                // Get image position and dimensions
+                const containerRect = cropContainer.getBoundingClientRect();
+                const imageRect = cropImage.getBoundingClientRect();
+                
+                // Calculate source and destination coordinates
+                const sourceX = containerRect.left - imageRect.left;
+                const sourceY = containerRect.top - imageRect.top;
+                const sourceWidth = TARGET_WIDTH;
+                const sourceHeight = TARGET_HEIGHT;
+                
+                // Draw the image on the canvas
+                ctx.drawImage(
+                    cropImage,
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    0, 0, TARGET_WIDTH, TARGET_HEIGHT
+                );
+                
+                try {
+                    // Convert to JPEG and download
+                    const croppedImageData = cropCanvas.toDataURL('image/jpeg', 0.9);
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = croppedImageData;
+                    link.download = currentImageData.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch(e) {
+                    console.error("Error with canvas export:", e);
+                    alert("Unable to export the cropped image due to CORS restrictions. Try a different image or using the app from its final hosting location.");
+                }
+                
+                // Hide the modal
+                cropModal.style.display = 'none';
+                
+            } catch (error) {
+                console.error("Error finalizing crop:", error);
+                alert("Error cropping image. Check console for details.");
+            }
+        }
+        
+        function downloadOriginalImage(item) {
+            console.log("Falling back to original download method");
             const selectedBrand = brandSelect.value;
             const keywords = document.getElementById('keywords').value.trim().replace(/\s+/g, '_');
             const imageUrl = item.link;
