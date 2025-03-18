@@ -1,0 +1,659 @@
+<style>
+  :root {
+    --primary: #333333;
+    --primary-light: #666666;
+    --primary-dark: #000000;
+    --secondary: #f7f7f7;
+    --accent: #dddddd;
+    --text: #222222;
+    --background: #ffffff;
+    --highlight: #eeeeee;
+    --success: #555555;
+    --warning: #333333;
+    --info: #777777;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--text);
+    background-color: var(--background);
+    line-height: 1.6;
+    font-size: 12px;
+}
+
+.container {
+    max-width: 1020px;
+    margin: 0 auto;
+    padding: 0;
+    overflow: hidden;
+}
+
+h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--primary-dark);
+}
+
+h1 {
+    font-size: 2.55rem;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    font-size: 1.87rem;
+    margin-bottom: 1.3rem;
+    text-align: center;
+    position: relative;
+}
+
+h2::after {
+    content: '';
+    display: block;
+    width: 68px;
+    height: 3px;
+    background: var(--primary);
+    margin: 8px auto 0;
+}
+
+h3 {
+    font-size: 1.28rem;
+    margin-bottom: 0.85rem;
+}
+
+p {
+    margin-bottom: 0.85rem;
+}
+
+/* Header */
+header {
+    background-color: var(--primary);
+    color: white;
+    padding: 34px 17px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+header h1 {
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+    font-size: 1.4rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+}
+
+/* Wave Dividers */
+.wave-divider {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    z-index: 1;
+}
+
+.wave-divider svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 50px;
+    transform: rotateY(180deg);
+}
+
+.wave-divider path {
+    fill: var(--background);
+}
+
+section .wave-divider svg path {
+    fill: var(--accent);
+}
+
+/* Intro Section */
+.intro {
+    padding: 34px 17px;
+    position: relative;
+    background: var(--background);
+}
+
+.intro-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.intro-text {
+    flex: 1;
+    min-width: 300px;
+    padding-right: 20px;
+}
+
+.intro-image {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hair-icon {
+    width: 120px;
+    height: 120px;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+/* Tables */
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 17px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 13px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+th {
+    background-color: var(--primary);
+    color: white;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: var(--highlight);
+}
+
+tr.highlight {
+    background-color: var(--highlight);
+    font-weight: 500;
+}
+
+/* Status indicators */
+.have, .buy, .grocery, .optional {
+    padding: 3px 6px;
+    border-radius: 3px;
+    display: inline-block;
+    font-weight: 500;
+}
+
+.have {
+    background-color: rgba(85, 85, 85, 0.2);
+    color: var(--success);
+}
+
+.buy {
+    background-color: rgba(51, 51, 51, 0.2);
+    color: var(--warning);
+    font-weight: 700;
+}
+
+.grocery {
+    background-color: rgba(119, 119, 119, 0.2);
+    color: var(--info);
+}
+
+.optional {
+    background-color: rgba(51, 51, 51, 0.2);
+    color: var(--primary-dark);
+}
+
+/* Sections */
+section {
+    padding: 25px 17px;
+    position: relative;
+}
+
+section:nth-child(even) {
+    background-color: var(--secondary);
+}
+
+/* Timeline */
+.timeline-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 8px 0;
+    position: relative;
+}
+
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    height: 3px;
+    background: var(--primary);
+    top: 34px;
+    left: 0;
+    right: 0;
+    z-index: 1;
+}
+
+.timeline-item {
+    flex: 1;
+    min-width: 212px;
+    margin: 8px;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.timeline-marker {
+    width: 51px;
+    height: 51px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-content {
+    background: white;
+    padding: 17px;
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.timeline-content:hover {
+    transform: translateY(-5px);
+}
+
+/* Shopping List */
+.shopping-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 13px;
+}
+
+.shopping-item {
+    flex: 1;
+    min-width: 170px;
+    max-width: 212px;
+    background: white;
+    padding: 13px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.shopping-item:hover {
+    transform: translateY(-5px);
+}
+
+.item-number {
+    width: 34px;
+    height: 34px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin-right: 8px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h3 {
+    margin-bottom: 5px;
+}
+
+.item-details p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Legend */
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.legend-symbol {
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+.legend-item p {
+    margin-bottom: 0;
+}
+
+/* Footer */
+footer {
+    background-color: var(--primary);
+    color: white;
+    text-align: center;
+    padding: 25px 17px 17px;
+    position: relative;
+}
+
+.footer-wave {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    transform: rotate(180deg);
+}
+
+.footer-wave svg {
+    position: relative;
+    display: block;
+    width: calc(100% + 1.3px);
+    height: 50px;
+}
+
+.footer-wave path {
+    fill: var(--background);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.13rem;
+    }
+    
+    h2 {
+        font-size: 1.53rem;
+    }
+    
+    .intro-text, .intro-image {
+        flex: 100%;
+        padding-right: 0;
+    }
+    
+    .intro-image {
+        margin-top: 30px;
+    }
+    
+    .timeline-container::before {
+        display: none;
+    }
+    
+    .timeline-item {
+        flex: 100%;
+        margin-bottom: 34px;
+    }
+    
+    .shopping-item {
+        flex: 100%;
+    }
+}
+</style>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Hair Care Guide</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>Ultimate Hair Care Guide</h1>
+                <p class="subtitle">Your pathway to gorgeous, salon-quality hair</p>
+            </div>
+        </header>
+
+        <section class="routine">
+            <h2>Simple Daily/Weekly Hair Routine</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Routine</th>
+                            <th>Products to Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monday</td>
+                            <td>Wash, condition, leave-in oil & cream, blow-dry or air-dry</td>
+                            <td>Elvive Shampoo & Conditioner, DAE Oil, JVN Cream, Kristin Ess Heat Spray (if needed)</td>
+                        </tr>
+                        <tr>
+                            <td>Wednesday</td>
+                            <td>Wash, condition, leave-in oil & cream, straighten if needed</td>
+                            <td>Elvive Shampoo & Conditioner, DAE Oil, JVN Cream, Kristin Ess Heat Spray</td>
+                        </tr>
+                        <tr>
+                            <td>Friday</td>
+                            <td>Wash, condition, leave-in oil & cream, blow-dry or air-dry</td>
+                            <td>Elvive Shampoo & Conditioner, DAE Oil, JVN Cream, Kristin Ess Heat Spray</td>
+                        </tr>
+                        <tr class="highlight">
+                            <td>Weekend<br>(Saturday OR Sunday)</td>
+                            <td><strong>Week 1: Olaplex No. 3 Treatment</strong> (before shampoo)<br><strong>Week 2: DIY Moisturizing Mask</strong></td>
+                            <td>Olaplex No. 3 OR DIY Avocado/Banana Mask</td>
+                        </tr>
+                        <tr>
+                            <td>Once a Month</td>
+                            <td>Clarifying Shampoo + DIY Moisture Mask</td>
+                            <td>Kristin Ess Clarifying Shampoo + DIY Avocado/Banana Mask</td>
+                        </tr>
+                        <tr>
+                            <td>Every Night<br>(Optional for Extra Shine & Frizz Control)</td>
+                            <td>Apply a small amount of oil to ends, use silk pillowcase</td>
+                            <td>DAE Oil, Silk Pillowcase (optional but recommended)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="straightening">
+            <h2>Straightening Rules <small>(For Safe & Healthy Hair)</small></h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Can I straighten my hair?</th>
+                            <th>Answer</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>How often?</td>
+                            <td>2-3x per week max</td>
+                        </tr>
+                        <tr>
+                            <td>Best temp?</td>
+                            <td>300-350°F (never above 380°F)</td>
+                        </tr>
+                        <tr>
+                            <td>Can I air dry first?</td>
+                            <td>Yes, but apply heat protectant while damp</td>
+                        </tr>
+                        <tr>
+                            <td>Can I straighten daily?</td>
+                            <td>Not recommended—touch up only</td>
+                        </tr>
+                        <tr>
+                            <td>What to do before straightening?</td>
+                            <td>Use heat protectant, make sure hair is 100% dry</td>
+                        </tr>
+                        <tr>
+                            <td>What to do after?</td>
+                            <td>Apply DAE Oil to ends for shine & frizz control</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="timeline">
+            <h2>Realistic Timeline & Results</h2>
+            <div class="timeline-container">
+                <div class="timeline-item">
+                    <div class="timeline-marker">2<br>Weeks</div>
+                    <div class="timeline-content">
+                        <h3>Initial Improvement</h3>
+                        <p>Hair feels softer, less frizzy</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">4-6<br>Weeks</div>
+                    <div class="timeline-content">
+                        <h3>Visible Progress</h3>
+                        <p>Visible shine improvement, frizz control is better</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker">3-6<br>Months</div>
+                    <div class="timeline-content">
+                        <h3>Full Transformation</h3>
+                        <p>Fully smooth, glossy, salon-quality hair</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="shopping">
+            <h2>Final Shopping List <small>(Only Buy These)</small></h2>
+            <div class="shopping-list">
+                <div class="shopping-item">
+                    <div class="item-number">1</div>
+                    <div class="item-details">
+                        <h3>Olaplex No. 3 Hair Perfector</h3>
+                        <p>Critical weekly repair treatment</p>
+                    </div>
+                </div>
+                <div class="shopping-item">
+                    <div class="item-number">2</div>
+                    <div class="item-details">
+                        <h3>Kristin Ess Heat Protectant Spray</h3>
+                        <p>Needed for heat styling protection</p>
+                    </div>
+                </div>
+                <div class="shopping-item">
+                    <div class="item-number">3</div>
+                    <div class="item-details">
+                        <h3>DIY Ingredients</h3>
+                        <p>Avocado, Banana, Honey, Coconut Oil—Grocery Store</p>
+                    </div>
+                </div>
+                <div class="shopping-item">
+                    <div class="item-number">4</div>
+                    <div class="item-details">
+                        <h3>Silk Pillowcase</h3>
+                        <p>Optional but recommended for frizz reduction</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Follow this exactly, and your hair will be transformed in 3-6 months. </p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add smooth scrolling for all links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+    
+    // Add animation for timeline items
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = 1;
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    timelineItems.forEach(item => {
+        item.style.opacity = 0;
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        observer.observe(item);
+    });
+});
+</script>
