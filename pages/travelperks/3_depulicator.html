@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Deal Matcher</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin-bottom: 20px;
+      font-family: monospace;
+    }
+
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    .matched-deal,
+    .non-matched-deal {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .non-matched-deal {
+      align-items: center;
+    }
+
+    .deal-info {
+      flex: 1;
+    }
+
+    .json-match {
+      flex: 1;
+      background-color: #d4edda;
+      padding: 5px;
+      margin-left: 10px;
+      font-size: 0.9em;
+      border: 1px solid #c3e6cb;
+      border-radius: 3px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .section {
+      margin-bottom: 30px;
+    }
+
+    #copyButton {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Deal Matcher</h1>
+  <p>
+    Paste your HQ deals (vendor lines start with <code>v</code> and deal lines with <code>d</code> or <code>ed</code>)
+    in the first box and the JSON export from your site in the second box. Then click "Compare Deals."
+  </p>
+
+  <h2>HQ Deals</h2>
+  <textarea id="hqDeals" placeholder="Example:
+v	Carnival:
+d	Early Saver-Reduced Deposit & Up to $50 OBC (PEM/OB7): 03/31/2025
+ed	More=Merrier Sale-Save up to $125 per room & $25 NRD (PHY): 03/24/2025-03/29/2025
+d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
+"></textarea>
+
+  <h2>JSON Deals</h2>
+  <textarea id="jsonDeals" placeholder='Example:
+[
+  {
+    "shopOverline": "Carnival",
+    "expiryDate": "2025-03-31T16:00:00-07:00",
+    "title": "Early Saver-Reduced Deposit & Up to $50 OBC (PEM/OB7): 03/31/2025",
+    "shopListing": "More=Merrier Sale-Save up to $125 per room & $25 NRD (PHY): 03/24/2025-03/29/2025"
+  }
+]'></textarea>
+
+  <br>
+  <button id="compareButton">Compare Deals</button>
+
+  <!-- Results Section -->
+  <div class="section">
+    <h2>Matched Deals</h2>
+    <div id="matchedDealsContainer"></div>
+  </div>
+
+  <div class="section">
+    <h2>Non-Matched Deals</h2>
+    <div id="nonMatchedDealsContainer"></div>
+    <button id="copyButton">Copy Non-Matched Deals to Clipboard</button>
+  </div>
+
+  <script>
+    // === Supplier Mapping Placeholders ===
+    // The complete list of known suppliers (from your provided list)
+    const knownSuppliers = [
+      "Abercrombie & Kent",
+      "Adventures by Disney",
+      "African Travel",
+      "Ama Waterways",
+      "American Airline Vacations",
+      "American Cruise Line",
+      "Aulani, A Disney Resort & Spa",
+      "Avalon Waterways",
+      "Azamara",
+      "Beaches",
+      "BlueSky Tours",
+      "Breathless",
+      "Carnival",
+      "Celebrity Cruises",
+      "CIE Tours",
+      "Club Med",
+      "Collette",
+      "CroisiEurope",
+      "Crystal Cruises",
+      "Cunard",
+      "Delta Vacations",
+      "Disney Cruise Line",
+      "Disneyland",
+      "DisneyWorld",
+      "Dreams",
+      "El Dorado Spa Resorts & Hotels",
+      "Emerald Cruises",
+      "Excellence Resorts",
+      "Explora Journeys",
+      "Four Seasons Yachts",
+      "Funjet",
+      "G Adventures",
+      "Globus Journeys",
+      "Great Safaris",
+      "Hard Rock Hotels",
+      "Holland America Line",
+      "Hurtigruten",
+      "Iberostar Hotels & Resorts",
+      "Karisma Hotels & Resorts",
+      "Lindblad Expeditions & National Geographic",
+      "MSC Cruises",
+      "Norwegian",
+      "Oceania Cruises",
+      "Outrigger Hotels & Resorts",
+      "Palace Resorts",
+      "Paul Gauguin Cruises",
+      "Ponant",
+      "Princess",
+      "Project Expedition",
+      "Regent Seven Seas Cruises",
+      "Ritz-Carlton Yacht Collection",
+      "RIU Hotels & Resorts",
+      "Riverside Cruises",
+      "Riviera River Cruises",
+      "Rocky Mountaineer",
+      "Royal Caribbean",
+      "Sandals",
+      "Scenic Eclipse Ocean Voyages",
+      "Scenic River",
+      "Seabourn",
+      "Secrets",
+      "Shore Excursions Group",
+      "Silversea",
+      "Southwest Vacations",
+      "Star Clippers",
+      "Tauck Cruises",
+      "Tauck Tours",
+      "TourSales.com",
+      "Trafalgar",
+      "UnCruise Adventures",
+      "Uniworld",
+      "United Vacations",
+      "Viking Ocean",
+      "Viking River",
+      "Viator",
+      "Virgin Voyages",
+      "Villas of Distinction",
+      "Windstar",
+      "Zoëtry Wellness & Spa Resorts"
+    ];
+    const aliasMapping = {
+      // American Airline Vacations
+      "american airlines vacations": "American Airline Vacations",
+      "american airline vacations": "American Airline Vacations",
+      "american airlnes vacations": "American Airline Vacations", // common typo
+      // Royal Caribbean
+      "royal": "Royal Caribbean",
+      "rccL": "Royal Caribbean",
+      "rcc": "Royal Caribbean",
+      "royal caribbean": "Royal Caribbean",
+      // Norwegian
+      "norwegian": "Norwegian",
+      "norwegian cruise": "Norwegian",
+      "norwegian cruise line": "Norwegian",
+      "ncl": "Norwegian",
+      // Disney Cruise Line
+      "disney cruise": "Disney Cruise Line",
+      "disney cruises": "Disney Cruise Line",
+      "disney cruise line": "Disney Cruise Line",
+      // Celebrity Cruises
+      "celebrity": "Celebrity Cruises",
+      "celebrity cruises": "Celebrity Cruises",
+      // Virgin Voyages
+      "virgin": "Virgin Voyages",
+      "virgin voyages": "Virgin Voyages",
+      "virgin cruise": "Virgin Voyages",
+      // Holland America Line
+      "holland": "Holland America Line",
+      "holland america": "Holland America Line",
+      "holland america line": "Holland America Line",
+      // Princess
+      "princess": "Princess",
+      "princess cruises": "Princess",
+      // Carnival
+      "carnival": "Carnival",
+      "carnival cruise": "Carnival",
+      "carnival cruises": "Carnival",
+      // MSC Cruises
+      "msc": "MSC Cruises",
+      "msc cruises": "MSC Cruises",
+      // Viking Ocean
+      "viking": "Viking Ocean",
+      "viking ocean": "Viking Ocean",
+      // American Cruise Line
+      "american cruise": "American Cruise Line",
+      "american cruise line": "American Cruise Line",
+      // Atlas Ocean Voyages
+      "atlas": "Atlas Ocean Voyages",
+      "atlas ocean": "Atlas Ocean Voyages",
+      "atlas ocean voyages": "Atlas Ocean Voyages",
+      // Azamara
+      "azamara": "Azamara",
+      // Crystal Cruises
+      "crystal": "Crystal Cruises",
+      "crystal cruises": "Crystal Cruises",
+      // Cunard
+      "cunard": "Cunard",
+      "cunard cruises": "Cunard",
+      // Emerald Cruises
+      "emerald": "Emerald Cruises",
+      "emerald cruises": "Emerald Cruises",
+      // Explora Journeys
+      "explora": "Explora Journeys",
+      "explora journeys": "Explora Journeys",
+      // Four Seasons Yachts
+      "four seasons": "Four Seasons Yachts",
+      "four seasons yachts": "Four Seasons Yachts",
+      "four seasons yacht": "Four Seasons Yachts",
+      // Funjet
+      "funjet": "Funjet",
+      "fun jet": "Funjet",
+      // Oceania Cruises
+      "oceania": "Oceania Cruises",
+      "oceania cruises": "Oceania Cruises",
+      // Paul Gauguin Cruises
+      "paul gauguin": "Paul Gauguin Cruises",
+      "paul gauguin cruises": "Paul Gauguin Cruises",
+      // Ponant
+      "ponant": "Ponant",
+      "ponant cruises": "Ponant",
+      // Regent Seven Seas Cruises
+      "regent": "Regent Seven Seas Cruises",
+      "regent seven seas": "Regent Seven Seas Cruises",
+      "seven seas": "Regent Seven Seas Cruises",
+      // Ritz-Carlton Yacht Collection
+      "ritz-carlton": "Ritz-Carlton Yacht Collection",
+      "ritz carlton": "Ritz-Carlton Yacht Collection",
+      "ritz-carlton yacht": "Ritz-Carlton Yacht Collection",
+      // Seabourn
+      "seabourn": "Seabourn",
+      "seabourn cruises": "Seabourn",
+      // Silversea
+      "silversea": "Silversea",
+      "silversea cruises": "Silversea",
+      // Star Clippers
+      "star clippers": "Star Clippers",
+      "star clipper": "Star Clippers",
+      // Tauck Cruises
+      "tauck": "Tauck Cruises",
+      "tauck cruises": "Tauck Cruises",
+      // Windstar
+      "windstar": "Windstar",
+      // Viking River
+      "viking river": "Viking River",
+      "viking river cruises": "Viking River",
+      // Avalon Waterways
+      "avalon": "Avalon Waterways",
+      "avalon waterways": "Avalon Waterways",
+      // Ama Waterways
+      "ama": "Ama Waterways",
+      "ama waterways": "Ama Waterways",
+      // CroisiEurope
+      "croisieurope": "CroisiEurope",
+      "croisi europe": "CroisiEurope",
+      "croisi-europe": "CroisiEurope",
+      // Riverside Cruises
+      "riverside": "Riverside Cruises",
+      "riverside cruises": "Riverside Cruises",
+      // Riviera River Cruises
+      "riviera": "Riviera River Cruises",
+      "riviera river": "Riviera River Cruises",
+      "riviera river cruises": "Riviera River Cruises",
+      // Tauck Tours
+      "tauck tours": "Tauck Tours",
+      "tauck tour": "Tauck Tours",
+      // Uniworld
+      "uniworld": "Uniworld",
+      "uniworld cruises": "Uniworld",
+      // Scenic River
+      "scenic river": "Scenic River",
+      // Lindblad Expeditions & National Geographic
+      "lindblad": "Lindblad Expeditions & National Geographic",
+      "lindblad expeditions": "Lindblad Expeditions & National Geographic",
+      "national geographic": "Lindblad Expeditions & National Geographic",
+      // Hurtigruten
+      "hurtigruten": "Hurtigruten",
+      "hurtigruten cruises": "Hurtigruten",
+      // Adventures by Disney
+      "adventures by disney": "Adventures by Disney",
+      // Disneyland
+      "disneyland": "Disneyland",
+      "disney land": "Disneyland",
+      // DisneyWorld
+      "disneyworld": "DisneyWorld",
+      "disney world": "DisneyWorld",
+      // Aulani, A Disney Resort & Spa
+      "aulani": "Aulani, A Disney Resort & Spa",
+      "a disney resort": "Aulani, A Disney Resort & Spa",
+      "aulani, a disney resort & spa": "Aulani, A Disney Resort & Spa",
+      // Sandals
+      "sandals": "Sandals",
+      // Beaches
+      "beaches": "Beaches",
+      // Breathless
+      "breathless": "Breathless",
+      // Club Med
+      "club med": "Club Med",
+      "clubmed": "Club Med",
+      // El Dorado Spa Resorts & Hotels
+      "el dorado": "El Dorado Spa Resorts & Hotels",
+      "el dorado spa": "El Dorado Spa Resorts & Hotels",
+      // Dreams
+      "dreams": "Dreams",
+      "dreams resorts": "Dreams",
+      // Excellence Resorts
+      "excellence": "Excellence Resorts",
+      "excellence resorts": "Excellence Resorts",
+      // Hard Rock Hotels
+      "hard rock": "Hard Rock Hotels",
+      "hard rock hotels": "Hard Rock Hotels",
+      // Iberostar Hotels & Resorts
+      "iberostar": "Iberostar Hotels & Resorts",
+      "iberostar hotels": "Iberostar Hotels & Resorts",
+      // Karisma Hotels & Resorts
+      "karisma": "Karisma Hotels & Resorts",
+      // Outrigger Hotels & Resorts
+      "outrigger": "Outrigger Hotels & Resorts",
+      "outrigger hotels": "Outrigger Hotels & Resorts",
+      // Palace Resorts
+      "palace": "Palace Resorts",
+      "palace resorts": "Palace Resorts",
+      // RIU Hotels & Resorts
+      "riu": "RIU Hotels & Resorts",
+      "riu hotels": "RIU Hotels & Resorts",
+      // Secrets
+      "secrets": "Secrets",
+      // Delta Vacations
+      "delta": "Delta Vacations",
+      "delta vacations": "Delta Vacations",
+      // Southwest Vacations
+      "southwest": "Southwest Vacations",
+      "southwest vacations": "Southwest Vacations",
+      // United Vacations
+      "united": "United Vacations",
+      "united vacations": "United Vacations",
+      // Villas of Distinction
+      "villas": "Villas of Distinction",
+      "villas of distinction": "Villas of Distinction",
+      // Zoëtry Wellness & Spa Resorts
+      "zoëtry": "Zoëtry Wellness & Spa Resorts",
+      "zoeetry": "Zoëtry Wellness & Spa Resorts",
+      // BlueSky Tours
+      "bluesky": "BlueSky Tours",
+      "blue sky tours": "BlueSky Tours",
+      // CIE Tours
+      "cie": "CIE Tours",
+      "cie tours": "CIE Tours",
+      // Collette
+      "collette": "Collette",
+      // Great Safaris
+      "great safaris": "Great Safaris",
+      // Project Expedition
+      "project expedition": "Project Expedition",
+      "project expeditions": "Project Expedition",
+      // Shore Excursions Group
+      "shore excursions": "Shore Excursions Group",
+      "shore excursions group": "Shore Excursions Group",
+      // TourSales.com
+      "toursales": "TourSales.com",
+      "tour sales": "TourSales.com",
+      // Trafalgar
+      "trafalgar": "Trafalgar"
+    };
+    // === Helper Functions ===
+    // Returns canonical vendor name
+    function getCanonicalVendor(vendor) {
+      const vendorLower = vendor.trim().toLowerCase();
+      if (aliasMapping[vendorLower]) {
+        return aliasMapping[vendorLower];
+      }
+      for (const supplier of knownSuppliers) {
+        if (supplier.toLowerCase() === vendorLower) {
+          return supplier;
+        }
+      }
+      return vendor;
+    }
+    // Parse HQ deals text into an array of objects { vendor, text, original }
+    function parseHQDeals(text) {
+      const lines = text.split('\n');
+      const deals = [];
+      let currentVendor = "";
+      lines.forEach(line => {
+        let trimmed = line.trim();
+        if (!trimmed) return;
+        if (trimmed.toLowerCase().startsWith("v")) {
+          // Update current vendor using the canonical name.
+          currentVendor = getCanonicalVendor(trimmed.substring(1).replace(":", "").trim());
+        } else if (trimmed.toLowerCase().startsWith("d") || trimmed.toLowerCase().startsWith("ed")) {
+          // Store the original line along with parsed deal text.
+          let marker = trimmed.toLowerCase().startsWith("ed") ? "ed" : "d";
+          let dealText = marker === "ed" ? trimmed.substring(2).trim() : trimmed.substring(1).trim();
+          deals.push({
+            vendor: currentVendor,
+            text: dealText,
+            original: trimmed // preserve the full original line (including "d" or "ed")
+          });
+        }
+      });
+      return deals;
+    }
+    // Parse JSON deals into an array of objects with needed fields.
+    function parseJSONDeals(jsonText) {
+      try {
+        const jsonData = JSON.parse(jsonText);
+        return jsonData.map(item => ({
+          vendor: getCanonicalVendor(item.shopOverline || ""),
+          expiryDate: item.expiryDate, // ISO string
+          title: item.title || "",
+          shopListing: item.shopListing || ""
+        }));
+      } catch (e) {
+        alert("Invalid JSON input.");
+        return [];
+      }
+    }
+    // Extract expiry date (if a range is provided, use the last date)
+    function extractHQExpiryEnd(text) {
+      const regex = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g;
+      const matches = text.match(regex);
+      if (matches && matches.length > 0) {
+        const lastDateStr = matches[matches.length - 1];
+        const parts = lastDateStr.split(/[\/\-]/);
+        if (parts.length === 3) {
+          let year = parts[2];
+          if (year.length === 2) {
+            year = "20" + year;
+          }
+          return new Date(parts[0] + "/" + parts[1] + "/" + year);
+        }
+      }
+      return null;
+    }
+    // Extract a percentage from text (e.g., "60%")
+    function extractPercentage(text) {
+      const match = text.match(/(\d+)%/);
+      return match ? parseInt(match[1]) : null;
+    }
+    // Extract a monetary value from text (e.g., "$200")
+    function extractMoney(text) {
+      const match = text.match(/[$]\s*(\d+(?:\.\d+)?)/);
+      return match ? parseFloat(match[1]) : null;
+    }
+    // Custom: Extract special numeric phrase "for 2" or "for two"
+    function extractSpecialNumeric(text) {
+      const regex = /for\s*(2|two)/i;
+      const match = text.match(regex);
+      if (match) {
+        return "for2"; // normalize to "for2"
+      }
+      return null;
+    }
+    // Convert JSON expiryDate (ISO) to a Date object.
+    function extractJSONExpiry(dateStr) {
+      return dateStr ? new Date(dateStr) : null;
+    }
+    // Extract keywords from text: lowercase, remove punctuation, split, and filter out very short words.
+    function extractKeywords(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .split(/\s+/)
+        .filter(word => word.length > 2);
+    }
+    // Check for any variation of gratuities.
+    function hasGratuity(text) {
+      const lower = text.toLowerCase();
+      const gratuityTerms = [
+        "pre paid gratuities", "pre-paid gratuities", "prepaid gratuities",
+        "free gratuities", "free grat", "gratuities", "ppg"
+      ];
+      return gratuityTerms.some(term => lower.includes(term));
+    }
+    // Check for variations of onboard credit.
+    function hasOBC(text) {
+      const lower = text.toLowerCase();
+      const obcTerms = ["onboard credit", "on board credit", "obc"];
+      return obcTerms.some(term => lower.includes(term));
+    }
+    // Check for kid-related keywords.
+    function hasKids(text) {
+      const lower = text.toLowerCase();
+      const kidTerms = [" kid ", " kids ", " child ", " children "];
+      return kidTerms.some(term => lower.includes(term)) || /\b(kid|kids|child|children)\b/.test(lower);
+    }
+    // Compare an HQ deal with a JSON deal using a scoring system.
+    // Rules:
+    // - Vendor match is required (100 points).
+    // - If either deal has a numeric value (percentage, money, or special phrase "for 2"), they must match exactly (adds 100 points).
+    // - Expiry date match adds 50 points.
+    // - At least 2 common keywords adds 50 points.
+    // - If one deal mentions any gratuity term, both must (adds 50 points if present).
+    // - If one deal mentions any onboard credit term, both must (adds 50 points if present).
+    // - If one deal contains kid-related keywords, both must (adds 50 points if present).
+    // Only a total score of 150 or more is considered a match.
+    function compareDealScore(hqDeal, jsonDeal) {
+      if (hqDeal.vendor !== jsonDeal.vendor) {
+        return 0;
+      }
+      let score = 100; // vendor match
+      // Numeric matching.
+      const hqSpecial = extractSpecialNumeric(hqDeal.text);
+      const jsonSpecial = extractSpecialNumeric(jsonDeal.title + " " + jsonDeal.shopListing);
+      const hqPercent = extractPercentage(hqDeal.text);
+      const jsonPercent = extractPercentage(jsonDeal.title) || extractPercentage(jsonDeal.shopListing);
+      const hqMoney = extractMoney(hqDeal.text);
+      const jsonMoney = extractMoney(jsonDeal.title) || extractMoney(jsonDeal.shopListing);
+      if (hqSpecial || jsonSpecial) {
+        if (!hqSpecial || !jsonSpecial || hqSpecial !== jsonSpecial) {
+          return 0;
+        }
+        score += 100;
+      } else if (hqPercent !== null || jsonPercent !== null) {
+        if (hqPercent === null || jsonPercent === null || hqPercent !== jsonPercent) {
+          return 0;
+        }
+        score += 100;
+      } else if (hqMoney !== null || jsonMoney !== null) {
+        if (hqMoney === null || jsonMoney === null || hqMoney !== jsonMoney) {
+          return 0;
+        }
+        score += 100;
+      }
+      // Expiry date matching.
+      const hqExpiry = extractHQExpiryEnd(hqDeal.text);
+      const jsonExpiry = extractJSONExpiry(jsonDeal.expiryDate);
+      if (hqExpiry && jsonExpiry && hqExpiry.toDateString() === jsonExpiry.toDateString()) {
+        score += 50;
+      }
+      // Keyword matching bonus.
+      const hqKeywords = extractKeywords(hqDeal.text);
+      const jsonKeywords = extractKeywords(jsonDeal.title + " " + jsonDeal.shopListing);
+      const common = hqKeywords.filter(word => jsonKeywords.includes(word));
+      if (common.length >= 2) {
+        score += 50;
+      }
+      // Required gratuity match.
+      const hqGratuity = hasGratuity(hqDeal.text);
+      const jsonGratuity = hasGratuity(jsonDeal.title + " " + jsonDeal.shopListing);
+      if (hqGratuity || jsonGratuity) {
+        if (!(hqGratuity && jsonGratuity)) {
+          return 0;
+        }
+        score += 50;
+      }
+      // Required onboard credit match.
+      const hqOBC = hasOBC(hqDeal.text);
+      const jsonOBC = hasOBC(jsonDeal.title + " " + jsonDeal.shopListing);
+      if (hqOBC || jsonOBC) {
+        if (!(hqOBC && jsonOBC)) {
+          return 0;
+        }
+        score += 50;
+      }
+      // Required kids match.
+      const hqKids = hasKids(hqDeal.text);
+      const jsonKids = hasKids(jsonDeal.title + " " + jsonDeal.shopListing);
+      if (hqKids || jsonKids) {
+        if (!(hqKids && jsonKids)) {
+          return 0;
+        }
+        score += 50;
+      }
+      return score;
+    }
+    const MATCH_THRESHOLD = 150;
+    // Main matching logic with unique assignment.
+    function performMatching(hqDeals, jsonDeals) {
+      const candidateMatches = []; // { hqDeal, jsonDeal, score, jsonIndex }
+      const nonMatched = [];
+      hqDeals.forEach(hqDeal => {
+        let bestScore = 0;
+        let bestCandidate = null;
+        let bestJsonIndex = null;
+        jsonDeals.forEach((jsonDeal, j) => {
+          const score = compareDealScore(hqDeal, jsonDeal);
+          if (score > bestScore) {
+            bestScore = score;
+            bestCandidate = jsonDeal;
+            bestJsonIndex = j;
+          }
+        });
+        if (bestScore >= MATCH_THRESHOLD) {
+          candidateMatches.push({
+            hqDeal: hqDeal,
+            jsonDeal: bestCandidate,
+            score: bestScore,
+            jsonIndex: bestJsonIndex
+          });
+        } else {
+          nonMatched.push(hqDeal);
+        }
+      });
+      // Enforce unique assignment.
+      const uniqueMatches = {};
+      candidateMatches.forEach(candidate => {
+        const idx = candidate.jsonIndex;
+        if (!uniqueMatches.hasOwnProperty(idx) || candidate.score > uniqueMatches[idx].score) {
+          uniqueMatches[idx] = candidate;
+        }
+      });
+      candidateMatches.forEach(candidate => {
+        if (uniqueMatches[candidate.jsonIndex] !== candidate) {
+          nonMatched.push(candidate.hqDeal);
+        }
+      });
+      const matched = Object.values(uniqueMatches);
+      return {
+        matched,
+        nonMatched
+      };
+    }
+    // Global arrays.
+    let matchedDeals = []; // Array of { hqDeal, jsonDeal, score, jsonIndex }
+    let nonMatchedDeals = []; // Array of HQ deals
+    // Rendering functions.
+    function renderMatchedDeals() {
+      const container = document.getElementById("matchedDealsContainer");
+      container.innerHTML = "";
+      if (matchedDeals.length === 0) {
+        container.innerHTML = "<p>No matched deals found.</p>";
+        return;
+      }
+      matchedDeals.forEach((match, index) => {
+        const row = document.createElement("div");
+        row.className = "matched-deal";
+        const leftCol = document.createElement("div");
+        leftCol.className = "deal-info";
+        leftCol.textContent = `[${match.hqDeal.vendor}] ${match.hqDeal.text}`;
+        const rightCol = document.createElement("div");
+        rightCol.className = "json-match";
+        if (match.jsonDeal) {
+          rightCol.innerHTML =
+            `<strong>Vendor:</strong> ${match.jsonDeal.vendor}<br>` +
+            `<strong>Expiry:</strong> ${match.jsonDeal.expiryDate || "N/A"}<br>` +
+            `<strong>Title:</strong> ${match.jsonDeal.title}<br>` +
+            `<strong>Listing:</strong> ${match.jsonDeal.shopListing}`;
+        } else {
+          rightCol.textContent = "No JSON match details.";
+        }
+        const btn = document.createElement("button");
+        btn.innerHTML = "👎";
+        btn.title = "Move to non-matched";
+        btn.addEventListener("click", function() {
+          matchedDeals.splice(index, 1);
+          nonMatchedDeals.push(match.hqDeal);
+          renderAll();
+        });
+        row.appendChild(leftCol);
+        row.appendChild(rightCol);
+        row.appendChild(btn);
+        container.appendChild(row);
+      });
+    }
+
+    function renderNonMatchedDeals() {
+      const container = document.getElementById("nonMatchedDealsContainer");
+      container.innerHTML = "";
+      if (nonMatchedDeals.length === 0) {
+        container.innerHTML = "<p>No non-matched deals found.</p>";
+        return;
+      }
+      nonMatchedDeals.forEach((deal, index) => {
+        const row = document.createElement("div");
+        row.className = "non-matched-deal";
+        const info = document.createElement("div");
+        info.className = "deal-info";
+        info.textContent = `[${deal.vendor}] ${deal.text}`;
+        const btn = document.createElement("button");
+        btn.innerHTML = "👍";
+        btn.title = "Move to matched";
+        btn.addEventListener("click", function() {
+          nonMatchedDeals.splice(index, 1);
+          matchedDeals.push({
+            hqDeal: deal,
+            jsonDeal: null,
+            score: 0,
+            jsonIndex: null
+          });
+          renderAll();
+        });
+        row.appendChild(info);
+        row.appendChild(btn);
+        container.appendChild(row);
+      });
+    }
+
+    function renderAll() {
+      renderMatchedDeals();
+      renderNonMatchedDeals();
+    }
+    // Copy non-matched deals to clipboard in the original format.
+    function copyNonMatchedToClipboard() {
+      // Group by vendor.
+      const groups = {};
+      nonMatchedDeals.forEach(deal => {
+        if (!groups[deal.vendor]) {
+          groups[deal.vendor] = [];
+        }
+        groups[deal.vendor].push(deal.original);
+      });
+      let output = "";
+      for (const vendor in groups) {
+        output += "v\t" + vendor + ":\n";
+        groups[vendor].forEach(dealLine => {
+          output += dealLine + "\n";
+        });
+      }
+      navigator.clipboard.writeText(output).then(() => {
+        alert("Non-matched deals copied to clipboard!");
+      }, () => {
+        alert("Failed to copy to clipboard.");
+      });
+    }
+    document.getElementById("compareButton").addEventListener("click", function() {
+      const hqText = document.getElementById("hqDeals").value;
+      const jsonText = document.getElementById("jsonDeals").value;
+      const hqDeals = parseHQDeals(hqText);
+      const jsonDeals = parseJSONDeals(jsonText);
+      matchedDeals = [];
+      nonMatchedDeals = [];
+      const result = performMatching(hqDeals, jsonDeals);
+      matchedDeals = result.matched;
+      nonMatchedDeals = result.nonMatched;
+      renderAll();
+    });
+    document.getElementById("copyButton").addEventListener("click", copyNonMatchedToClipboard);
+  </script>
+</body>
+
+</html>
