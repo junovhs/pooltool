@@ -1,832 +1,288 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Email Deal Sorter - Fancy Edition (Updated Commit)</title>
-  <!-- Include SortableJS via CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
-  <style>
-    :root {
-      --primary: #1a73e8;
-      --primary-light: #e8f0fe;
-      --surface: #ffffff;
-      --background: #f8f9fa;
-      --text: #202124;
-      --text-secondary: #5f6368;
-      --border: #dadce0;
-      --shadow-1: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-      --shadow-2: 0 2px 6px 2px rgba(60,64,67,0.15);
-      --animation: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body {
-      font-family: 'Google Sans', Arial, sans-serif;
-      background-color: var(--background);
-      color: var(--text);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      padding: 2rem;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 400;
-      text-align: center;
-      margin-bottom: 2rem;
-      color: var(--primary);
-    }
-    
-    .card {
-      background: var(--surface);
-      border-radius: 8px;
-      box-shadow: var(--shadow-1);
-      padding: 2rem;
-      transition: box-shadow var(--animation);
-    }
-    
-    .card:hover {
-      box-shadow: var(--shadow-2);
-    }
-    
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 500;
-      margin-bottom: 1rem;
-      color: var(--text);
-    }
-    
-    textarea {
-      width: 100%;
-      height: 200px;
-      padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      resize: vertical;
-      transition: border-color var(--animation);
-    }
-    
-    textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-    
-    .partner-select {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin: 1.5rem 0;
-    }
-    
-    select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-family: inherit;
-      appearance: none;
-      background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%235f6368' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1em;
-      transition: all var(--animation);
-    }
-    
-    select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-    
-    .btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background-color var(--animation);
-    }
-    
-    .btn:hover {
-      background: #1557b0;
-    }
-    
-    .deals-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-    
-    .supplier-card {
-      background: var(--surface);
-      border-radius: 8px;
-      box-shadow: var(--shadow-1);
-      overflow: hidden;
-      transition: all var(--animation);
-      cursor: pointer;
-    }
-    
-    .supplier-card.swap-target {
-      outline: 3px solid var(--primary);
-    }
-    
-    .card-header {
-      background: var(--primary-light);
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .card-header h2 {
-      margin: 0;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: var(--primary);
-    }
-    
-    .deal-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    
-    .deal-section {
-      padding: 1rem;
-    }
-    
-    .deal-item {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-      cursor: move;
-      background: var(--surface);
-      transition: background-color var(--animation);
-      position: relative;
-    }
-    
-    .deal-item:last-child {
-      border-bottom: none;
-    }
-    
-    .deal-item:hover {
-      background: var(--background);
-    }
-    
-    .deal-item.exclusive {
-      background: #fce8e6;
-    }
-    
-    .deal-item.exclusive:hover {
-      background: #fad2cf;
-    }
-    
-    .deal-title {
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      display: inline-block;
-    }
-    
-    .deal-description {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      display: inline-block;
-    }
-    
-    .copy-btn, .remove-btn {
-      background: none;
-      border: none;
-      color: var(--primary);
-      font-size: 0.75rem;
-      cursor: pointer;
-      margin-left: 0.5rem;
-      padding: 0.25rem;
-    }
-    
-    .copy-notice {
-      display: inline-block;
-      font-size: 0.75rem;
-      color: var(--primary);
-      margin-left: 0.5rem;
-      opacity: 0;
-      transition: opacity var(--animation);
-    }
-    
-    .final-output {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.5rem;
-      font-family: 'Google Sans', Arial, sans-serif;
-      font-size: 1rem;
-      line-height: 1.5;
-      color: var(--text);
-      white-space: pre-wrap;
-    }
-    
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .slide-in {
-      animation: slideIn var(--animation);
-    }
-    
-    /* Statistics Section */
-    .stats-section {
-      margin-top: 2rem;
-      padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface);
-    }
-    
-    .stats-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-    }
-    
-    .stats-row:last-child {
-      border-bottom: none;
-    }
-    
-    .stats-row:hover {
-      background: var(--background);
-    }
-    
-    .stats-row.selected {
-      background: var(--primary-light);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Sorter Pro (Suggest & Override)</title>
+    <!-- Include SortableJS via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a73e8; /* Google Blue */
+            --primary-light: #e8f0fe;
+            --primary-dark: #1557b0;
+            --secondary: #34A853; /* Google Green */
+            --danger: #EA4335; /* Google Red */
+            --surface: #ffffff;
+            --background: #f8f9fa;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
+            --border-light: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(60,64,67,0.15), 0 1px 2px rgba(60,64,67,0.1);
+            --shadow-2: 0 4px 6px rgba(60,64,67,0.15), 0 1px 3px rgba(60,64,67,0.08);
+            --shadow-3: 0 10px 20px rgba(60,64,67,0.15), 0 3px 6px rgba(60,64,67,0.1);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --transition-fast: 0.15s ease-out;
+            --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+        body {
+            font-family: 'Roboto', 'Noto Sans', Arial, sans-serif;
+            background-color: var(--background); color: var(--text);
+            line-height: 1.6; padding: 1.5rem;
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        }
+        .container { max-width: 1400px; margin: 1rem auto; display: flex; flex-direction: column; gap: 2rem; }
+        h1 { font-size: 2.25rem; font-weight: 500; text-align: center; color: var(--primary); margin-bottom: 1rem; letter-spacing: -0.5px; }
+        .card { background: var(--surface); border-radius: var(--border-radius-md); box-shadow: var(--shadow-1); padding: 1.5rem 2rem; transition: box-shadow var(--transition-medium); border: 1px solid var(--border-light); }
+        .card:hover { box-shadow: var(--shadow-2); }
+        .section-title { font-size: 1.25rem; font-weight: 500; margin-bottom: 1.25rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+        textarea#deals-input { width: 100%; height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: var(--border-radius-sm); font-family: 'Roboto Mono', monospace; font-size: 0.9rem; resize: vertical; transition: border-color var(--transition-fast), box-shadow var(--transition-fast); margin-bottom: 1rem; }
+        textarea#deals-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: white; border: none; padding: 0.65rem 1.25rem; border-radius: var(--border-radius-sm); font-family: inherit; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); text-decoration: none; white-space: nowrap; }
+        .btn:hover { background: var(--primary-dark); box-shadow: var(--shadow-1); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); box-shadow: none; }
+        .btn-secondary { background: var(--surface); color: var(--primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--primary-light); border-color: var(--primary); box-shadow: none; transform: translateY(0); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: darken(var(--danger), 10%); box-shadow: var(--shadow-1); transform: translateY(-1px); }
+        .btn-small { padding: 0.25rem 0.6rem; font-size: 0.8rem; }
+        .btn-icon { padding: 0.4rem; line-height: 1; background: none; border: none; color: var(--text-secondary); cursor: pointer; border-radius: 50%; }
+        .btn-icon:hover { background: var(--background); color: var(--text); }
+        .btn-link { background: none; border: none; color: var(--primary); padding: 0.25rem 0.5rem; font-size: 0.85rem; cursor: pointer; border-radius: var(--border-radius-sm); }
+        .btn-link:hover { background: var(--primary-light); text-decoration: underline; }
+        .btn-link.active { background: var(--primary-light); font-weight: 500; color: var(--primary-dark);}
+
+
+        /* POTM Select */
+        .partner-select { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        select { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-family: inherit; appearance: none; background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%235f6368' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 0.75rem center/1em var(--surface); transition: all var(--transition-fast); }
+        select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+
+        /* Review & Override Area */
+        #review-section { display: none; grid-template-columns: 340px 1fr; gap: 1.5rem; }
+
+        /* Available Pool */
+        #available-pool .section-title { margin-bottom: 0.5rem; }
+        .available-controls { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-light); }
+        .available-filter, .available-sort-options { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;}
+        .available-filter label, .available-sort-options span { font-size: 0.9rem; color: var(--text-secondary); margin-right: 0.5rem; flex-shrink: 0;}
+        .available-filter select { flex-grow: 1; min-width: 150px;}
+
+        #available-list { list-style: none; max-height: 60vh; overflow-y: auto; padding-right: 0.5rem; border: 1px solid var(--border-light); border-radius: var(--border-radius-md); padding: 0.5rem; background: var(--background); }
+        .available-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; margin-bottom: 0.5rem; border-radius: var(--border-radius-sm); background: var(--surface); border: 1px solid transparent; transition: all var(--transition-fast); cursor: pointer; box-shadow: var(--shadow-1); }
+        .available-item:hover { border-color: var(--secondary); background: #e6f4ea; transform: translateX(2px); }
+        .available-item span:first-child { font-weight: 500; font-size: 0.95rem; }
+        .available-item span:last-child { font-size: 0.8rem; color: var(--text-secondary); background-color: #f1f3f4; padding: 0.1rem 0.4rem; border-radius: var(--border-radius-sm); border: 1px solid var(--border-light); white-space: nowrap; }
+        .available-item.disabled { cursor: not-allowed; background-color: #eee; color: #aaa; opacity: 0.6; }
+        .available-item.disabled:hover { border-color: transparent; background-color: #eee; transform: none;}
+
+
+        /* Selected Cards Workspace */
+        #workspace-area .d-flex { margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+        #workspace-area .section-title { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        #workspace { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; min-height: 200px; }
+
+        .selected-supplier-card { background: var(--surface); border-radius: var(--border-radius-md); box-shadow: var(--shadow-1); border: 1px solid var(--border-light); display: flex; flex-direction: column; overflow: hidden; transition: border-color var(--transition-fast), box-shadow var(--transition-medium); }
+        .selected-supplier-card.swap-target { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light), var(--shadow-2); }
+
+        .card-header-selected { display: flex; justify-content: space-between; align-items: center; background: var(--primary-light); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .card-header-selected h3 { margin: 0; font-size: 1.1rem; font-weight: 500; color: var(--primary-dark); }
+        .card-header-selected:hover { background: #d2e3fc; }
+
+        .deal-list-selected { list-style: none; margin: 0; padding: 0.5rem 0; flex-grow: 1; min-height: 50px; }
+        .deal-item { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-light); background: var(--surface); transition: background-color var(--transition-fast); position: relative; display: flex; align-items: flex-start; gap: 0.75rem; }
+        .deal-item:last-child { border-bottom: none; }
+        .deal-item:hover { background: #f1f3f4; }
+        .deal-item.is-exclusive { border-left: 3px solid var(--secondary); padding-left: calc(1rem - 3px); }
+        .deal-item.is-exclusive::before { content: '★'; color: var(--secondary); font-size: 0.8em; position: absolute; left: 0.7rem; top: 1rem; }
+        .deal-item.is-exclusive .deal-content { padding-left: 1rem; }
+
+        .deal-content { flex-grow: 1; }
+        .deal-title { font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; display: block; cursor: pointer; }
+        .deal-description { font-size: 0.85rem; color: var(--text-secondary); }
+        .drag-handle { cursor: grab; color: var(--text-secondary); padding-top: 0.2rem; opacity: 0.5; transition: opacity var(--transition-fast); }
+        .deal-item:hover .drag-handle { opacity: 1; }
+        .drag-handle:active { cursor: grabbing; }
+        input[type="checkbox"].deal-select { margin-top: 0.2rem; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+        .deal-actions { margin-left: auto; flex-shrink: 0; padding-top: 0.1rem;}
+
+        /* SortableJS Classes */
+        .sortable-ghost { opacity: 0.4; background: var(--primary-light); border-radius: var(--border-radius-sm); }
+        .sortable-drag { box-shadow: var(--shadow-3); background: #fff; }
+
+        /* Final Output Section */
+        #output-section { display: none; }
+        #final-output { background: #f1f3f4; border: 1px solid var(--border); border-radius: var(--border-radius-sm); padding: 1.5rem; font-family: 'Roboto Mono', monospace; font-size: 0.9rem; line-height: 1.5; color: var(--text); white-space: pre-wrap; max-height: 400px; overflow-y: auto; margin-bottom: 1rem; }
+
+        /* Utility Classes */
+        .d-flex { display: flex; } .justify-between { justify-content: space-between; } .align-center { align-items: center; } .mt-1 { margin-top: 1rem; } .text-center { text-align: center; } .text-muted { color: var(--text-secondary); } .p-2 { padding: 2rem; }
+
+        /* Animation */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+    </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Final Output Section (Always at Top After Commit) -->
-    <div id="final-section" class="card slide-in" style="display:none;">
-      <h2 class="section-title">Final Selected Deals</h2>
-      <div id="final-output" class="final-output"></div>
-      <button class="btn" onclick="copyFinalOutput()">Copy to Clipboard</button>
-    </div>
-    
-    <h1>Email Deal Sorter</h1>
-    
-    <!-- Input Section -->
-    <div id="input-section" class="card slide-in">
-      <h2 class="section-title">Paste Your Deals Here</h2>
-      <textarea id="deals-input" placeholder="Paste deals here..."></textarea>
-      
-      <h3 class="section-title">Partners of the Month</h3>
-      <div class="partner-select">
-        <div>
-          <label for="potm1">Partner 1:</label>
-          <select id="potm1">
-            <option value="">--Select Partner--</option>
-          </select>
+
+    <div class="container">
+        <h1>Deal Sorter Pro</h1>
+
+        <!-- 1. Input Section -->
+        <div id="input-section" class="card fade-in">
+            <h2 class="section-title">1. Input Deals & Partners</h2>
+            <textarea id="deals-input" placeholder="Paste deals here... (Supplier, Title, Description per block)"></textarea>
+             <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 0.75rem;">Optional: Partners of the Month</h3>
+             <div class="partner-select">
+                 <div><label for="potm1" class="text-muted" style="font-size: 0.9rem;">Partner 1:</label><select id="potm1"><option value="">--Select Partner--</option></select></div>
+                 <div><label for="potm2" class="text-muted" style="font-size: 0.9rem;">Partner 2:</label><select id="potm2"><option value="">--Select Partner--</option></select></div>
+             </div>
+            <button class="btn" onclick="processAndSuggest()">Process & Suggest</button>
         </div>
-        <div>
-          <label for="potm2">Partner 2:</label>
-          <select id="potm2">
-            <option value="">--Select Partner--</option>
-          </select>
+
+        <!-- 2. Review & Override Section -->
+        <div id="review-section" class="fade-in">
+            <!-- Available Pool -->
+            <div id="available-pool" class="card">
+                 <h2 class="section-title">Available Suppliers</h2>
+                 <div class="available-controls">
+                      <div class="available-filter"><label for="category-filter">Filter:</label><select id="category-filter" onchange="setCategoryFilter(this.value)"><option value="all">All Categories</option></select></div>
+                     <div class="available-sort-options"><span>Sort by:</span><button id="sort-preferred" class="btn-link active" onclick="setAvailableSort('preferred')">Preferred</button><button id="sort-total" class="btn-link" onclick="setAvailableSort('totalDeals')">Total Deals</button><button id="sort-exclusive" class="btn-link" onclick="setAvailableSort('exclusiveDeals')">Exclusives</button><button id="sort-alpha" class="btn-link" onclick="setAvailableSort('alpha')">A-Z</button></div>
+                 </div>
+                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click supplier to swap with <span style="color: var(--primary); font-weight: 500;">highlighted</span> card.</p>
+                 <ul id="available-list"><li class="text-center text-muted p-2">Process deals first...</li></ul>
+            </div>
+
+            <!-- Workspace Area -->
+            <div id="workspace-area" class="card">
+                 <div class="d-flex justify-between align-center"><h2 class="section-title">Suggested Deals (Editable)</h2><button class="btn btn-secondary" onclick="generateFinalOutput()">Generate Output</button></div>
+                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click card header to swap. Check deals to include. Drag (<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>) to reorder. Use (<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>) to remove deals.</p>
+                 <div id="workspace"><p class="text-center text-muted p-2" style="grid-column: 1 / -1;">Suggestions will appear here.</p></div>
+            </div>
         </div>
-      </div>
-      <button class="btn" onclick="processDeals()">Sort Deals</button>
+
+        <!-- 3. Final Output Section -->
+        <div id="output-section" class="card fade-in">
+            <h2 class="section-title">Final Output</h2>
+            <div id="final-output"></div>
+            <button class="btn" onclick="copyFinalOutput()">Copy to Clipboard</button>
+            <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+        </div>
     </div>
-    
-    <!-- Waiting Mode Section (Manual Selection) -->
-    <div id="waiting-section" class="card slide-in" style="display:none;">
-      <h2 class="section-title">Review & Select Deals</h2>
-      <p>Click a deal to toggle selection (max 4 per supplier). Drag & drop within each section. Exclusive and non‑exclusive deals are in separate sections and cannot be mixed.</p>
-      <div id="supplier-cards" class="deals-grid"></div>
-      
-      <!-- Statistics Section -->
-      <div id="stats-section" class="stats-section">
-        <h3 class="section-title">Statistics</h3>
-        <div id="stats-rows"></div>
-        <p>Click a supplier in the stats (sorted by exclusive count) to swap with a selected supplier card (click a card header first).</p>
-      </div>
-      
-      <button class="btn" onclick="commitSelection()">Commit Selection</button>
-    </div>
-  </div>
-  
-  <script>
-    /*******************
-     * Global variable to store groups for swap functionality.
-     *******************/
-    let globalGroups = {};
-    let swapTargetCard = null; // reference to the card selected for swap
-    
-    /*******************
-     * 1. Predefined Supplier List (for POTM)
-     *******************/
-    const allSuppliers = [
-      "Viking", "Norwegian Cruise Line", "Royal Caribbean", "Disney Cruise Line",
-      "Celebrity Cruises", "Virgin Voyages", "Holland America Line", "Princess",
-      "Avalon Waterways", "AmaWaterways", "Scenic Luxury Cruises & Tours", "Silversea",
-      "Regent Seven Seas Cruises", "Seabourn", "Azamara", "Sandals", "Oceania Cruises",
-      "MSC Cruises", "Carnival", "Trafalgar", "Globus", "Aulani, a Disney Resort & Spa",
-      "Disneyland Resort", "Walt Disney World", "Rocky Mountaineer", "Hard Rock Hotel & Casino",
-      "Palace Resorts", "Iberostar Beachfront Resorts", "G Adventures", "RIU Hotels & Resorts",
-      "Hurtigruten"
-    ];
-    
-    /*******************
-     * 2. Populate POTM Dropdowns
-     *******************/
-    function populateDropdowns() {
-      const potm1 = document.getElementById("potm1");
-      const potm2 = document.getElementById("potm2");
-      allSuppliers.forEach(supplier => {
-        const opt1 = document.createElement("option");
-        opt1.value = supplier;
-        opt1.textContent = supplier;
-        potm1.appendChild(opt1);
-  
-        const opt2 = document.createElement("option");
-        opt2.value = supplier;
-        opt2.textContent = supplier;
-        potm2.appendChild(opt2);
-      });
-    }
-    window.onload = populateDropdowns;
-    
-    /*******************
-     * 3. Normalization Function
-     *******************/
-    function normalizeSupplier(name) {
-      const lowerName = name.toLowerCase().trim();
-      if (lowerName.includes("viking")) return "viking";
-      return lowerName;
-    }
-    
-    /*******************
-     * 4. Parse Deals
-     *
-     * Expects each deal as three consecutive lines (Supplier, Title, Description) separated by blank lines.
-     * Skips lines containing "logo" or "expires soon".
-     *******************/
-    function parseDeals(rawText) {
-      const blocks = rawText.split(/\n\s*\n/);
-      const deals = [];
-      blocks.forEach(block => {
-        const lines = block.split("\n").map(line => line.trim()).filter(line => line !== "");
-        const filtered = lines.filter(line =>
-          !line.toLowerCase().includes("logo") && !line.toLowerCase().includes("expires soon")
-        );
-        if (filtered.length < 3) return;
-        let supplierLine = filtered[0];
-        if (supplierLine.toLowerCase().includes("viking")) {
-          supplierLine = "Viking";
-        } else {
-          for (let s of allSuppliers) {
-            if (s.toLowerCase() === supplierLine.toLowerCase()) {
-              supplierLine = s;
-              break;
+
+    <script>
+        // --- Global State ---
+        let allParsedDeals = []; let allGroupedDeals = {}; let currentDisplayedSuppliers = {};
+        let sortableInstances = {}; let swapTarget = { cardElement: null, key: null };
+        let currentAvailableSort = 'preferred'; let currentCategoryFilter = 'all';
+
+        // --- Constants & Initial Data ---
+        const ALL_SUPPLIERS_PREDEFINED = [ "Norwegian Cruise Line", "Royal Caribbean", "Celebrity Cruises", "Disney Cruise Line", "Virgin Voyages", "Holland America Line", "Princess", "Carnival", "MSC Cruises", "Viking", "American Cruise Line", "Atlas Ocean Voyages", "Azamara", "Crystal Cruises", "Cunard", "Emerald Cruises", "Explora Journeys", "Four Seasons Yachts", "Oceania Cruises", "Paul Gauguin Cruises", "Ponant", "Regent Seven Seas Cruises", "Ritz-Carlton Yacht Collection", "Scenic Eclipse Ocean Voyages", "Seabourn", "Silversea", "Star Clippers", "Tauck Cruises", "Windstar", "Avalon Waterways", "AmaWaterways", "CroisiEurope", "Riverside Cruises", "Riviera River Cruises", "Tauck Tours", "Uniworld", "Scenic River", "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures", "Adventures by Disney", "Disneyland", "DisneyWorld", "Aulani, A Disney Resort & Spa", "Sandals", "Beaches", "Breathless", "Club Med", "El Dorado Spa Resorts & Hotels", "Dreams", "Excellence Resorts", "Hard Rock Hotels", "Iberostar Hotels & Resorts", "Karisma Hotels & Resorts", "Outrigger Hotels & Resorts", "Palace Resorts", "RIU Hotels & Resorts", "Secrets", "American Airline Vacations", "Delta Vacations", "Southwest Vacations", "United Vacations", "Villas of Distinction", "Zoëtry Wellness & Spa Resorts", "Atlantis Paradise Island Bahamas", "Great Safaris", "African Travel", "Abercrombie & Kent", "G Adventures", "Globus Journeys", "Trafalgar", "BlueSky Tours", "CIE Tours", "Collette", "Shore Excursions Group", "TourSales.com", "Viator", "Project Expedition", "Rocky Mountaineer" ];
+        const SUPPLIER_CATEGORIES = { "norwegian cruise line": ["Popular Cruises"], "royal caribbean": ["Popular Cruises"], "celebrity cruises": ["Popular Cruises"], "disney cruise line": ["Popular Cruises", "Disney"], "virgin voyages": ["Popular Cruises"], "holland america line": ["Popular Cruises"], "princess": ["Popular Cruises"], "carnival": ["Popular Cruises"], "msc cruises": ["Popular Cruises"], "viking": ["Popular Cruises", "Luxury Cruises", "River Cruises"], "american cruise line": ["Luxury Cruises"], "atlas ocean voyages": ["Luxury Cruises"], "azamara": ["Luxury Cruises"], "crystal cruises": ["Luxury Cruises"], "cunard": ["Luxury Cruises"], "emerald cruises": ["Luxury Cruises", "River Cruises"], "explora journeys": ["Luxury Cruises"], "four seasons yachts": ["Luxury Cruises"], "oceania cruises": ["Luxury Cruises"], "paul gauguin cruises": ["Luxury Cruises"], "ponant": ["Luxury Cruises", "Adventure Cruising"], "regent seven seas cruises": ["Luxury Cruises"], "ritz-carlton yacht collection": ["Luxury Cruises"], "scenic eclipse ocean voyages": ["Luxury Cruises", "Adventure Cruising"], "seabourn": ["Luxury Cruises"], "silversea": ["Luxury Cruises", "Adventure Cruising"], "star clippers": ["Luxury Cruises"], "tauck cruises": ["Luxury Cruises", "River Cruises", "Tours and Custom Trips"], "windstar": ["Luxury Cruises"], "avalon waterways": ["River Cruises"], "amawaterways": ["River Cruises"], "croisieurope": ["River Cruises"], "riverside cruises": ["River Cruises"], "riviera river cruises": ["River Cruises"], "tauck tours": ["River Cruises", "Tours and Custom Trips"], "uniworld": ["River Cruises"], "scenic river": ["River Cruises"], "lindblad expeditions & national geographic": ["Adventure Cruising"], "hurtigruten": ["Adventure Cruising"], "uncruise adventures": ["Adventure Cruising"], "adventures by disney": ["Disney", "Tours and Custom Trips"], "disneyland": ["Disney"], "disneyworld": ["Disney"], "aulani a disney resort & spa": ["Disney", "Resorts and Hawaii"], "sandals": ["Resorts and Hawaii"], "beaches": ["Resorts and Hawaii"], "breathless": ["Resorts and Hawaii"], "club med": ["Resorts and Hawaii"], "el dorado spa resorts & hotels": ["Resorts and Hawaii"], "dreams": ["Resorts and Hawaii"], "excellence resorts": ["Resorts and Hawaii"], "hard rock hotels": ["Resorts and Hawaii"], "hard rock hotel & casino": ["Resorts and Hawaii"], "iberostar hotels & resorts": ["Resorts and Hawaii"], "iberostar beachfront resorts": ["Resorts and Hawaii"], "karisma hotels & resorts": ["Resorts and Hawaii"], "outrigger hotels & resorts": ["Resorts and Hawaii"], "palace resorts": ["Resorts and Hawaii"], "riu hotels & resorts": ["Resorts and Hawaii"], "secrets": ["Resorts and Hawaii"], "american airline vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "delta vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "southwest vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "united vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "villas of distinction": ["Resorts and Hawaii"], "zoetry wellness & spa resorts": ["Resorts and Hawaii"], "atlantis paradise island bahamas": ["Resorts and Hawaii"], "great safaris": ["Tours and Custom Trips"], "african travel": ["Tours and Custom Trips"], "abercrombie & kent": ["Tours and Custom Trips", "Luxury Cruises", "River Cruises"], "g adventures": ["Tours and Custom Trips", "Adventure Cruising"], "globus journeys": ["Tours and Custom Trips"], "globus": ["Tours and Custom Trips"], "trafalgar": ["Tours and Custom Trips"], "bluesky tours": ["Tours and Custom Trips", "Resorts and Hawaii"], "cie tours": ["Tours and Custom Trips"], "collette": ["Tours and Custom Trips"], "shore excursions group": ["Shore Excursions"], "toursalescom": ["Shore Excursions"], "viator": ["Shore Excursions"], "project expedition": ["Shore Excursions"], "rocky mountaineer": ["Rail Vacations", "Tours and Custom Trips"] };
+        const UNIQUE_CATEGORIES = [...new Set(Object.values(SUPPLIER_CATEGORIES).flat())].sort();
+        const PREFERRED_ORDER_MAP = ALL_SUPPLIERS_PREDEFINED.reduce((map, name, index) => { map[normalizeSupplier(name)] = index; return map; }, {});
+        const PREFERRED_SUPPLIER_NAMES = ALL_SUPPLIERS_PREDEFINED.reduce((acc, name) => { const key = normalizeSupplier(name); acc[key] = name; return acc; }, {});
+        PREFERRED_SUPPLIER_NAMES["viking"] = "Viking";
+
+        // --- Initialization ---
+        window.onload = () => { populateDropdowns(); populateCategoryFilter(); };
+        function populateDropdowns() { const p1=document.getElementById("potm1"), p2=document.getElementById("potm2"); p1.length=1; p2.length=1; ALL_SUPPLIERS_PREDEFINED.forEach(s=>{ p1.appendChild(new Option(s,s)); p2.appendChild(new Option(s,s)); }); }
+        function populateCategoryFilter() { const f=document.getElementById('category-filter'); f.length=1; UNIQUE_CATEGORIES.forEach(c=>f.appendChild(new Option(c,c))); }
+
+        // --- Core Logic ---
+        function getPreferredIndex(key) { return PREFERRED_ORDER_MAP[key] ?? Infinity; }
+        function normalizeSupplier(name) { const l=name?.toLowerCase().trim()||''; if(l.includes("viking")) return "viking"; return l.replace(/[^\w\s&-]/g,'').replace(/\s+/g,' ').trim(); }
+        function getDisplayName(key) { return PREFERRED_SUPPLIER_NAMES[key] || key.split(' ').map(w=>w[0].toUpperCase()+w.slice(1)).join(' '); }
+        // NEW Helper function to sanitize keys for use in HTML IDs
+        function sanitizeKeyForId(key) { return key.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); }
+        function parseDeals(raw) { const d=[]; raw.split(/\n\s*\n/).forEach((b,i)=>{ const l=b.split("\n").map(ln=>ln.trim()).filter(ln=>ln&&!ln.toLowerCase().includes("logo")&&!ln.toLowerCase().includes("expires soon")); if(l.length>=3){ const k=normalizeSupplier(l[0]), t=l[1], ds=l[2], e=t.toUpperCase().includes("EXCLUSIVE"); d.push({supplierKey:k, displayName:getDisplayName(k), title:t, description:ds, exclusive:e, id:crypto.randomUUID()}); } else if (l.length>0) console.warn(`Skipping block ${i+1}:`, l); }); return d; }
+        function groupDealsBySupplier(deals) { const g={}; deals.forEach(d=>{ const k=d.supplierKey; if(!g[k]) g[k]=[]; g[k].push({...d, isSelected:true}); }); for(const k in g) g[k].sort((a,b)=>(b.exclusive-a.exclusive)||a.title.localeCompare(b.title)); return g; }
+        function qualifies(d) { const e=d.filter(x=>x.exclusive).length; if(d.length>=3) return e>=2; if(d.length===2) return d.every(x=>x.exclusive); return false; }
+        function buildCandidateList(g) { const c=[]; for(let k in g){ const ds=g[k]; if(qualifies(ds)) c.push({supplierKey:k, deals:ds, count:ds.length, exclusiveCount:ds.filter(x=>x.exclusive).length, score:ds.length*10+ds.filter(x=>x.exclusive).length*5}); } const h3=c.some(x=>x.count>=3); let f=c; if(h3) f=c.filter(x=>x.count>=3); f.sort((a,b)=>b.score-a.score); return f; }
+        function getForcedCandidates(g) { const f=[]; [document.getElementById("potm1").value, document.getElementById("potm2").value].forEach(p=>{ if(!p)return; const n=normalizeSupplier(p); if(g[n]?.length>0) f.push({supplierKey:n, deals:g[n]}); else console.warn("No deals for forced partner:", p); }); if(f.length===2 && normalizeSupplier(document.getElementById("potm2").value)===f[0].supplierKey) [f[0],f[1]]=[f[1],f[0]]; return f; }
+        function combineCandidates(forced, cands) { const fk=new Set(forced.map(c=>c.supplierKey)), fl=[...forced], sl=4-fl.length; if(sl>0){ let ac=0; for(const ca of cands){ if(!fk.has(ca.supplierKey)){ fl.push(ca); ac++; if(ac>=sl) break; }} } return fl.slice(0,4); }
+
+        // --- Main Process ---
+        function processAndSuggest() { const raw=document.getElementById('deals-input').value; if(!raw.trim()){alert("Paste deals.");return;} allParsedDeals=[]; allGroupedDeals={}; currentDisplayedSuppliers={}; Object.values(sortableInstances).forEach(i=>i.destroy()); sortableInstances={}; resetSwapTarget(); currentAvailableSort='preferred'; currentCategoryFilter='all'; document.getElementById('category-filter').value='all'; try { allParsedDeals=parseDeals(raw); if(allParsedDeals.length===0){alert("No valid deals.");return;} allGroupedDeals=groupDealsBySupplier(allParsedDeals); const forced=getForcedCandidates(allGroupedDeals), cands=buildCandidateList(allGroupedDeals), suggestions=combineCandidates(forced, cands); suggestions.forEach(s=>{const k=s.supplierKey; currentDisplayedSuppliers[k]={displayName:getDisplayName(k), deals:allGroupedDeals[k].map(d=>({...d}))};}); document.getElementById('input-section').style.display='none'; document.getElementById('review-section').style.display='grid'; document.getElementById('output-section').style.display='none'; document.getElementById('final-output').textContent=''; renderReviewUI(); } catch (e) {console.error("Error:",e); alert("Error: "+e.message);} }
+
+        // --- UI Rendering ---
+        function renderReviewUI() { renderAvailablePool(); renderWorkspace(); }
+        function renderAvailablePool() { const list=document.getElementById('available-list'); list.innerHTML=''; let count=0; const Wkeys=new Set(Object.keys(currentDisplayedSuppliers)); let availKeys=Object.keys(allGroupedDeals).filter(k=>!Wkeys.has(k)); if(currentCategoryFilter!=='all') availKeys=availKeys.filter(k=>(SUPPLIER_CATEGORIES[k]||[]).includes(currentCategoryFilter)); switch(currentAvailableSort){ case 'totalDeals': availKeys.sort((a,b)=>(allGroupedDeals[b]?.length||0)-(allGroupedDeals[a]?.length||0)||getDisplayName(a).localeCompare(getDisplayName(b))); break; case 'exclusiveDeals': availKeys.sort((a,b)=>(allGroupedDeals[b]?.filter(d=>d.exclusive).length||0)-(allGroupedDeals[a]?.filter(d=>d.exclusive).length||0)||getDisplayName(a).localeCompare(getDisplayName(b))); break; case 'alpha': availKeys.sort((a,b)=>getDisplayName(a).localeCompare(getDisplayName(b))); break; default: availKeys.sort((a,b)=>getPreferredIndex(a)-getPreferredIndex(b)||getDisplayName(a).localeCompare(getDisplayName(b))); break; } document.querySelectorAll('.available-sort-options .btn-link').forEach(b=>b.classList.remove('active')); const activeBtn=document.getElementById(`sort-${currentAvailableSort.replace('Deals','').toLowerCase()}`); if(activeBtn) activeBtn.classList.add('active'); availKeys.forEach(k=>{const dn=getDisplayName(k), dc=allGroupedDeals[k]?.length||0, ec=allGroupedDeals[k]?.filter(d=>d.exclusive).length||0; const li=document.createElement('li'); li.className='available-item'; if(swapTarget.key===k) li.classList.add('disabled'); li.innerHTML=`<span>${dn}</span><span>${dc} (${ec} Excl.)</span>`; li.onclick=()=>initiateSwap(k); list.appendChild(li); count++; }); if(Object.keys(allGroupedDeals).length===0) list.innerHTML='<li class="text-center text-muted p-2">Process deals first...</li>'; else if(availKeys.length===0 && Wkeys.size===Object.keys(allGroupedDeals).length) list.innerHTML='<li class="text-center text-muted p-2">All suppliers in workspace.</li>'; else if(count===0) list.innerHTML=`<li class="text-center text-muted p-2">No suppliers found${currentCategoryFilter!=='all'?` in category "${currentCategoryFilter}"`:''}.</li>`; }
+        function renderWorkspace() { const ws=document.getElementById('workspace'); ws.innerHTML=''; Object.values(sortableInstances).forEach(i=>i.destroy()); sortableInstances={}; const keys=Object.keys(currentDisplayedSuppliers).sort((a,b)=>currentDisplayedSuppliers[a].displayName.localeCompare(currentDisplayedSuppliers[b].displayName)); if(keys.length===0){ws.innerHTML='<p class="text-center text-muted p-2" style="grid-column:1/-1;">Suggestions appear here.</p>'; return;} keys.forEach(k=>{ const d=currentDisplayedSuppliers[k], c=document.createElement('div'); c.className='selected-supplier-card fade-in'; c.dataset.supplierKey=k; if(swapTarget.key===k) c.classList.add('swap-target');
+            // *** FIX: Use sanitized key for UL ID ***
+            const sanitizedKey = sanitizeKeyForId(k);
+            c.innerHTML=`<div class="card-header-selected" onclick="setSwapTarget(this.parentElement, '${k}')" title="Click to swap '${d.displayName}'"><h3>${d.displayName}</h3><span class="text-muted" style="font-size:0.8rem;">Click header to swap</span></div><ul class="deal-list-selected" id="deal-list-${sanitizedKey}">${d.deals.length===0?'<li class="text-center text-muted" style="padding:1rem 0;">No deals</li>':d.deals.map(dl=>`<li class="deal-item ${dl.exclusive?'is-exclusive':''}" data-deal-id="${dl.id}"><span class="drag-handle" title="Reorder"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg></span><input type="checkbox" class="deal-select" id="deal-cb-${dl.id}" ${dl.isSelected?'checked':''} onchange="toggleDealSelection('${k}','${dl.id}')"><div class="deal-content"><label for="deal-cb-${dl.id}" class="deal-title">${dl.title}</label><p class="deal-description">${dl.description}</p></div><div class="deal-actions"><button class="btn-icon btn-small btn-danger" onclick="removeDealFromCard('${k}','${dl.id}')" title="Remove Deal"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg></button></div></li>`).join('')}</ul>`; ws.appendChild(c);
+            // Use sanitized key to find the list element for SortableJS
+            const listEl=c.querySelector(`#deal-list-${sanitizedKey}`);
+            if(listEl&&d.deals.length>0) sortableInstances[k]=Sortable.create(listEl,{animation:150,handle:'.drag-handle',ghostClass:'sortable-ghost',dragClass:'sortable-drag',onEnd:(evt)=>{const mid=evt.item.dataset.dealId; const dls=currentDisplayedSuppliers[k]?.deals; if(!dls)return; const oIdx=dls.findIndex(dl=>dl.id===mid); if(oIdx>-1){const [item]=dls.splice(oIdx,1);dls.splice(evt.newIndex,0,item);}}}); }); }
+
+        // --- Interaction Handlers ---
+        function setAvailableSort(type) { if (currentAvailableSort!==type) { currentAvailableSort=type; renderAvailablePool(); } }
+        function setCategoryFilter(val) { if (currentCategoryFilter!==val) { currentCategoryFilter=val; renderAvailablePool(); } }
+        function setSwapTarget(el, key) { resetSwapTarget(); swapTarget.cardElement=el; swapTarget.key=key; el.classList.add('swap-target'); const availItem=[...document.querySelectorAll('#available-list .available-item')].find(i=>i.onclick?.toString().includes(`initiateSwap('${key}')`)); if(availItem) availItem.classList.add('disabled'); }
+        function resetSwapTarget() { if(swapTarget.cardElement) swapTarget.cardElement.classList.remove('swap-target'); document.querySelectorAll('#available-list .available-item.disabled').forEach(i=>i.classList.remove('disabled')); swapTarget.cardElement=null; swapTarget.key=null; }
+        function initiateSwap(newKey) { if(!swapTarget.key){alert("Click card header first.");return;} if(newKey===swapTarget.key){resetSwapTarget();return;} if(document.querySelector(`#available-list .available-item[onclick*="initiateSwap('${newKey}')"]`)?.classList.contains('disabled')) return; console.log(`Swapping ${swapTarget.key} with ${newKey}`); if(sortableInstances[swapTarget.key]){sortableInstances[swapTarget.key].destroy(); delete sortableInstances[swapTarget.key];} delete currentDisplayedSuppliers[swapTarget.key]; currentDisplayedSuppliers[newKey]={displayName:getDisplayName(newKey), deals:allGroupedDeals[newKey].map(d=>({...d, isSelected:true}))}; resetSwapTarget(); renderReviewUI(); }
+        function toggleDealSelection(key, id) { const s=currentDisplayedSuppliers[key]; if(!s)return; const d=s.deals.find(dl=>dl.id===id); if(d) d.isSelected=!d.isSelected; }
+
+        // --- UPDATED removeDealFromCard with ID sanitization ---
+        function removeDealFromCard(supplierKey, dealId) {
+            // console.log(`Attempting remove: key='${supplierKey}', id='${dealId}'`); // Keep for debugging if needed
+
+            const supplier = currentDisplayedSuppliers[supplierKey];
+            if (!supplier) { console.error("Error: Supplier not found:", supplierKey); return; }
+
+            const dealIndex = supplier.deals.findIndex(d => d.id === dealId);
+            // console.log(`Found index: ${dealIndex}`);
+
+            if (dealIndex > -1) {
+                supplier.deals.splice(dealIndex, 1); // Remove from state
+                // console.log(`Removed from state. Remaining: ${supplier.deals.length}`);
+
+                // *** FIX: Use sanitized key in selector ***
+                const sanitizedKey = sanitizeKeyForId(supplierKey);
+                const selector = `#deal-list-${sanitizedKey} .deal-item[data-deal-id="${dealId}"]`;
+                // console.log("Using selector:", selector);
+                const dealElement = document.querySelector(selector);
+
+                if (dealElement) {
+                    // console.log("Found DOM element, removing.");
+                    dealElement.remove();
+                } else {
+                    console.error("Error: Could not find deal element in DOM:", selector);
+                    // Don't alert every time, console error is enough now we know the cause
+                }
+
+                // Cleanup SortableJS if list empty
+                if (supplier.deals.length === 0) {
+                     // console.log(`List empty, cleanup sortable for ${supplierKey}`);
+                    if (sortableInstances[supplierKey]) { // Use original key for sortable instance tracking
+                        sortableInstances[supplierKey].destroy();
+                        delete sortableInstances[supplierKey];
+                    }
+                    // Use sanitized key to find the UL element
+                    const listUl = document.getElementById(`deal-list-${sanitizedKey}`);
+                    if(listUl) {
+                        listUl.innerHTML = '<li class="text-center text-muted" style="padding: 1rem 0;">No deals remaining</li>';
+                    }
+                }
+            } else {
+                console.error(`Error: Deal ID '${dealId}' not found in state for '${supplierKey}'.`);
             }
-          }
-        }
-        const title = filtered[1];
-        const description = filtered[2];
-        const exclusive = title.toUpperCase().includes("EXCLUSIVE");
-        deals.push({ supplier: supplierLine, title, description, exclusive });
-      });
-      console.log("Parsed Deals:", deals);
-      return deals;
-    }
-    
-    /*******************
-     * 5. Group Deals by Supplier (Using Normalized Key)
-     *******************/
-    function groupDealsBySupplier(deals) {
-      const groups = {};
-      deals.forEach(deal => {
-        if (!deal.supplier || !deal.title || !deal.description) {
-          console.warn("Skipping invalid deal:", deal);
-          return;
-        }
-        const key = normalizeSupplier(deal.supplier);
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(deal);
-      });
-      console.log("Grouped Deals:", groups);
-      return groups;
-    }
-    
-    /*******************
-     * 6. Qualification for Non‑Forced Suppliers
-     *
-     * Rule:
-     *   - For suppliers with 3+ deals: must have at least 2 exclusive deals.
-     *   - For suppliers with exactly 2 deals: they qualify only if both are exclusive.
-     *   - And if any supplier qualifies with 3+ deals, then suppliers with only 2 deals are excluded.
-     *******************/
-    function qualifies(deals) {
-      if (deals.length >= 3) {
-        return deals.filter(d => d.exclusive).length >= 2;
-      }
-      if (deals.length === 2 && deals.every(d => d.exclusive)) return true;
-      return false;
-    }
-    
-    /*******************
-     * 7. Build Candidate List for Non‑Forced Suppliers
-     *******************/
-    function buildCandidateList(groups) {
-      const candidates = [];
-      for (let key in groups) {
-        const ds = groups[key];
-        if (qualifies(ds)) {
-          candidates.push({ supplier: key, deals: ds.slice(0, 3), count: ds.length, exclusiveCount: ds.filter(d => d.exclusive).length, score: ds.length * 100 + ds.filter(d => d.exclusive).length * 10 });
-        }
-      }
-      const hasThreePlus = candidates.some(c => c.count >= 3);
-      let finalCandidates = candidates;
-      if (hasThreePlus) {
-        finalCandidates = candidates.filter(c => c.count >= 3);
-      }
-      finalCandidates.sort((a, b) => b.score - a.score);
-      return finalCandidates;
-    }
-    
-    /*******************
-     * 8. Forced Inclusion of POTM Suppliers
-     *******************/
-    function getForcedCandidates(groups) {
-      const forced = [];
-      const potm1 = document.getElementById("potm1").value;
-      const potm2 = document.getElementById("potm2").value;
-      [potm1, potm2].forEach(partner => {
-        if (!partner) return;
-        const norm = normalizeSupplier(partner);
-        if (groups[norm] && groups[norm].length > 0) {
-          forced.push({
-            supplier: partner, // Display name from dropdown
-            deals: groups[norm].slice(0, 3)
-          });
-        } else {
-          console.warn("No deals found for forced partner:", partner);
-        }
-      });
-      return forced;
-    }
-    
-    /*******************
-     * 9. Combine Forced and Candidate Suppliers
-     *******************/
-    function combineCandidates(forced, candidates) {
-      const forcedNorms = forced.map(c => normalizeSupplier(c.supplier));
-      const remaining = candidates.filter(c => !forcedNorms.includes(c.supplier));
-      const finalList = forced.slice(); // Already in dropdown order.
-      const spotsLeft = 4 - finalList.length;
-      if (spotsLeft > 0) {
-        finalList.push(...remaining.slice(0, spotsLeft));
-      }
-      return finalList;
-    }
-    
-    /*******************
-     * 10. Display Waiting Mode UI (Manual Selection)
-     *******************/
-    function displaySupplierCards(finalGroups) {
-      const container = document.getElementById("supplier-cards");
-      container.innerHTML = "";
-      finalGroups.forEach(group => {
-        const card = document.createElement("div");
-        card.className = "supplier-card slide-in";
-        card.dataset.supplier = normalizeSupplier(group.supplier); // store normalized key
-      
-        const header = document.createElement("div");
-        header.className = "card-header";
-        const h2 = document.createElement("h2");
-        h2.textContent = group.supplier;
-        // When header is clicked, mark card as swap target.
-        h2.addEventListener("click", function(e) {
-          document.querySelectorAll(".supplier-card").forEach(c => c.classList.remove("swap-target"));
-          card.classList.add("swap-target");
-          swapTargetCard = card;
-        });
-        header.appendChild(h2);
-        card.appendChild(header);
-      
-        // Separate deals into exclusive and non-exclusive arrays.
-        const exclusiveDeals = group.deals.filter(d => d.exclusive);
-        const nonExclusiveDeals = group.deals.filter(d => !d.exclusive);
-      
-        // Create container for exclusive deals.
-        if (exclusiveDeals.length > 0) {
-          const exclusiveSection = document.createElement("div");
-          exclusiveSection.className = "deal-section";
-          const exclusiveList = document.createElement("ul");
-          exclusiveList.className = "deal-list exclusive";
-          exclusiveDeals.forEach(deal => {
-            const li = document.createElement("li");
-            li.className = "deal-item exclusive";
-            li.innerHTML = `<div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
-              <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>`;
-            li.addEventListener("click", function() {
-              const selected = exclusiveList.querySelectorAll(".deal-item.selected");
-              if (!li.classList.contains("selected")) {
-                if (selected.length >= 4) {
-                  alert("You can select up to 4 deals per supplier.");
-                  return;
-                }
-                li.classList.add("selected");
-              } else {
-                li.classList.remove("selected");
-              }
-            });
-            exclusiveList.appendChild(li);
-          });
-          exclusiveSection.appendChild(exclusiveList);
-          card.appendChild(exclusiveSection);
-        }
-      
-        // Create container for non-exclusive deals.
-        if (nonExclusiveDeals.length > 0) {
-          const nonExclusiveSection = document.createElement("div");
-          nonExclusiveSection.className = "deal-section";
-          const hr = document.createElement("hr");
-          nonExclusiveSection.appendChild(hr);
-          const nonExclusiveList = document.createElement("ul");
-          nonExclusiveList.className = "deal-list nonexclusive";
-          nonExclusiveDeals.forEach(deal => {
-            const li = document.createElement("li");
-            li.className = "deal-item";
-            li.innerHTML = `<div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
-              <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>`;
-            li.addEventListener("click", function() {
-              const selected = nonExclusiveList.querySelectorAll(".deal-item.selected");
-              if (!li.classList.contains("selected")) {
-                if (selected.length >= 4) {
-                  alert("You can select up to 4 deals per supplier.");
-                  return;
-                }
-                li.classList.add("selected");
-              } else {
-                li.classList.remove("selected");
-              }
-            });
-            nonExclusiveList.appendChild(li);
-          });
-          nonExclusiveSection.appendChild(nonExclusiveList);
-          card.appendChild(nonExclusiveSection);
-        }
-      
-        // Initialize SortableJS on each list.
-        const exList = card.querySelector(".deal-list.exclusive");
-        if (exList) {
-          Sortable.create(exList, {
-            animation: 150,
-            group: { name: "exclusive-" + card.dataset.supplier, pull: true, put: false }
-          });
-        }
-        const nonExList = card.querySelector(".deal-list.nonexclusive");
-        if (nonExList) {
-          Sortable.create(nonExList, {
-            animation: 150,
-            group: { name: "nonexclusive-" + card.dataset.supplier, pull: true, put: false }
-          });
-        }
-      
-        container.appendChild(card);
-      });
-      // After cards are displayed, show the statistics section.
-      displayStatistics(globalGroups);
-    }
-    
-    /*******************
-     * 11. Display Statistics Section (Sorted by Exclusive Count Descending)
-     *******************/
-    function displayStatistics(groups) {
-      const statsContainer = document.getElementById("stats-rows");
-      const statsArray = [];
-      for (let key in groups) {
-        const deals = groups[key];
-        statsArray.push({
-          key: key,
-          displayName: (key === "viking") ? "Viking" : key,
-          total: deals.length,
-          exclusive: deals.filter(d => d.exclusive).length
-        });
-      }
-      statsArray.sort((a, b) => b.exclusive - a.exclusive);
-      statsContainer.innerHTML = "";
-      statsArray.forEach(stat => {
-        const row = document.createElement("div");
-        row.className = "stats-row";
-        row.innerHTML = `<span>${stat.displayName}</span><span>${stat.total} deals (${stat.exclusive} exclusive)</span>`;
-        row.addEventListener("click", function() {
-          if (!swapTargetCard) {
-            alert("First click on a supplier card header to mark it for swapping.");
-            return;
-          }
-          const currentSupplier = swapTargetCard.dataset.supplier;
-          const newSupplier = stat.key;
-          if (newSupplier === currentSupplier) {
-            alert("Selected supplier is already displayed.");
-            return;
-          }
-          const currentExCount = globalGroups[currentSupplier].filter(d => d.exclusive).length;
-          const newExCount = groups[newSupplier].filter(d => d.exclusive).length;
-          if (newExCount <= currentExCount) {
-            alert("Swap not allowed. The new supplier must have more exclusive deals.");
-            return;
-          }
-          // Swap the card's content.
-          swapTargetCard.querySelector(".card-header h2").textContent = (newSupplier === "viking") ? "Viking" : newSupplier;
-          const newGroup = groups[newSupplier];
-          const exclusiveDeals = newGroup.filter(d => d.exclusive);
-          const nonExclusiveDeals = newGroup.filter(d => !d.exclusive);
-          let cardBody = "";
-          if (exclusiveDeals.length > 0) {
-            cardBody += `<div class="deal-section"><ul class="deal-list exclusive">`;
-            exclusiveDeals.slice(0, 3).forEach(deal => {
-              cardBody += `<li class="deal-item exclusive">
-                <div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
-                <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>
-              </li>`;
-            });
-            cardBody += `</ul></div>`;
-          }
-          if (nonExclusiveDeals.length > 0) {
-            cardBody += `<div class="deal-section"><hr><ul class="deal-list nonexclusive">`;
-            nonExclusiveDeals.slice(0, 3).forEach(deal => {
-              cardBody += `<li class="deal-item">
-                <div class="deal-title">${deal.title} <button class="copy-btn" onclick="copyText(event, 'title', this)">Copy</button></div>
-                <div class="deal-description">${deal.description} <button class="copy-btn" onclick="copyText(event, 'description', this)">Copy</button> <button class="remove-btn" onclick="removeDeal(event, this)">X</button></div>
-              </li>`;
-            });
-            cardBody += `</ul></div>`;
-          }
-          while (swapTargetCard.childNodes.length > 1) {
-            swapTargetCard.removeChild(swapTargetCard.lastChild);
-          }
-          const tempDiv = document.createElement("div");
-          tempDiv.innerHTML = cardBody;
-          while (tempDiv.firstChild) {
-            swapTargetCard.appendChild(tempDiv.firstChild);
-          }
-          const newExList = swapTargetCard.querySelector(".deal-list.exclusive");
-          if (newExList) {
-            Sortable.create(newExList, {
-              animation: 150,
-              group: { name: "exclusive-" + newSupplier, pull: true, put: false }
-            });
-          }
-          const newNonExList = swapTargetCard.querySelector(".deal-list.nonexclusive");
-          if (newNonExList) {
-            Sortable.create(newNonExList, {
-              animation: 150,
-              group: { name: "nonexclusive-" + newSupplier, pull: true, put: false }
-            });
-          }
-          swapTargetCard.dataset.supplier = newSupplier;
-          swapTargetCard.classList.remove("swap-target");
-          swapTargetCard = null;
-        });
-        statsContainer.appendChild(row);
-      });
-    }
-    
-    /*******************
-     * 12. Copy Button Handler for Individual Deal Text
-     * Shows a small inline notice.
-     *******************/
-    function copyText(event, type, btn) {
-      event.stopPropagation();
-      let textToCopy = "";
-      if (type === "title") {
-        textToCopy = btn.parentElement.innerText.replace("Copy", "").trim();
-      } else if (type === "description") {
-        textToCopy = btn.parentElement.innerText.replace("Copy", "").trim();
-      }
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        let notice = document.createElement("span");
-        notice.className = "copy-notice";
-        notice.innerText = "Copied!";
-        btn.parentElement.appendChild(notice);
-        setTimeout(() => {
-          notice.style.opacity = 1;
-          setTimeout(() => {
-            notice.style.opacity = 0;
-            setTimeout(() => { notice.remove(); }, 200);
-          }, 2000);
-        }, 10);
-      }).catch(err => {
-        console.error("Failed to copy text:", err);
-      });
-    }
-    
-    /*******************
-     * 13. Remove Deal Handler
-     *******************/
-    function removeDeal(event, btn) {
-      event.stopPropagation();
-      const li = btn.closest(".deal-item");
-      li.remove();
-    }
-    
-    /*******************
-     * 14. Commit Selection and Build Final Output
-     *
-     * If no deals are selected on a supplier card, then all deals from that card are used.
-     * The final output is plain text with each supplier’s name in square brackets, followed by each deal’s title and description.
-     *******************/
-    function commitSelection() {
-      const container = document.getElementById("supplier-cards");
-      const finalTextArr = [];
-      const cards = container.querySelectorAll(".supplier-card");
-      cards.forEach(card => {
-        const supplierName = card.querySelector(".card-header h2").textContent;
-        // If no deal is selected in this card, use all deal items.
-        let selectedItems = card.querySelectorAll(".deal-item.selected");
-        if (selectedItems.length === 0) {
-          selectedItems = card.querySelectorAll(".deal-item");
-        }
-        if (selectedItems.length > 0) {
-          finalTextArr.push("[" + supplierName + "]");
-          selectedItems.forEach(item => {
-            const title = item.querySelector(".deal-title").innerText.replace("Copy", "").trim();
-            const description = item.querySelector(".deal-description").innerText.replace("Copy", "").trim();
-            finalTextArr.push(title);
-            finalTextArr.push(description);
-          });
-          finalTextArr.push(""); // blank line between suppliers
-        }
-      });
-      const finalText = finalTextArr.join("\n");
-      document.getElementById("final-output").innerText = finalText;
-      document.getElementById("final-section").style.display = "block";
-    }
-    
-    /*******************
-     * 15. Copy Final Output to Clipboard
-     *******************/
-    function copyFinalOutput() {
-      const text = document.getElementById("final-output").innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.querySelector("#final-section .btn");
-        btn.innerText = "Copied!";
-        setTimeout(() => { btn.innerText = "Copy to Clipboard"; }, 2000);
-      }).catch(err => {
-        console.error("Failed to copy final output:", err);
-      });
-    }
-    
-    /*******************
-     * 16. Main Processing Function
-     *******************/
-    function processDeals() {
-      const rawInput = document.getElementById("deals-input").value;
-      if (!rawInput.trim()) {
-        alert("Please paste your deals.");
-        return;
-      }
-      const deals = parseDeals(rawInput);
-      if (deals.length === 0) {
-        alert("No deals were parsed. Please check your input format.");
-        return;
-      }
-      const groups = groupDealsBySupplier(deals);
-      globalGroups = groups; // Save for swap functionality
-      const forcedCandidates = getForcedCandidates(groups);
-      const candidateList = buildCandidateList(groups);
-      const finalGroups = combineCandidates(forcedCandidates, candidateList);
-      console.log("Final Candidates for Display:", finalGroups);
-      if (finalGroups.length === 0) {
-        alert("No suppliers qualify.");
-        return;
-      }
-      document.getElementById("input-section").style.display = "none";
-      document.getElementById("waiting-section").style.display = "block";
-      displaySupplierCards(finalGroups);
-    }
-  </script>
+       }
+
+        // --- Final Output & Start Over ---
+        function generateFinalOutput() { const o=[]; const keys=Object.keys(currentDisplayedSuppliers).sort((a,b)=>currentDisplayedSuppliers[a].displayName.localeCompare(currentDisplayedSuppliers[b].displayName)); let inc=false; keys.forEach(k=>{ const d=currentDisplayedSuppliers[k]; const s=d.deals.filter(dl=>dl.isSelected).slice(0,4); if(s.length>0){ inc=true; o.push(`[${d.displayName}]`); s.forEach(dl=>{o.push(dl.title);o.push(dl.description);}); o.push('');}}); if(!inc){alert("No deals selected.");return;} const t=o.join('\n').trim(); document.getElementById('final-output').textContent=t; document.getElementById('output-section').style.display='block'; document.getElementById('output-section').scrollIntoView({behavior:'smooth'}); }
+        function copyFinalOutput() { const t=document.getElementById('final-output').textContent; if(!t){alert("Nothing to copy!");return;} navigator.clipboard.writeText(t).then(()=>{ const b=document.querySelector("#output-section .btn:first-of-type"); const ot=b.textContent; b.textContent="Copied!"; setTimeout(()=>{b.textContent=ot;},2000); }).catch(e=>{console.error("Copy fail:",e);alert("Failed copy.");}); }
+        function startOver() { allParsedDeals=[]; allGroupedDeals={}; currentDisplayedSuppliers={}; Object.values(sortableInstances).forEach(i=>i.destroy()); sortableInstances={}; resetSwapTarget(); currentAvailableSort='preferred'; currentCategoryFilter='all'; document.getElementById('category-filter').value='all'; document.getElementById('deals-input').value=''; document.getElementById('potm1').selectedIndex=0; document.getElementById('potm2').selectedIndex=0; document.getElementById('input-section').style.display='block'; document.getElementById('review-section').style.display='none'; document.getElementById('output-section').style.display='none'; document.getElementById('available-list').innerHTML='<li class="text-center text-muted p-2">Process first...</li>'; document.getElementById('workspace').innerHTML='<p class="text-center text-muted p-2" style="grid-column:1/-1;">Suggestions appear here.</p>'; document.getElementById('final-output').textContent=''; document.getElementById('input-section').scrollIntoView({behavior:'smooth'}); }
+
+    </script>
+
 </body>
 </html>
