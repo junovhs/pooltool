@@ -1,233 +1,518 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- For responsiveness -->
   <title>Deal List Formatter – Supplier Enhanced</title>
-  <link rel="stylesheet" href="/style.css">
+  <style>
+    /* Basic Reset & Font */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        line-height: 1.6;
+        color: #333;
+        background-color: #f4f7f6;
+        padding: 20px;
+    }
+
+    /* Container */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Header */
+    header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+
+    header h1 {
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #7f8c8d;
+        font-size: 1.1em;
+    }
+
+    /* Main Layout (using Grid for potential 2-column) */
+    main {
+        display: grid;
+        grid-template-columns: 1fr; /* Default single column */
+        gap: 40px;
+    }
+
+    /* On wider screens, switch to two columns */
+    @media (min-width: 900px) {
+        main {
+            grid-template-columns: 1fr 1fr; /* Two equal columns */
+        }
+    }
+
+    /* Input & Output Sections */
+    .input-section,
+    .output-section {
+        padding: 20px;
+        background-color: #fff; /* Keep white or slightly off-white like #fdfdfd */
+        border-radius: 5px;
+        /* border: 1px solid #e0e0e0; */ /* Optional border */
+    }
+
+    h2 {
+        color: #3498db;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #ecf0f1;
+        padding-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .instructions {
+        font-size: 0.9em;
+        color: #555;
+        background-color: #ecf0f1;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .instructions code {
+        background-color: #dfe6e9;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-family: monospace;
+        color: #2d3436;
+    }
+
+    /* Textarea */
+    textarea {
+        width: 100%;
+        height: 300px; /* Increased height */
+        font-family: 'Courier New', Courier, monospace;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.95em;
+        margin-bottom: 20px;
+        resize: vertical; /* Allow vertical resizing */
+    }
+
+    textarea:focus {
+        outline: none;
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+
+    /* Buttons */
+    .button-group {
+        display: flex;
+        flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+        gap: 10px; /* Spacing between buttons */
+        margin-bottom: 20px; /* Spacing below buttons */
+    }
+
+    button {
+        padding: 12px 25px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        background-color: #bdc3c7; /* Default/secondary button color */
+        color: #2c3e50; /* Dark text for light buttons */
+    }
+
+    button.button-primary {
+        background-color: #3498db; /* Primary action color */
+        color: white;
+    }
+
+    button:hover {
+        opacity: 0.9;
+    }
+
+    button:active {
+        transform: scale(0.98); /* Slight press effect */
+    }
+
+    button:disabled {
+        background-color: #ecf0f1; /* Disabled color */
+        color: #bdc3c7;
+        cursor: not-allowed;
+    }
+
+    /* Output Area */
+    .output-display {
+        white-space: pre-wrap; /* Preserves whitespace and wraps lines */
+        word-wrap: break-word; /* Breaks long words if necessary */
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        padding: 15px;
+        font-family: 'Courier New', Courier, monospace;
+        min-height: 100px; /* Ensure it has some height even when empty */
+        border-radius: 4px;
+        font-size: 0.95em;
+        overflow-x: auto; /* Add horizontal scroll if needed */
+        line-height: 1.5; /* Slightly adjust line height for readability */
+    }
+
+    .output-display b i, .output-display i b { /* Target the bold italic vendor names */
+        color: #2980b9; /* Make vendor names stand out a bit */
+    }
+
+
+    /* Footer */
+    footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+        font-size: 0.9em;
+        color: #7f8c8d;
+    }
+
+    /* Screen Reader Only class */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+  </style>
 </head>
 <body>
-  <h1>Deal List Formatter – Supplier Enhanced</h1>
-  <p>
-    Paste your messy deal list below. This tool removes category lines, standardizes vendor names based on our suppliers’ database, and reformats vendor–deal lines so that each vendor appears on its own line (with bold–italic styling followed by a colon) and each deal appears beneath it. If a line is left without a letter (for example, additional deal details), it is appended to the previous deal – with the expiry “Ends …” text kept at the very end.
-  </p>
-  <textarea id="input" placeholder="Paste your list here…"></textarea>
-  <br>
-  <button onclick="processInput()">Format Deals</button>
-  <button id="copyButton" onclick="copyOutput()">Copy to Clipboard</button>
-  <h2>Formatted Output:</h2>
-  <div id="output" class="output"></div>
-  <script src="/script.js"></script>
+
+  <div class="container">
+    <header>
+      <h1>Deal List Formatter</h1>
+      <p class="subtitle">Supplier Enhanced Edition</p>
+    </header>
+
+    <main>
+      <section class="input-section">
+        <h2>Input List</h2>
+        <p class="instructions">
+          Paste your messy deal list below. Use codes like:
+          <code>c</code> (Category - ignored),
+          <code>v</code> (Vendor),
+          <code>vd</code> (Vendor & Deal),
+          <code>ved</code> (Vendor & Exclusive Deal),
+          <code>d</code> (Deal),
+          <code>ed</code> (Exclusive Deal).
+          Lines without codes are treated as continuations of the previous deal.
+        </p>
+        <label for="input" class="sr-only">Paste your list here:</label> <!-- Screen reader label -->
+        <textarea id="input" placeholder="Example:
+v Norwegian
+d 7-Day Alaska Cruise from $599
+Ends Dec 31
+
+c River Cruises
+
+vd Viking River – Rhine Getaway from $1999
+Explore castles & cathedrals.
+Ends Mar 31
+
+ved Great Safaris – Exclusive: Save up to $1000 pp.
+Ends Sep 30"></textarea>
+        <div class="button-group">
+          <button onclick="processInput()" class="button-primary">Format Deals</button>
+          <button id="clearButton" onclick="clearInput()">Clear Input</button>
+          <button id="copyButton" onclick="copyOutput()">Copy Output</button>
+        </div>
+      </section>
+
+      <section class="output-section">
+        <h2>Formatted Output</h2>
+        <div id="output" class="output-display" aria-live="polite">
+          <!-- Formatted deals will appear here -->
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>© <span id="year"></span> Your Company/Name</p> <!-- Replace Your Company/Name -->
+    </footer>
+  </div>
+
+  <script>
+    "use strict";
+
+    // Our known suppliers database – this is used to match and normalize vendor names
+    const knownSuppliers = [
+      "Norwegian", "Royal Caribbean", "Celebrity", "Disney Cruise Line", "Virgin Voyages", "Holland America Line",
+      "Princess", "Carnival", "MSC Cruises", "Costa Cruises",
+      "Viking Ocean", "Seabourn", "Regent Seven Seas Cruises", "Oceania Cruises", "Silversea", "Explora Journeys",
+      "Azamara", "Scenic Eclipse Ocean Voyages", "Atlas Ocean Voyages", "Crystal Cruises", "Emerald Cruises",
+      "Cunard", "Windstar", "Paul Gauguin Cruises", "Ponant", "American Cruise Line", "Tauck Cruises", "Star Clippers",
+      "Four Seasons Yachts", "Ritz-Carlton Yacht Collection",
+      "Viking River", "Avalon Waterways", "Ama Waterways", "CroisiEurope", "Riverside Cruises",
+      "Scenic River", "Tauck Tours", "Riviera River Cruises", "Uniworld",
+      // Adventure cruising
+      "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures", "Great Safaris", // Added Great Safaris
+      // Disney and Resorts/Hawaii
+      "DisneyWorld", "Disneyland", "Aulani, A Disney Resort & Spa", "Adventures by Disney",
+      "Sandals", "Beaches", "Breathless", "Club Med", "El Dorado Spa Resorts & Hotels", "Excellence Resorts",
+      "Hard Rock Hotels", "Iberostar Hotels & Resorts", "Dreams", "Karisma Hotels & Resorts", "Villas of Distinction",
+      "Palace Resorts", "Atlantis Paradise Island Bahamas", "Melia", "RIU Hotels & Resorts", "Outrigger Hotels & Resorts",
+      "Zoëtry Wellness & Spa Resorts", "Secrets", "American Airline Vacations", "Delta Vacations", "Southwest Vacations",
+      "United Vacations"
+    ];
+
+    // Given a vendor name, try to match it to a known supplier (ignoring case and extra punctuation)
+    function normalizeSupplier(name) {
+      let trimmed = name.trim().replace(/:$/, "").trim();
+      let lowerTrimmed = trimmed.toLowerCase();
+      for (let supplier of knownSuppliers) {
+        let lowerSupplier = supplier.toLowerCase();
+        // Exact match first
+        if (lowerTrimmed === lowerSupplier) {
+          return supplier;
+        }
+        // Check if the input *starts with* a known supplier name (more robust for variations)
+        if (lowerTrimmed.startsWith(lowerSupplier)) {
+             return supplier;
+        }
+        // Original check: If the supplier name occurs *anywhere* in the string (can be too broad, keep as fallback)
+        // if (lowerTrimmed.includes(lowerSupplier)) { // Changed from indexOf !== -1
+        //   return supplier;
+        // }
+      }
+      // If no match, return the cleaned-up original name
+      return trimmed;
+    }
+
+
+    // Helper to escape HTML characters for deal text.
+    function escapeHTML(s) {
+      // Basic escape, handle null/undefined safely
+      if (s == null) return "";
+      return s.toString()
+              .replace(/&/g, "&")
+              .replace(/</g, "<")
+              .replace(/>/g, ">")
+              .replace(/"/g, """)
+              .replace(/'/g, "'");
+    }
+
+    // Regular expression to split on the first dash (or en-dash) with optional spaces.
+    // It now captures the vendor part, the dash/separator, and the deal part.
+    const dashRegex = /^(.*?)(\s*[-–]\s*)(.*)$/;
+    // Regex to find "Ends ..." or similar expiry patterns at the end of a string (case-insensitive)
+    const expiryRegex = /(\s*(Ends|Expiring|Expires|Valid Until|Book by)\s+.*)$/i;
+
+
+    function processInput() {
+      const input = document.getElementById("input").value;
+      const outputEl = document.getElementById("output");
+      const copyButton = document.getElementById("copyButton");
+      const lines = input.split("\n");
+      const outputLines = [];
+      let currentVendor = ""; // Keeps track of the last explicit vendor line ("v" lines)
+
+      // We'll iterate through each line.
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim(); // Trim whitespace from start/end
+
+        // If the line is entirely blank, skip it.
+        if (line === "") continue;
+
+        // Try to match a letter code at the beginning, followed by whitespace.
+        let match = line.match(/^(\w+)\s+(.*)$/);
+
+        // If the line does NOT match our expected "code + content" format,
+        // treat it as a continuation line for the previous deal.
+        if (!match) {
+          // Check if there *is* a previous line and if it's a deal line ('d' or 'ed')
+          if (outputLines.length > 0) {
+            let lastIndex = outputLines.length - 1;
+            let prevLine = outputLines[lastIndex];
+            // This regex needs to match the *stored* format (code\tcontent)
+            let prevLineMatch = prevLine.match(/^(d|ed)\t(.*)/); // Check if last line is a deal
+
+            if (prevLineMatch) {
+                let dealCode = prevLineMatch[1]; // 'd' or 'ed'
+                let dealText = prevLineMatch[2]; // Current text of the deal (HTML escaped)
+                let continuation = line; // The current non-coded line is the continuation
+
+                // We need to operate on the plain text version to find expiry correctly.
+                // Create a temporary div to decode HTML entities.
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = dealText;
+                let plainDealText = tempDiv.textContent || tempDiv.innerText || "";
+
+                // Check for expiry text *within the plain deal text*
+                let expiryMatch = plainDealText.match(expiryRegex);
+                let updatedDealText;
+
+                if (expiryMatch) {
+                    // Insert the continuation text *before* the expiry portion.
+                    let baseText = plainDealText.substring(0, expiryMatch.index).trim();
+                    let expiryText = expiryMatch[0]; // Includes leading space if present
+                    updatedDealText = baseText + " " + continuation + expiryText;
+                } else {
+                    // If no expiry found in the existing deal, simply append.
+                    updatedDealText = plainDealText + " " + continuation;
+                }
+                // Update the last deal line, re-escaping the combined text
+                outputLines[lastIndex] = dealCode + "\t" + escapeHTML(updatedDealText);
+            } else {
+                // If the previous line wasn't a deal, maybe log a warning or just ignore this continuation?
+                // For now, let's ignore it if it doesn't follow a deal.
+                console.warn("Ignoring continuation line as it doesn't follow a deal:", line);
+            }
+          }
+          continue; // Move to the next line
+        }
+
+        // We have a code and content.
+        let code = match[1].toLowerCase(); // Use lowercase code for easier comparison
+        let content = match[2].trim(); // Content is already trimmed above
+
+        // Category lines ("c") are ignored and reset vendor context.
+        if (code === "c") {
+          currentVendor = "";
+          continue;
+        }
+
+        // Process vendor line ("v")
+        if (code === "v") {
+          let vendorName = normalizeSupplier(content);
+          currentVendor = vendorName; // Update the current vendor context
+          outputLines.push("v\t" + "<b><i>" + escapeHTML(vendorName) + ":</i></b>");
+          continue;
+        }
+
+        // --- Handle 'vd' and 'ved' ---
+        if (code === "vd" || code === "ved") {
+          let raw = content;
+          let newVendor = "";
+          let dealText = "";
+          let dealCode = (code === "ved") ? "ed" : "d"; // Determine output deal code
+
+          // Attempt to split using the dash regex
+          let parts = raw.match(dashRegex);
+
+          if (parts) {
+            // We found a separator (dash/en-dash)
+            newVendor = normalizeSupplier(parts[1].trim()); // Part before the dash is vendor
+            dealText = parts[3].trim(); // Part after the dash is the deal text
+          } else {
+            // No dash found. Assume the whole line is the vendor name.
+            // This might happen if the deal text is missing or uses a different separator.
+            // We'll normalize the whole content as the vendor.
+            newVendor = normalizeSupplier(raw.trim());
+            dealText = ""; // No specific deal text extracted
+            // Optionally, you could add a warning here if expected format differs.
+            console.warn(`Line starting with '${match[1]}' did not contain a dash separator:`, raw);
+          }
+
+          // Output the Vendor line
+          currentVendor = newVendor; // Update the current vendor context
+          outputLines.push("v\t" + "<b><i>" + escapeHTML(newVendor) + ":</i></b>");
+
+          // Output the Deal line (d or ed)
+          outputLines.push(dealCode + "\t" + escapeHTML(dealText));
+
+          continue; // Move to next line
+        }
+        // --- End 'vd'/'ved' Handling ---
+
+        // For plain deal lines ("d" or "ed"), output them (after escaping HTML)
+        // Make sure these lines don't reset the currentVendor context
+        if (code === "d" || code === "ed") {
+          // We need a vendor context for a deal to make sense.
+          if (!currentVendor) {
+              console.warn(`Deal line found without preceding vendor context:`, line);
+              // Output it anyway, maybe with a placeholder vendor
+               outputLines.push("v\t" + "<b><i>Unknown Vendor:</i></b>"); // Add a placeholder
+               currentVendor = "Unknown Vendor"; // Set context for potential continuations
+               outputLines.push(code + "\t" + escapeHTML(content));
+
+          } else {
+             // Normal case: Vendor context exists
+             outputLines.push(code + "\t" + escapeHTML(content));
+          }
+          continue;
+        }
+
+        // If the code isn't recognized ('c', 'v', 'vd', 'ved', 'd', 'ed')
+        // Treat it as potentially malformed input. Maybe log it and skip?
+        console.warn(`Unrecognized code '${match[1]}' found:`, line);
+        // Optionally output it as-is for debugging:
+        // outputLines.push(match[1] + "\t" + escapeHTML(content));
+      }
+
+      // Build final output, replacing internal newline markers with <br> for HTML display.
+      const finalOutput = outputLines.join("\n"); // Use newline internally first
+      outputEl.innerHTML = finalOutput.replace(/\n/g, "<br>"); // Then replace for display
+
+      // Enable copy button only if there is output
+      copyButton.disabled = outputLines.length === 0;
+    }
+
+    function copyOutput() {
+      const outputEl = document.getElementById("output");
+      // Get the text as rendered in the browser, which should handle <br> correctly
+      const text = outputEl.innerText;
+      const copyButton = document.getElementById("copyButton");
+
+      if (!text || text.trim() === "") {
+          alert("Nothing to copy!");
+          return;
+      }
+
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          // Provide visual feedback
+          const originalText = copyButton.textContent;
+          copyButton.textContent = "Copied!";
+          copyButton.disabled = true; // Briefly disable to prevent spamming
+          setTimeout(() => {
+            copyButton.textContent = originalText;
+            // Re-enable only if there's still content
+            copyButton.disabled = (outputEl.innerText.trim() === "");
+          }, 2000); // Revert after 2 seconds
+        })
+        .catch(err => {
+          alert("Failed to copy output. Your browser might not support this feature or permissions may be denied.");
+          console.error("Error copying output: ", err);
+        });
+    }
+
+    // Function to clear input and output
+    function clearInput() {
+        document.getElementById("input").value = "";
+        document.getElementById("output").innerHTML = "";
+        document.getElementById("copyButton").disabled = true;
+        document.getElementById("input").focus(); // Focus back on input area
+    }
+
+    // Initialize: Disable copy button initially and set dynamic year
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('copyButton').disabled = true;
+        // Set dynamic year in footer
+        document.getElementById("year").textContent = new Date().getFullYear();
+    });
+
+  </script>
+
 </body>
 </html>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    line-height: 1.5;
-  }
-  textarea {
-    width: 100%;
-    height: 200px;
-    font-family: monospace;
-    padding: 10px;
-    box-sizing: border-box;
-  }
-  button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    margin-right: 10px;
-  }
-  .output {
-    white-space: pre;
-    background: #f9f9f9;
-    border: 1px solid #ccc;
-    padding: 10px;
-    font-family: monospace;
-  }
-</style>
-<script>
-"use strict";
-
-// Our known suppliers database – this is used to match and normalize vendor names
-const knownSuppliers = [
-  "Norwegian", "Royal Caribbean", "Celebrity", "Disney Cruise Line", "Virgin Voyages", "Holland America Line",
-  "Princess", "Carnival", "MSC Cruises", "Costa Cruises",
-  "Viking Ocean", "Seabourn", "Regent Seven Seas Cruises", "Oceania Cruises", "Silversea", "Explora Journeys",
-  "Azamara", "Scenic Eclipse Ocean Voyages", "Atlas Ocean Voyages", "Crystal Cruises", "Emerald Cruises",
-  "Cunard", "Windstar", "Paul Gauguin Cruises", "Ponant", "American Cruise Line", "Tauck Cruises", "Star Clippers",
-  "Four Seasons Yachts", "Ritz-Carlton Yacht Collection", 
-  "Viking River", "Avalon Waterways", "Ama Waterways", "CroisiEurope", "Riverside Cruises",
-  "Scenic River", "Tauck Tours", "Riviera River Cruises", "Uniworld",
-  // Adventure cruising
-  "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures",
-  // Disney and Resorts/Hawaii
-  "DisneyWorld", "Disneyland", "Aulani, A Disney Resort & Spa", "Adventures by Disney", 
-  "Sandals", "Beaches", "Breathless", "Club Med", "El Dorado Spa Resorts & Hotels", "Excellence Resorts", 
-  "Hard Rock Hotels", "Iberostar Hotels & Resorts", "Dreams", "Karisma Hotels & Resorts", "Villas of Distinction",
-  "Palace Resorts", "Atlantis Paradise Island Bahamas", "Melia", "RIU Hotels & Resorts", "Outrigger Hotels & Resorts",
-  "Zoëtry Wellness & Spa Resorts", "Secrets", "American Airline Vacations", "Delta Vacations", "Southwest Vacations",
-  "United Vacations"
-];
-
-// Given a vendor name, try to match it to a known supplier (ignoring case and extra punctuation)
-function normalizeSupplier(name) {
-  let trimmed = name.trim().replace(/:$/, "").trim();
-  let lowerTrimmed = trimmed.toLowerCase();
-  for (let supplier of knownSuppliers) {
-    if (lowerTrimmed === supplier.toLowerCase()) {
-      return supplier;
-    }
-    // If the supplier name occurs in the string, return the standardized name.
-    if (lowerTrimmed.indexOf(supplier.toLowerCase()) !== -1) {
-      return supplier;
-    }
-  }
-  return trimmed;
-}
-
-// Helper to escape HTML characters for deal text.
-function escapeHTML(s) {
-  return s.replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
-}
-
-// Regular expression to split on the first dash (or en-dash) with optional spaces.
-const dashRegex = /^(.*?)[\s]*[-–][\s]*(.*)$/;
-
-function processInput() {
-  const input = document.getElementById("input").value;
-  const lines = input.split("\n");
-  const outputLines = [];
-  let currentVendor = ""; // Keeps track of the last explicit vendor line ("v" lines)
-
-  // We'll iterate through each line.
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i];
-
-    // If the line is entirely blank, skip it.
-    if (line.trim() === "") continue;
-    
-    // Try to match a letter code at the beginning.
-    let match = line.match(/^(\w+)\s+(.*)$/);
-    
-    // If the line does NOT match our expected "code + content" format,
-    // treat it as a continuation line for the previous deal.
-    if (!match) {
-      // If we have a previous deal line (starting with "d\t" or "ed\t"), append to it.
-      if (outputLines.length > 0 && /^(d|ed)\t/.test(outputLines[outputLines.length - 1])) {
-        // Extract the current deal text (removing the code and tab)
-        let prevLine = outputLines[outputLines.length - 1];
-        let dealText = prevLine.substring(prevLine.indexOf("\t") + 1).trim();
-        let continuation = line.trim();
-
-        // Try to split the deal text into the main part and the expiry portion ("Ends ...")
-        // This regex splits on the first occurrence of "Ends" (case-insensitive)
-        let expiryMatch = dealText.match(/^(.*?)(\s*Ends\s.*)$/i);
-        if (expiryMatch) {
-          // Insert the continuation text between the base text and the expiry portion.
-          dealText = expiryMatch[1].trim() + " " + continuation + " " + expiryMatch[2].trim();
-        } else {
-          // If no expiry found, simply append.
-          dealText = dealText + " " + continuation;
-        }
-        // Update the last deal line.
-        outputLines[outputLines.length - 1] = prevLine.substring(0, prevLine.indexOf("\t") + 1) + escapeHTML(dealText);
-      }
-      continue;
-    }
-    
-    // Otherwise, we do have a code letter.
-    let code = match[1];
-    let content = match[2].trim();
-
-    // Category lines ("c") are ignored and reset vendor context.
-    if (code.toLowerCase() === "c") {
-      currentVendor = "";
-      continue;
-    }
-
-    // Process vendor line ("v")
-    if (code === "v") {
-      let vendorName = normalizeSupplier(content);
-      currentVendor = vendorName;
-      outputLines.push("v\t" + "<b><i>" + vendorName + ":</i></b>");
-      continue;
-    }
-
-    // Process vendor–deal lines ("vd" or "ved")
-    if (code === "vd" || code === "ved") {
-      let raw = content;
-      let newVendor = "";
-      let dealText = "";
-      
-      // Special handling when the current vendor is "Disney" (case‑insensitive)
-      if (currentVendor && currentVendor.toLowerCase() === "disney") {
-        let parts = raw.match(dashRegex);
-        if (parts) {
-          newVendor = normalizeSupplier(currentVendor + " " + parts[1].trim());
-          dealText = parts[2].trim();
-        } else {
-          newVendor = normalizeSupplier(currentVendor + " " + raw.trim());
-          dealText = "";
-        }
-        outputLines.push("v\t" + "<b><i>" + newVendor + ":</i></b>");
-        outputLines.push("d\t" + escapeHTML(dealText));
-      } else {
-        // If the raw text starts with "Tauck" (special case, case‑insensitive)
-        if (/^tauck\b/i.test(raw)) {
-          let idx = raw.search(/[\s]*[-–][\s]*/);
-          if (idx >= 0) {
-            let delimMatch = raw.match(/[\s]*[-–][\s]*/);
-            let delimLength = delimMatch ? delimMatch[0].length : 0;
-            newVendor = normalizeSupplier(raw.substring(0, idx).trim());
-            dealText = raw.substring(idx + delimLength).trim();
-          } else {
-            newVendor = normalizeSupplier(raw.trim());
-            dealText = "";
-          }
-        } else {
-          // Default: split on the first dash.
-          let parts = raw.match(dashRegex);
-          if (parts) {
-            newVendor = normalizeSupplier(parts[1].trim());
-            dealText = parts[2].trim();
-          } else {
-            newVendor = normalizeSupplier(raw.trim());
-            dealText = "";
-          }
-        }
-        outputLines.push("v\t" + "<b><i>" + newVendor + ":</i></b>");
-        outputLines.push("d\t" + escapeHTML(dealText));
-      }
-      continue;
-    }
-
-    // For plain deal lines ("d" or "ed"), output them (after escaping HTML)
-    if (code === "d" || code === "ed") {
-      outputLines.push(code + "\t" + escapeHTML(content));
-      continue;
-    }
-
-    // Any other lines – fall back to output the line as-is.
-    outputLines.push(code + "\t" + escapeHTML(content));
-  }
-  
-  // Build final output, replacing newline characters with <br> for HTML display.
-  const finalOutput = outputLines.join("\n");
-  document.getElementById("output").innerHTML = finalOutput.replace(/\n/g, "<br>");
-}
-
-function copyOutput() {
-  const outputEl = document.getElementById("output");
-  const text = outputEl.innerText; // Copy as plain text
-  navigator.clipboard.writeText(text)
-    .then(() => {
-      alert("Formatted output copied to clipboard!");
-    })
-    .catch(err => {
-      alert("Failed to copy output. Please try again.");
-      console.error("Error copying output: ", err);
-    });
-}
-</script>
