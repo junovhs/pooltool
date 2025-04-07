@@ -2,199 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- For responsiveness -->
-  <title>Deal List Formatter – Supplier Enhanced</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deal List Formatter - Final Check</title>
   <style>
     /* Basic Reset & Font */
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        line-height: 1.6;
-        color: #333;
-        background-color: #f4f7f6;
-        padding: 20px;
-    }
-
-    /* Container */
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Header */
-    header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 20px;
-    }
-
-    header h1 {
-        color: #2c3e50;
-        margin-bottom: 5px;
-    }
-
-    .subtitle {
-        color: #7f8c8d;
-        font-size: 1.1em;
-    }
-
-    /* Main Layout (using Grid for potential 2-column) */
-    main {
-        display: grid;
-        grid-template-columns: 1fr; /* Default single column */
-        gap: 40px;
-    }
-
-    /* On wider screens, switch to two columns */
-    @media (min-width: 900px) {
-        main {
-            grid-template-columns: 1fr 1fr; /* Two equal columns */
-        }
-    }
-
-    /* Input & Output Sections */
-    .input-section,
-    .output-section {
-        padding: 20px;
-        background-color: #fff; /* Keep white or slightly off-white like #fdfdfd */
-        border-radius: 5px;
-        /* border: 1px solid #e0e0e0; */ /* Optional border */
-    }
-
-    h2 {
-        color: #3498db;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #ecf0f1;
-        padding-bottom: 5px;
-        font-weight: 600;
-    }
-
-    .instructions {
-        font-size: 0.9em;
-        color: #555;
-        background-color: #ecf0f1;
-        padding: 10px;
-        border-radius: 4px;
-        margin-bottom: 15px;
-    }
-
-    .instructions code {
-        background-color: #dfe6e9;
-        padding: 2px 4px;
-        border-radius: 3px;
-        font-family: monospace;
-        color: #2d3436;
-    }
-
-    /* Textarea */
-    textarea {
-        width: 100%;
-        height: 300px; /* Increased height */
-        font-family: 'Courier New', Courier, monospace;
-        padding: 15px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 0.95em;
-        margin-bottom: 20px;
-        resize: vertical; /* Allow vertical resizing */
-    }
-
-    textarea:focus {
-        outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-    }
-
-    /* Buttons */
-    .button-group {
-        display: flex;
-        flex-wrap: wrap; /* Allow buttons to wrap on small screens */
-        gap: 10px; /* Spacing between buttons */
-        margin-bottom: 20px; /* Spacing below buttons */
-    }
-
-    button {
-        padding: 12px 25px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.2s ease, transform 0.1s ease;
-        background-color: #bdc3c7; /* Default/secondary button color */
-        color: #2c3e50; /* Dark text for light buttons */
-    }
-
-    button.button-primary {
-        background-color: #3498db; /* Primary action color */
-        color: white;
-    }
-
-    button:hover {
-        opacity: 0.9;
-    }
-
-    button:active {
-        transform: scale(0.98); /* Slight press effect */
-    }
-
-    button:disabled {
-        background-color: #ecf0f1; /* Disabled color */
-        color: #bdc3c7;
-        cursor: not-allowed;
-    }
-
-    /* Output Area */
-    .output-display {
-        white-space: pre-wrap; /* Preserves whitespace and wraps lines */
-        word-wrap: break-word; /* Breaks long words if necessary */
-        background: #f9f9f9;
-        border: 1px solid #e0e0e0;
-        padding: 15px;
-        font-family: 'Courier New', Courier, monospace;
-        min-height: 100px; /* Ensure it has some height even when empty */
-        border-radius: 4px;
-        font-size: 0.95em;
-        overflow-x: auto; /* Add horizontal scroll if needed */
-        line-height: 1.5; /* Slightly adjust line height for readability */
-    }
-
-    .output-display b i, .output-display i b { /* Target the bold italic vendor names */
-        color: #2980b9; /* Make vendor names stand out a bit */
-    }
-
-
-    /* Footer */
-    footer {
-        text-align: center;
-        margin-top: 40px;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
-        font-size: 0.9em;
-        color: #7f8c8d;
-    }
-
-    /* Screen Reader Only class */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f7f6; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+    header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    header h1 { color: #2c3e50; margin-bottom: 5px; }
+    .subtitle { color: #7f8c8d; font-size: 1.1em; }
+    main { display: grid; grid-template-columns: 1fr; gap: 40px; }
+    @media (min-width: 900px) { main { grid-template-columns: 1fr 1fr; } }
+    .input-section, .output-section { padding: 20px; background-color: #fff; border-radius: 5px; }
+    h2 { color: #3498db; margin-bottom: 15px; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px; font-weight: 600; }
+    .instructions { font-size: 0.9em; color: #555; background-color: #ecf0f1; padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+    .instructions code { background-color: #dfe6e9; padding: 2px 4px; border-radius: 3px; font-family: monospace; color: #2d3436; }
+    textarea { width: 100%; height: 300px; font-family: 'Courier New', Courier, monospace; padding: 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95em; margin-bottom: 20px; resize: vertical; }
+    textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+    .button-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    button { padding: 12px 25px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; background-color: #bdc3c7; color: #2c3e50; }
+    button.button-primary { background-color: #3498db; color: white; }
+    button:hover { opacity: 0.9; }
+    button:active { transform: scale(0.98); }
+    button:disabled { background-color: #ecf0f1; color: #bdc3c7; cursor: not-allowed; }
+    .output-display { white-space: pre-wrap; word-wrap: break-word; background: #f9f9f9; border: 1px solid #e0e0e0; padding: 15px; font-family: 'Courier New', Courier, monospace; min-height: 100px; border-radius: 4px; font-size: 0.95em; overflow-x: auto; line-height: 1.5; }
+    .output-display b i, .output-display i b { color: #2980b9; }
+    footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9em; color: #7f8c8d; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
   </style>
 </head>
 <body>
@@ -218,7 +53,7 @@
           <code>ed</code> (Exclusive Deal).
           Lines without codes are treated as continuations of the previous deal.
         </p>
-        <label for="input" class="sr-only">Paste your list here:</label> <!-- Screen reader label -->
+        <label for="input" class="sr-only">Paste your list here:</label>
         <textarea id="input" placeholder="Example:
 v Norwegian
 d 7-Day Alaska Cruise from $599
@@ -248,14 +83,14 @@ Ends Sep 30"></textarea>
     </main>
 
     <footer>
-      <p>© <span id="year"></span> Your Company/Name</p> <!-- Replace Your Company/Name -->
+      <p>© <span id="year"></span> Your Company/Name</p>
     </footer>
   </div>
 
   <script>
-    "use strict";
+    // Ensure the script tag is correctly opened
 
-    // Our known suppliers database – this is used to match and normalize vendor names
+    // --- Constants ---
     const knownSuppliers = [
       "Norwegian", "Royal Caribbean", "Celebrity", "Disney Cruise Line", "Virgin Voyages", "Holland America Line",
       "Princess", "Carnival", "MSC Cruises", "Costa Cruises",
@@ -265,253 +100,214 @@ Ends Sep 30"></textarea>
       "Four Seasons Yachts", "Ritz-Carlton Yacht Collection",
       "Viking River", "Avalon Waterways", "Ama Waterways", "CroisiEurope", "Riverside Cruises",
       "Scenic River", "Tauck Tours", "Riviera River Cruises", "Uniworld",
-      // Adventure cruising
-      "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures", "Great Safaris", // Added Great Safaris
-      // Disney and Resorts/Hawaii
+      "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures", "Great Safaris",
       "DisneyWorld", "Disneyland", "Aulani, A Disney Resort & Spa", "Adventures by Disney",
       "Sandals", "Beaches", "Breathless", "Club Med", "El Dorado Spa Resorts & Hotels", "Excellence Resorts",
       "Hard Rock Hotels", "Iberostar Hotels & Resorts", "Dreams", "Karisma Hotels & Resorts", "Villas of Distinction",
       "Palace Resorts", "Atlantis Paradise Island Bahamas", "Melia", "RIU Hotels & Resorts", "Outrigger Hotels & Resorts",
       "Zoëtry Wellness & Spa Resorts", "Secrets", "American Airline Vacations", "Delta Vacations", "Southwest Vacations",
-      "United Vacations"
-    ];
+      "United Vacations" // Ensure no trailing comma issues if any older JS engine is used
+    ]; // Semicolon here just in case, although optional
+    const dashRegex = /^(.*?)(\s*[-–]\s*)(.*)$/;
+    const expiryRegex = /(\s*(Ends|Expiring|Expires|Valid Until|Book by)\s+.*)$/i;
+    const codeMatchRegex = /^(\w+)\s+(.*)$/;
 
-    // Given a vendor name, try to match it to a known supplier (ignoring case and extra punctuation)
+    // --- Helper Functions ---
+    // Line ~134 might be around here in the script block itself
     function normalizeSupplier(name) {
       let trimmed = name.trim().replace(/:$/, "").trim();
       let lowerTrimmed = trimmed.toLowerCase();
       for (let supplier of knownSuppliers) {
         let lowerSupplier = supplier.toLowerCase();
-        // Exact match first
-        if (lowerTrimmed === lowerSupplier) {
-          return supplier;
-        }
-        // Check if the input *starts with* a known supplier name (more robust for variations)
-        if (lowerTrimmed.startsWith(lowerSupplier)) {
-             return supplier;
-        }
-        // Original check: If the supplier name occurs *anywhere* in the string (can be too broad, keep as fallback)
-        // if (lowerTrimmed.includes(lowerSupplier)) { // Changed from indexOf !== -1
-        //   return supplier;
-        // }
+        if (lowerTrimmed === lowerSupplier) return supplier;
+        if (lowerTrimmed.startsWith(lowerSupplier)) return supplier;
       }
-      // If no match, return the cleaned-up original name
       return trimmed;
-    }
+    } // Ensure closing brace is present
 
-
-    // Helper to escape HTML characters for deal text.
     function escapeHTML(s) {
-      // Basic escape, handle null/undefined safely
       if (s == null) return "";
-      return s.toString()
-              .replace(/&/g, "&")
-              .replace(/</g, "<")
-              .replace(/>/g, ">")
-              .replace(/"/g, """)
-              .replace(/'/g, "'");
-    }
+      // Using textContent assignment for safer escaping
+      try {
+        const div = document.createElement('div');
+        div.textContent = s.toString(); // Use textContent to let browser handle escaping
+        return div.innerHTML;
+      } catch (e) {
+        console.error("Error during escapeHTML:", e, "Input:", s);
+        return ""; // Fallback
+      }
+    } // Ensure closing brace is present
 
-    // Regular expression to split on the first dash (or en-dash) with optional spaces.
-    // It now captures the vendor part, the dash/separator, and the deal part.
-    const dashRegex = /^(.*?)(\s*[-–]\s*)(.*)$/;
-    // Regex to find "Ends ..." or similar expiry patterns at the end of a string (case-insensitive)
-    const expiryRegex = /(\s*(Ends|Expiring|Expires|Valid Until|Book by)\s+.*)$/i;
+    function decodeHTML(html) {
+        try {
+            const txt = document.createElement("textarea");
+            txt.innerHTML = html;
+            return txt.value;
+        } catch (e) {
+            console.error("Error decoding HTML:", e, "Input:", html);
+            return html; // Fallback
+        }
+    } // Ensure closing brace is present
 
 
+    // --- Core Processing Logic ---
     function processInput() {
-      const input = document.getElementById("input").value;
-      const outputEl = document.getElementById("output");
-      const copyButton = document.getElementById("copyButton");
-      const lines = input.split("\n");
-      const outputLines = [];
-      let currentVendor = ""; // Keeps track of the last explicit vendor line ("v" lines)
+      console.log("Processing started..."); // Basic log
+      try {
+          const input = document.getElementById("input").value;
+          const outputEl = document.getElementById("output");
+          const copyButton = document.getElementById("copyButton");
+          const lines = input.split("\n");
+          const outputLines = [];
+          let currentVendor = "";
 
-      // We'll iterate through each line.
-      for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trim(); // Trim whitespace from start/end
+          for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (line === "") continue;
 
-        // If the line is entirely blank, skip it.
-        if (line === "") continue;
+            let match = line.match(codeMatchRegex);
 
-        // Try to match a letter code at the beginning, followed by whitespace.
-        let match = line.match(/^(\w+)\s+(.*)$/);
+            if (!match) { // Continuation Line
+              if (outputLines.length > 0) {
+                let lastIndex = outputLines.length - 1;
+                let prevLine = outputLines[lastIndex];
+                let prevLineMatch = prevLine.match(/^(d|ed)\t(.*)/);
 
-        // If the line does NOT match our expected "code + content" format,
-        // treat it as a continuation line for the previous deal.
-        if (!match) {
-          // Check if there *is* a previous line and if it's a deal line ('d' or 'ed')
-          if (outputLines.length > 0) {
-            let lastIndex = outputLines.length - 1;
-            let prevLine = outputLines[lastIndex];
-            // This regex needs to match the *stored* format (code\tcontent)
-            let prevLineMatch = prevLine.match(/^(d|ed)\t(.*)/); // Check if last line is a deal
+                if (prevLineMatch) {
+                  let dealCode = prevLineMatch[1];
+                  let dealTextHTML = prevLineMatch[2];
+                  let continuation = line;
+                  let plainDealText = decodeHTML(dealTextHTML);
+                  let expiryMatch = plainDealText.match(expiryRegex);
+                  let updatedDealText;
 
-            if (prevLineMatch) {
-                let dealCode = prevLineMatch[1]; // 'd' or 'ed'
-                let dealText = prevLineMatch[2]; // Current text of the deal (HTML escaped)
-                let continuation = line; // The current non-coded line is the continuation
-
-                // We need to operate on the plain text version to find expiry correctly.
-                // Create a temporary div to decode HTML entities.
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = dealText;
-                let plainDealText = tempDiv.textContent || tempDiv.innerText || "";
-
-                // Check for expiry text *within the plain deal text*
-                let expiryMatch = plainDealText.match(expiryRegex);
-                let updatedDealText;
-
-                if (expiryMatch) {
-                    // Insert the continuation text *before* the expiry portion.
+                  if (expiryMatch) {
                     let baseText = plainDealText.substring(0, expiryMatch.index).trim();
-                    let expiryText = expiryMatch[0]; // Includes leading space if present
+                    let expiryText = expiryMatch[0];
                     updatedDealText = baseText + " " + continuation + expiryText;
-                } else {
-                    // If no expiry found in the existing deal, simply append.
+                  } else {
                     updatedDealText = plainDealText + " " + continuation;
-                }
-                // Update the last deal line, re-escaping the combined text
-                outputLines[lastIndex] = dealCode + "\t" + escapeHTML(updatedDealText);
-            } else {
-                // If the previous line wasn't a deal, maybe log a warning or just ignore this continuation?
-                // For now, let's ignore it if it doesn't follow a deal.
-                console.warn("Ignoring continuation line as it doesn't follow a deal:", line);
+                  }
+                  outputLines[lastIndex] = dealCode + "\t" + escapeHTML(updatedDealText);
+                } // No 'else' needed here, just ignore if previous wasn't deal
+              }
+              continue; // Next line
+            } // End Continuation
+
+            // Coded Line
+            let code = match[1].toLowerCase();
+            let content = match[2].trim();
+
+            if (code === "c") { currentVendor = ""; continue; }
+
+            if (code === "v") {
+              let vendorName = normalizeSupplier(content);
+              currentVendor = vendorName;
+              outputLines.push("v\t" + "<b><i>" + escapeHTML(vendorName) + ":</i></b>");
+              continue;
             }
-          }
-          continue; // Move to the next line
-        }
 
-        // We have a code and content.
-        let code = match[1].toLowerCase(); // Use lowercase code for easier comparison
-        let content = match[2].trim(); // Content is already trimmed above
+            if (code === "vd" || code === "ved") {
+              let raw = content;
+              let newVendor = "";
+              let dealText = "";
+              let dealCode = (code === "ved") ? "ed" : "d";
+              let parts = raw.match(dashRegex);
 
-        // Category lines ("c") are ignored and reset vendor context.
-        if (code === "c") {
-          currentVendor = "";
-          continue;
-        }
+              if (parts) {
+                newVendor = normalizeSupplier(parts[1].trim());
+                dealText = parts[3].trim();
+              } else {
+                newVendor = normalizeSupplier(raw.trim());
+                dealText = "";
+              }
+              currentVendor = newVendor;
+              outputLines.push("v\t" + "<b><i>" + escapeHTML(newVendor) + ":</i></b>");
+              outputLines.push(dealCode + "\t" + escapeHTML(dealText));
+              continue;
+            }
 
-        // Process vendor line ("v")
-        if (code === "v") {
-          let vendorName = normalizeSupplier(content);
-          currentVendor = vendorName; // Update the current vendor context
-          outputLines.push("v\t" + "<b><i>" + escapeHTML(vendorName) + ":</i></b>");
-          continue;
-        }
+            if (code === "d" || code === "ed") {
+              if (!currentVendor) { // Handle deal without vendor context
+                outputLines.push("v\t" + "<b><i>Unknown Vendor:</i></b>");
+                currentVendor = "Unknown Vendor"; // Set context for this deal
+              }
+              outputLines.push(code + "\t" + escapeHTML(content));
+              continue;
+            }
 
-        // --- Handle 'vd' and 'ved' ---
-        if (code === "vd" || code === "ved") {
-          let raw = content;
-          let newVendor = "";
-          let dealText = "";
-          let dealCode = (code === "ved") ? "ed" : "d"; // Determine output deal code
+             // Ignore unrecognized codes silently for now
+             console.warn(`Unrecognized code '${match[1]}' found:`, line);
 
-          // Attempt to split using the dash regex
-          let parts = raw.match(dashRegex);
+          } // End for loop
 
-          if (parts) {
-            // We found a separator (dash/en-dash)
-            newVendor = normalizeSupplier(parts[1].trim()); // Part before the dash is vendor
-            dealText = parts[3].trim(); // Part after the dash is the deal text
-          } else {
-            // No dash found. Assume the whole line is the vendor name.
-            // This might happen if the deal text is missing or uses a different separator.
-            // We'll normalize the whole content as the vendor.
-            newVendor = normalizeSupplier(raw.trim());
-            dealText = ""; // No specific deal text extracted
-            // Optionally, you could add a warning here if expected format differs.
-            console.warn(`Line starting with '${match[1]}' did not contain a dash separator:`, raw);
-          }
+          // Final Output Rendering
+          const finalOutput = outputLines.join("\n");
+          outputEl.innerHTML = finalOutput.replace(/\n/g, "<br>");
+          copyButton.disabled = outputLines.length === 0;
+          console.log("Processing finished.");
 
-          // Output the Vendor line
-          currentVendor = newVendor; // Update the current vendor context
-          outputLines.push("v\t" + "<b><i>" + escapeHTML(newVendor) + ":</i></b>");
+      } catch (error) {
+          console.error("Error during processInput:", error);
+          // Attempt to display error message to user
+          try {
+             document.getElementById("output").innerHTML = `<span style="color: red; font-weight: bold;">PROCESSING ERROR: ${escapeHTML(error.message)}. Check console (F12).</span>`;
+             document.getElementById("copyButton").disabled = true;
+          } catch(displayError) { /* Ignore secondary error */ }
+      } // End try/catch block
+    } // End processInput function
 
-          // Output the Deal line (d or ed)
-          outputLines.push(dealCode + "\t" + escapeHTML(dealText));
 
-          continue; // Move to next line
-        }
-        // --- End 'vd'/'ved' Handling ---
-
-        // For plain deal lines ("d" or "ed"), output them (after escaping HTML)
-        // Make sure these lines don't reset the currentVendor context
-        if (code === "d" || code === "ed") {
-          // We need a vendor context for a deal to make sense.
-          if (!currentVendor) {
-              console.warn(`Deal line found without preceding vendor context:`, line);
-              // Output it anyway, maybe with a placeholder vendor
-               outputLines.push("v\t" + "<b><i>Unknown Vendor:</i></b>"); // Add a placeholder
-               currentVendor = "Unknown Vendor"; // Set context for potential continuations
-               outputLines.push(code + "\t" + escapeHTML(content));
-
-          } else {
-             // Normal case: Vendor context exists
-             outputLines.push(code + "\t" + escapeHTML(content));
-          }
-          continue;
-        }
-
-        // If the code isn't recognized ('c', 'v', 'vd', 'ved', 'd', 'ed')
-        // Treat it as potentially malformed input. Maybe log it and skip?
-        console.warn(`Unrecognized code '${match[1]}' found:`, line);
-        // Optionally output it as-is for debugging:
-        // outputLines.push(match[1] + "\t" + escapeHTML(content));
-      }
-
-      // Build final output, replacing internal newline markers with <br> for HTML display.
-      const finalOutput = outputLines.join("\n"); // Use newline internally first
-      outputEl.innerHTML = finalOutput.replace(/\n/g, "<br>"); // Then replace for display
-
-      // Enable copy button only if there is output
-      copyButton.disabled = outputLines.length === 0;
-    }
-
+    // --- Button Actions ---
     function copyOutput() {
-      const outputEl = document.getElementById("output");
-      // Get the text as rendered in the browser, which should handle <br> correctly
-      const text = outputEl.innerText;
-      const copyButton = document.getElementById("copyButton");
+      try {
+          const outputEl = document.getElementById("output");
+          const text = outputEl.innerText;
+          const copyButton = document.getElementById("copyButton");
+          if (!text || text.trim() === "") return;
 
-      if (!text || text.trim() === "") {
-          alert("Nothing to copy!");
-          return;
-      }
+          navigator.clipboard.writeText(text)
+            .then(() => {
+              const originalText = copyButton.textContent;
+              copyButton.textContent = "Copied!";
+              copyButton.disabled = true;
+              setTimeout(() => {
+                copyButton.textContent = originalText;
+                copyButton.disabled = (outputEl.innerText.trim() === "");
+              }, 2000);
+            })
+            .catch(err => {
+              console.error("Copy error:", err);
+              alert("Failed to copy. See console (F12).");
+            });
+      } catch (error) { console.error("Error in copyOutput:", error); }
+    } // End copyOutput function
 
-      navigator.clipboard.writeText(text)
-        .then(() => {
-          // Provide visual feedback
-          const originalText = copyButton.textContent;
-          copyButton.textContent = "Copied!";
-          copyButton.disabled = true; // Briefly disable to prevent spamming
-          setTimeout(() => {
-            copyButton.textContent = originalText;
-            // Re-enable only if there's still content
-            copyButton.disabled = (outputEl.innerText.trim() === "");
-          }, 2000); // Revert after 2 seconds
-        })
-        .catch(err => {
-          alert("Failed to copy output. Your browser might not support this feature or permissions may be denied.");
-          console.error("Error copying output: ", err);
-        });
-    }
-
-    // Function to clear input and output
     function clearInput() {
-        document.getElementById("input").value = "";
-        document.getElementById("output").innerHTML = "";
-        document.getElementById("copyButton").disabled = true;
-        document.getElementById("input").focus(); // Focus back on input area
-    }
+        try {
+            document.getElementById("input").value = "";
+            document.getElementById("output").innerHTML = "";
+            document.getElementById("copyButton").disabled = true;
+            document.getElementById("input").focus();
+        } catch (error) { console.error("Error in clearInput:", error); }
+    } // End clearInput function
 
-    // Initialize: Disable copy button initially and set dynamic year
+
+    // --- Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('copyButton').disabled = true;
-        // Set dynamic year in footer
-        document.getElementById("year").textContent = new Date().getFullYear();
-    });
+        try {
+            console.log("DOM Loaded. Initializing page.");
+            document.getElementById('copyButton').disabled = true;
+            document.getElementById("year").textContent = new Date().getFullYear();
+            console.log("Page Initialized.");
+        } catch (initError) {
+            console.error("Initialization Error:", initError);
+        }
+    }); // End event listener
 
+    console.log("Script block fully parsed."); // Final sanity check log
+
+  // Ensure the script tag is correctly closed
   </script>
 
 </body>
