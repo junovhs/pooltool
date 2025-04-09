@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deal Sorter Pro (Suggest & Override)</title>
+    <title>Deal Sorter Pro (Priority & History)</title>
     <!-- Include SortableJS via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <style>
@@ -82,6 +82,8 @@
         .available-item span:last-child { font-size: 0.8rem; color: var(--text-secondary); background-color: #f1f3f4; padding: 0.1rem 0.4rem; border-radius: var(--border-radius-sm); border: 1px solid var(--border-light); white-space: nowrap; }
         .available-item.disabled { cursor: not-allowed; background-color: #eee; color: #aaa; opacity: 0.6; }
         .available-item.disabled:hover { border-color: transparent; background-color: #eee; transform: none;}
+        .available-item .recent-indicator { font-size: 0.7rem; color: var(--danger); margin-left: 5px; font-weight: normal; } /* Style for recent indicator */
+        .available-item.used-last-week { opacity: 0.75; } /* Visual cue for recent items */
 
 
         /* Selected Cards Workspace */
@@ -101,13 +103,14 @@
         .deal-item:last-child { border-bottom: none; }
         .deal-item:hover { background: #f1f3f4; }
         .deal-item.is-exclusive { border-left: 3px solid var(--secondary); padding-left: calc(1rem - 3px); }
-        .deal-item.is-exclusive::before { content: '★'; color: var(--secondary); font-size: 0.8em; position: absolute; left: 0.7rem; top: 1rem; }
-        .deal-item.is-exclusive .deal-content { padding-left: 1rem; }
+        /* Adjusted Exclusive style to not overlap checkbox */
+        .deal-item.is-exclusive::before { content: '★'; color: var(--secondary); font-size: 0.8em; position: absolute; left: calc(0.7rem + 18px + 0.75rem); /* Approx position after checkbox + gap */ top: 1rem; }
+        .deal-item.is-exclusive .deal-content { padding-left: 1rem; } /* Keep padding on content */
 
         .deal-content { flex-grow: 1; }
         .deal-title { font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; display: block; cursor: pointer; }
         .deal-description { font-size: 0.85rem; color: var(--text-secondary); }
-        .drag-handle { cursor: grab; color: var(--text-secondary); padding-top: 0.2rem; opacity: 0.5; transition: opacity var(--transition-fast); }
+        .drag-handle { cursor: grab; color: var(--text-secondary); padding-top: 0.2rem; opacity: 0.5; transition: opacity var(--transition-fast); flex-shrink: 0;} /* Added flex-shrink */
         .deal-item:hover .drag-handle { opacity: 1; }
         .drag-handle:active { cursor: grabbing; }
         input[type="checkbox"].deal-select { margin-top: 0.2rem; width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
@@ -120,9 +123,12 @@
         /* Final Output Section */
         #output-section { display: none; }
         #final-output { background: #f1f3f4; border: 1px solid var(--border); border-radius: var(--border-radius-sm); padding: 1.5rem; font-family: 'Roboto Mono', monospace; font-size: 0.9rem; line-height: 1.5; color: var(--text); white-space: pre-wrap; max-height: 400px; overflow-y: auto; margin-bottom: 1rem; }
+        .output-buttons { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;} /* Wrapper for buttons */
 
         /* Utility Classes */
         .d-flex { display: flex; } .justify-between { justify-content: space-between; } .align-center { align-items: center; } .mt-1 { margin-top: 1rem; } .text-center { text-align: center; } .text-muted { color: var(--text-secondary); } .p-2 { padding: 2rem; }
+        .ml-auto { margin-left: auto; } /* Added utility class */
+
 
         /* Animation */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -138,33 +144,36 @@
         <!-- 1. Input Section -->
         <div id="input-section" class="card fade-in">
             <h2 class="section-title">1. Input Deals & Partners</h2>
-            <textarea id="deals-input" placeholder="Paste deals here... (Supplier, Title, Description per block)"></textarea>
-             <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 0.75rem;">Optional: Partners of the Month</h3>
-             <div class="partner-select">
-                 <div><label for="potm1" class="text-muted" style="font-size: 0.9rem;">Partner 1:</label><select id="potm1"><option value="">--Select Partner--</option></select></div>
-                 <div><label for="potm2" class="text-muted" style="font-size: 0.9rem;">Partner 2:</label><select id="potm2"><option value="">--Select Partner--</option></select></div>
-             </div>
-            <button class="btn" onclick="processAndSuggest()">Process & Suggest</button>
+            <textarea id="deals-input" placeholder="Paste deals here... (Supplier, Title, Description per block, separated by blank lines)"></textarea>
+              <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 0.75rem;">Optional: Partners of the Month</h3>
+              <div class="partner-select">
+                  <div><label for="potm1" class="text-muted" style="font-size: 0.9rem;">Partner 1:</label><select id="potm1"><option value="">-- Select Partner --</option></select></div>
+                  <div><label for="potm2" class="text-muted" style="font-size: 0.9rem;">Partner 2:</label><select id="potm2"><option value="">-- Select Partner --</option></select></div>
+              </div>
+            <div class="d-flex align-center" style="gap: 0.5rem;">
+                <button class="btn" onclick="processAndSuggest()">Process & Suggest</button>
+                <button class="btn btn-secondary btn-small" onclick="clearSupplierHistory()" title="Clear list of suppliers used recently">Clear History</button>
+            </div>
         </div>
 
         <!-- 2. Review & Override Section -->
         <div id="review-section" class="fade-in">
             <!-- Available Pool -->
             <div id="available-pool" class="card">
-                 <h2 class="section-title">Available Suppliers</h2>
-                 <div class="available-controls">
-                      <div class="available-filter"><label for="category-filter">Filter:</label><select id="category-filter" onchange="setCategoryFilter(this.value)"><option value="all">All Categories</option></select></div>
-                     <div class="available-sort-options"><span>Sort by:</span><button id="sort-preferred" class="btn-link active" onclick="setAvailableSort('preferred')">Preferred</button><button id="sort-total" class="btn-link" onclick="setAvailableSort('totalDeals')">Total Deals</button><button id="sort-exclusive" class="btn-link" onclick="setAvailableSort('exclusiveDeals')">Exclusives</button><button id="sort-alpha" class="btn-link" onclick="setAvailableSort('alpha')">A-Z</button></div>
-                 </div>
-                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click supplier to swap with <span style="color: var(--primary); font-weight: 500;">highlighted</span> card.</p>
-                 <ul id="available-list"><li class="text-center text-muted p-2">Process deals first...</li></ul>
+                  <h2 class="section-title">Available Suppliers</h2>
+                  <div class="available-controls">
+                        <div class="available-filter"><label for="category-filter">Filter:</label><select id="category-filter" onchange="setCategoryFilter(this.value)"><option value="all">All Categories</option></select></div>
+                       <div class="available-sort-options"><span>Sort by:</span><button id="sort-priority" class="btn-link active" onclick="setAvailableSort('priority')">Priority</button><button id="sort-total" class="btn-link" onclick="setAvailableSort('totalDeals')">Total Deals</button><button id="sort-exclusive" class="btn-link" onclick="setAvailableSort('exclusiveDeals')">Exclusives</button><button id="sort-alpha" class="btn-link" onclick="setAvailableSort('alpha')">A-Z</button></div>
+                  </div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click supplier to swap with <span style="color: var(--primary); font-weight: 500;">highlighted</span> card. <span class="recent-indicator">(Recent)</span> indicates supplier was used last output.</p>
+                  <ul id="available-list"><li class="text-center text-muted p-2">Process deals first...</li></ul>
             </div>
 
             <!-- Workspace Area -->
             <div id="workspace-area" class="card">
-                 <div class="d-flex justify-between align-center"><h2 class="section-title">Suggested Deals (Editable)</h2><button class="btn btn-secondary" onclick="generateFinalOutput()">Generate Output</button></div>
-                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click card header to swap. Check deals to include. Drag (<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>) to reorder. Use (<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>) to remove deals.</p>
-                 <div id="workspace"><p class="text-center text-muted p-2" style="grid-column: 1 / -1;">Suggestions will appear here.</p></div>
+                  <div class="d-flex justify-between align-center"><h2 class="section-title">Suggested Deals (Editable)</h2><button class="btn btn-secondary" onclick="generateFinalOutput()">Generate Output</button></div>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Click card header to swap. Check deals to include (max 4 per supplier). Drag (<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>) to reorder. Use (<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>) to remove deals.</p>
+                  <div id="workspace"><p class="text-center text-muted p-2" style="grid-column: 1 / -1;">Suggestions will appear here.</p></div>
             </div>
         </div>
 
@@ -172,116 +181,1137 @@
         <div id="output-section" class="card fade-in">
             <h2 class="section-title">Final Output</h2>
             <div id="final-output"></div>
-            <button class="btn" onclick="copyFinalOutput()">Copy to Clipboard</button>
-            <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+            <div class="output-buttons mt-1">
+                <button class="btn" onclick="copyFinalOutput()">Copy to Clipboard</button>
+                <button class="btn btn-secondary" onclick="startOver()">Start Over</button>
+                 <!-- Moved clear history here, seems more logical post-output or when starting over -->
+                <!-- <button class="btn btn-secondary btn-small ml-auto" onclick="clearSupplierHistory()" title="Clear list of suppliers used recently">Clear History</button> -->
+            </div>
         </div>
     </div>
 
     <script>
         // --- Global State ---
-        let allParsedDeals = []; let allGroupedDeals = {}; let currentDisplayedSuppliers = {};
-        let sortableInstances = {}; let swapTarget = { cardElement: null, key: null };
-        let currentAvailableSort = 'preferred'; let currentCategoryFilter = 'all';
+        let allParsedDeals = [];
+        let allGroupedDeals = {}; // Key: normalized supplier key, Value: array of deal objects
+        let currentDisplayedSuppliers = {}; // Key: normalized supplier key, Value: { displayName: string, deals: array of deal objects }
+        let sortableInstances = {}; // Key: normalized supplier key, Value: Sortable instance
+        let swapTarget = { cardElement: null, key: null }; // Info for swapping suppliers
+        let currentAvailableSort = 'priority'; // Default sort for available pool
+        let currentCategoryFilter = 'all'; // Default category filter
+        let lastWeekSuppliers = []; // Array of supplier keys used in the last generated output
 
         // --- Constants & Initial Data ---
-        const ALL_SUPPLIERS_PREDEFINED = [ "Norwegian Cruise Line", "Royal Caribbean", "Celebrity Cruises", "Disney Cruise Line", "Virgin Voyages", "Holland America Line", "Princess", "Carnival", "MSC Cruises", "Viking", "American Cruise Line", "Atlas Ocean Voyages", "Azamara", "Crystal Cruises", "Cunard", "Emerald Cruises", "Explora Journeys", "Four Seasons Yachts", "Oceania Cruises", "Paul Gauguin Cruises", "Ponant", "Regent Seven Seas Cruises", "Ritz-Carlton Yacht Collection", "Scenic Eclipse Ocean Voyages", "Seabourn", "Silversea", "Star Clippers", "Tauck Cruises", "Windstar", "Avalon Waterways", "AmaWaterways", "CroisiEurope", "Riverside Cruises", "Riviera River Cruises", "Tauck Tours", "Uniworld", "Scenic River", "Lindblad Expeditions & National Geographic", "Hurtigruten", "UnCruise Adventures", "Adventures by Disney", "Disneyland", "DisneyWorld", "Aulani, A Disney Resort & Spa", "Sandals", "Beaches", "Breathless", "Club Med", "El Dorado Spa Resorts & Hotels", "Dreams", "Excellence Resorts", "Hard Rock Hotels", "Iberostar Hotels & Resorts", "Karisma Hotels & Resorts", "Outrigger Hotels & Resorts", "Palace Resorts", "RIU Hotels & Resorts", "Secrets", "American Airline Vacations", "Delta Vacations", "Southwest Vacations", "United Vacations", "Villas of Distinction", "Zoëtry Wellness & Spa Resorts", "Atlantis Paradise Island Bahamas", "Great Safaris", "African Travel", "Abercrombie & Kent", "G Adventures", "Globus Journeys", "Trafalgar", "BlueSky Tours", "CIE Tours", "Collette", "Shore Excursions Group", "TourSales.com", "Viator", "Project Expedition", "Rocky Mountaineer" ];
-        const SUPPLIER_CATEGORIES = { "norwegian cruise line": ["Popular Cruises"], "royal caribbean": ["Popular Cruises"], "celebrity cruises": ["Popular Cruises"], "disney cruise line": ["Popular Cruises", "Disney"], "virgin voyages": ["Popular Cruises"], "holland america line": ["Popular Cruises"], "princess": ["Popular Cruises"], "carnival": ["Popular Cruises"], "msc cruises": ["Popular Cruises"], "viking": ["Popular Cruises", "Luxury Cruises", "River Cruises"], "american cruise line": ["Luxury Cruises"], "atlas ocean voyages": ["Luxury Cruises"], "azamara": ["Luxury Cruises"], "crystal cruises": ["Luxury Cruises"], "cunard": ["Luxury Cruises"], "emerald cruises": ["Luxury Cruises", "River Cruises"], "explora journeys": ["Luxury Cruises"], "four seasons yachts": ["Luxury Cruises"], "oceania cruises": ["Luxury Cruises"], "paul gauguin cruises": ["Luxury Cruises"], "ponant": ["Luxury Cruises", "Adventure Cruising"], "regent seven seas cruises": ["Luxury Cruises"], "ritz-carlton yacht collection": ["Luxury Cruises"], "scenic eclipse ocean voyages": ["Luxury Cruises", "Adventure Cruising"], "seabourn": ["Luxury Cruises"], "silversea": ["Luxury Cruises", "Adventure Cruising"], "star clippers": ["Luxury Cruises"], "tauck cruises": ["Luxury Cruises", "River Cruises", "Tours and Custom Trips"], "windstar": ["Luxury Cruises"], "avalon waterways": ["River Cruises"], "amawaterways": ["River Cruises"], "croisieurope": ["River Cruises"], "riverside cruises": ["River Cruises"], "riviera river cruises": ["River Cruises"], "tauck tours": ["River Cruises", "Tours and Custom Trips"], "uniworld": ["River Cruises"], "scenic river": ["River Cruises"], "lindblad expeditions & national geographic": ["Adventure Cruising"], "hurtigruten": ["Adventure Cruising"], "uncruise adventures": ["Adventure Cruising"], "adventures by disney": ["Disney", "Tours and Custom Trips"], "disneyland": ["Disney"], "disneyworld": ["Disney"], "aulani a disney resort & spa": ["Disney", "Resorts and Hawaii"], "sandals": ["Resorts and Hawaii"], "beaches": ["Resorts and Hawaii"], "breathless": ["Resorts and Hawaii"], "club med": ["Resorts and Hawaii"], "el dorado spa resorts & hotels": ["Resorts and Hawaii"], "dreams": ["Resorts and Hawaii"], "excellence resorts": ["Resorts and Hawaii"], "hard rock hotels": ["Resorts and Hawaii"], "hard rock hotel & casino": ["Resorts and Hawaii"], "iberostar hotels & resorts": ["Resorts and Hawaii"], "iberostar beachfront resorts": ["Resorts and Hawaii"], "karisma hotels & resorts": ["Resorts and Hawaii"], "outrigger hotels & resorts": ["Resorts and Hawaii"], "palace resorts": ["Resorts and Hawaii"], "riu hotels & resorts": ["Resorts and Hawaii"], "secrets": ["Resorts and Hawaii"], "american airline vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "delta vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "southwest vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "united vacations": ["Resorts and Hawaii", "Tours and Custom Trips"], "villas of distinction": ["Resorts and Hawaii"], "zoetry wellness & spa resorts": ["Resorts and Hawaii"], "atlantis paradise island bahamas": ["Resorts and Hawaii"], "great safaris": ["Tours and Custom Trips"], "african travel": ["Tours and Custom Trips"], "abercrombie & kent": ["Tours and Custom Trips", "Luxury Cruises", "River Cruises"], "g adventures": ["Tours and Custom Trips", "Adventure Cruising"], "globus journeys": ["Tours and Custom Trips"], "globus": ["Tours and Custom Trips"], "trafalgar": ["Tours and Custom Trips"], "bluesky tours": ["Tours and Custom Trips", "Resorts and Hawaii"], "cie tours": ["Tours and Custom Trips"], "collette": ["Tours and Custom Trips"], "shore excursions group": ["Shore Excursions"], "toursalescom": ["Shore Excursions"], "viator": ["Shore Excursions"], "project expedition": ["Shore Excursions"], "rocky mountaineer": ["Rail Vacations", "Tours and Custom Trips"] };
-        const UNIQUE_CATEGORIES = [...new Set(Object.values(SUPPLIER_CATEGORIES).flat())].sort();
-        const PREFERRED_ORDER_MAP = ALL_SUPPLIERS_PREDEFINED.reduce((map, name, index) => { map[normalizeSupplier(name)] = index; return map; }, {});
-        const PREFERRED_SUPPLIER_NAMES = ALL_SUPPLIERS_PREDEFINED.reduce((acc, name) => { const key = normalizeSupplier(name); acc[key] = name; return acc; }, {});
-        PREFERRED_SUPPLIER_NAMES["viking"] = "Viking";
+
+        // Define Priority Levels
+        const PRIORITY = {
+            HIGHEST: 500, // PotM Force / Bonus
+            MOST: 100,    // NCL, RCL
+            MID: 50,      // Celebrity, Disney, Virgin, HAL, Princess
+            LEAST: 20,    // Carnival, MSC
+            VIKING_BONUS: 75, // Special score for Viking
+            POPULAR_BONUS: 10, // Small bonus for just being 'Popular Cruises' category (tune this)
+            LAST_WEEK_PENALTY: -80, // Significant reduction if used recently (tune this)
+            OTHER: 5      // Default for Lux, River, Land etc. not in priority tiers
+        };
+
+        // Master Supplier Information Object
+        // IMPORTANT: Fill this out completely for ALL suppliers you might encounter.
+        // Use lowercase, normalized keys.
+        const SUPPLIER_INFO = {
+            // Popular - Most Priority
+            "norwegian cruise line": { name: "Norwegian Cruise Line", categories: ["Popular Cruises"], priority: PRIORITY.MOST },
+            "royal caribbean":       { name: "Royal Caribbean",       categories: ["Popular Cruises"], priority: PRIORITY.MOST },
+            // Popular - Mid Priority
+            "celebrity cruises":     { name: "Celebrity Cruises",     categories: ["Popular Cruises"], priority: PRIORITY.MID },
+            "disney cruise line":    { name: "Disney Cruise Line",    categories: ["Popular Cruises", "Disney"], priority: PRIORITY.MID },
+            "virgin voyages":        { name: "Virgin Voyages",        categories: ["Popular Cruises"], priority: PRIORITY.MID },
+            "holland america line":  { name: "Holland America Line",  categories: ["Popular Cruises"], priority: PRIORITY.MID },
+            "princess":              { name: "Princess",              categories: ["Popular Cruises"], priority: PRIORITY.MID },
+            "princess cruises":      { name: "Princess",              categories: ["Popular Cruises"], priority: PRIORITY.MID }, // Alias
+            // Popular - Least Priority
+            "carnival":              { name: "Carnival",              categories: ["Popular Cruises"], priority: PRIORITY.LEAST },
+            "carnival cruise line":  { name: "Carnival",              categories: ["Popular Cruises"], priority: PRIORITY.LEAST }, // Alias
+            "msc cruises":           { name: "MSC Cruises",           categories: ["Popular Cruises"], priority: PRIORITY.LEAST },
+            // Viking (Special Case)
+            "viking":                { name: "Viking",                categories: ["Popular Cruises", "Luxury Cruises", "River Cruises"], priority: PRIORITY.VIKING_BONUS }, // High base priority
+            // --- Start Adding Other Suppliers ---
+            // Luxury Cruises
+            "american cruise line": { name: "American Cruise Line", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "atlas ocean voyages": { name: "Atlas Ocean Voyages", categories: ["Luxury Cruises", "Adventure Cruising"], priority: PRIORITY.OTHER },
+            "azamara": { name: "Azamara", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "crystal cruises": { name: "Crystal Cruises", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "cunard": { name: "Cunard", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "emerald cruises": { name: "Emerald Cruises", categories: ["Luxury Cruises", "River Cruises"], priority: PRIORITY.OTHER },
+            "explora journeys": { name: "Explora Journeys", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "four seasons yachts": { name: "Four Seasons Yachts", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "oceania cruises": { name: "Oceania Cruises", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "paul gauguin cruises": { name: "Paul Gauguin Cruises", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "ponant": { name: "Ponant", categories: ["Luxury Cruises", "Adventure Cruising"], priority: PRIORITY.OTHER },
+            "regent seven seas cruises": { name: "Regent Seven Seas Cruises", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "ritz-carlton yacht collection": { name: "Ritz-Carlton Yacht Collection", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "scenic eclipse ocean voyages": { name: "Scenic Eclipse Ocean Voyages", categories: ["Luxury Cruises", "Adventure Cruising"], priority: PRIORITY.OTHER },
+            "seabourn": { name: "Seabourn", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "silversea": { name: "Silversea", categories: ["Luxury Cruises", "Adventure Cruising"], priority: PRIORITY.OTHER },
+            "star clippers": { name: "Star Clippers", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "tauck cruises": { name: "Tauck Cruises", categories: ["Luxury Cruises", "River Cruises", "Tours and Custom Trips"], priority: PRIORITY.OTHER }, // Note: also in Tours/River
+            "windstar": { name: "Windstar", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER },
+            "windstar cruises": { name: "Windstar", categories: ["Luxury Cruises"], priority: PRIORITY.OTHER }, // Alias
+            // River Cruises
+            "avalon waterways": { name: "Avalon Waterways", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "amawaterways": { name: "AmaWaterways", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "croisieurope": { name: "CroisiEurope", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "riverside cruises": { name: "Riverside Cruises", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "riviera river cruises": { name: "Riviera River Cruises", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "tauck tours": { name: "Tauck Tours", categories: ["River Cruises", "Tours and Custom Trips"], priority: PRIORITY.OTHER }, // Note: also in Tours/Tauck Cruises
+            "uniworld": { name: "Uniworld", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "uniworld boutique river cruises": { name: "Uniworld", categories: ["River Cruises"], priority: PRIORITY.OTHER }, // Alias
+            "scenic river": { name: "Scenic River", categories: ["River Cruises"], priority: PRIORITY.OTHER },
+            "scenic luxury cruises & tours": { name: "Scenic River", categories: ["River Cruises", "Luxury Cruises", "Adventure Cruising", "Tours and Custom Trips"], priority: PRIORITY.OTHER }, // Broader Alias covers Eclipse/Emerald too potentially - needs careful normalization
+            // Adventure Cruising
+            "lindblad expeditions & national geographic": { name: "Lindblad Expeditions & National Geographic", categories: ["Adventure Cruising"], priority: PRIORITY.OTHER },
+            "lindblad expeditions": { name: "Lindblad Expeditions & National Geographic", categories: ["Adventure Cruising"], priority: PRIORITY.OTHER }, // Alias
+            "hurtigruten": { name: "Hurtigruten", categories: ["Adventure Cruising"], priority: PRIORITY.OTHER },
+            "uncruise adventures": { name: "UnCruise Adventures", categories: ["Adventure Cruising"], priority: PRIORITY.OTHER },
+            // Disney (Specific Resorts/Tours)
+            "adventures by disney": { name: "Adventures by Disney", categories: ["Disney", "Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "disneyland": { name: "Disneyland", categories: ["Disney"], priority: PRIORITY.OTHER },
+            "disneyworld": { name: "DisneyWorld", categories: ["Disney"], priority: PRIORITY.OTHER },
+            "walt disney world": { name: "DisneyWorld", categories: ["Disney"], priority: PRIORITY.OTHER }, // Alias
+            "aulani a disney resort & spa": { name: "Aulani, A Disney Resort & Spa", categories: ["Disney", "Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "aulani": { name: "Aulani, A Disney Resort & Spa", categories: ["Disney", "Resorts and Hawaii"], priority: PRIORITY.OTHER }, // Alias
+             // Resorts and Hawaii / Land Vacations
+            "sandals": { name: "Sandals", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "beaches": { name: "Beaches", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "breathless": { name: "Breathless", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "club med": { name: "Club Med", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "el dorado spa resorts & hotels": { name: "El Dorado Spa Resorts & Hotels", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "dreams": { name: "Dreams", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "excellence resorts": { name: "Excellence Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "hard rock hotels": { name: "Hard Rock Hotels", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "hard rock hotel & casino": { name: "Hard Rock Hotels", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER }, // Alias
+            "iberostar hotels & resorts": { name: "Iberostar Hotels & Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "iberostar beachfront resorts": { name: "Iberostar Hotels & Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER }, // Alias
+            "karisma hotels & resorts": { name: "Karisma Hotels & Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "outrigger hotels & resorts": { name: "Outrigger Hotels & Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "palace resorts": { name: "Palace Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "riu hotels & resorts": { name: "RIU Hotels & Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "secrets": { name: "Secrets", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "american airline vacations": { name: "American Airline Vacations", categories: ["Resorts and Hawaii", "Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "delta vacations": { name: "Delta Vacations", categories: ["Resorts and Hawaii", "Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "southwest vacations": { name: "Southwest Vacations", categories: ["Resorts and Hawaii", "Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "united vacations": { name: "United Vacations", categories: ["Resorts and Hawaii", "Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "villas of distinction": { name: "Villas of Distinction", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "zoetry wellness & spa resorts": { name: "Zoëtry Wellness & Spa Resorts", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "atlantis paradise island bahamas": { name: "Atlantis Paradise Island Bahamas", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "atlantis": { name: "Atlantis Paradise Island Bahamas", categories: ["Resorts and Hawaii"], priority: PRIORITY.OTHER }, // Alias
+            // Tours and Custom Trips
+            "great safaris": { name: "Great Safaris", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "african travel": { name: "African Travel", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "abercrombie & kent": { name: "Abercrombie & Kent", categories: ["Tours and Custom Trips", "Luxury Cruises", "River Cruises"], priority: PRIORITY.OTHER },
+            "g adventures": { name: "G Adventures", categories: ["Tours and Custom Trips", "Adventure Cruising"], priority: PRIORITY.OTHER },
+            "globus journeys": { name: "Globus Journeys", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "globus": { name: "Globus Journeys", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER }, // Alias
+            "trafalgar": { name: "Trafalgar", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "bluesky tours": { name: "BlueSky Tours", categories: ["Tours and Custom Trips", "Resorts and Hawaii"], priority: PRIORITY.OTHER },
+            "cie tours": { name: "CIE Tours", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            "collette": { name: "Collette", categories: ["Tours and Custom Trips"], priority: PRIORITY.OTHER },
+            // Shore Excursions
+            "shore excursions group": { name: "Shore Excursions Group", categories: ["Shore Excursions"], priority: PRIORITY.OTHER },
+            "toursalescom": { name: "TourSales.com", categories: ["Shore Excursions"], priority: PRIORITY.OTHER },
+            "viator": { name: "Viator", categories: ["Shore Excursions"], priority: PRIORITY.OTHER },
+            "project expedition": { name: "Project Expedition", categories: ["Shore Excursions"], priority: PRIORITY.OTHER },
+            // Rail Vacations
+            "rocky mountaineer": { name: "Rocky Mountaineer", categories: ["Rail Vacations", "Tours and Custom Trips"], priority: PRIORITY.OTHER }
+            // Add more aliases as needed, e.g., "rccl" for "royal caribbean"
+             // Add fallback for truly unknown?
+             // "unknown": { name: "Unknown Supplier", categories: ["Other"], priority: 0 }
+        };
+
+        const UNIQUE_CATEGORIES = [...new Set(Object.values(SUPPLIER_INFO).flatMap(info => info.categories || []))].sort();
 
         // --- Initialization ---
-        window.onload = () => { populateDropdowns(); populateCategoryFilter(); };
-        function populateDropdowns() { const p1=document.getElementById("potm1"), p2=document.getElementById("potm2"); p1.length=1; p2.length=1; ALL_SUPPLIERS_PREDEFINED.forEach(s=>{ p1.appendChild(new Option(s,s)); p2.appendChild(new Option(s,s)); }); }
-        function populateCategoryFilter() { const f=document.getElementById('category-filter'); f.length=1; UNIQUE_CATEGORIES.forEach(c=>f.appendChild(new Option(c,c))); }
+        window.onload = () => {
+            loadLastWeekSuppliers(); // Load history first
+            populateDropdowns();
+            populateCategoryFilter();
+            // Set initial sort button state based on default sort
+             setActiveSortButton(currentAvailableSort);
+        };
 
-        // --- Core Logic ---
-        function getPreferredIndex(key) { return PREFERRED_ORDER_MAP[key] ?? Infinity; }
-        function normalizeSupplier(name) { const l=name?.toLowerCase().trim()||''; if(l.includes("viking")) return "viking"; return l.replace(/[^\w\s&-]/g,'').replace(/\s+/g,' ').trim(); }
-        function getDisplayName(key) { return PREFERRED_SUPPLIER_NAMES[key] || key.split(' ').map(w=>w[0].toUpperCase()+w.slice(1)).join(' '); }
-        // NEW Helper function to sanitize keys for use in HTML IDs
-        function sanitizeKeyForId(key) { return key.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, ''); }
-        function parseDeals(raw) { const d=[]; raw.split(/\n\s*\n/).forEach((b,i)=>{ const l=b.split("\n").map(ln=>ln.trim()).filter(ln=>ln&&!ln.toLowerCase().includes("logo")&&!ln.toLowerCase().includes("expires soon")); if(l.length>=3){ const k=normalizeSupplier(l[0]), t=l[1], ds=l[2], e=t.toUpperCase().includes("EXCLUSIVE"); d.push({supplierKey:k, displayName:getDisplayName(k), title:t, description:ds, exclusive:e, id:crypto.randomUUID()}); } else if (l.length>0) console.warn(`Skipping block ${i+1}:`, l); }); return d; }
-        function groupDealsBySupplier(deals) { const g={}; deals.forEach(d=>{ const k=d.supplierKey; if(!g[k]) g[k]=[]; g[k].push({...d, isSelected:true}); }); for(const k in g) g[k].sort((a,b)=>(b.exclusive-a.exclusive)||a.title.localeCompare(b.title)); return g; }
-        function qualifies(d) { const e=d.filter(x=>x.exclusive).length; if(d.length>=3) return e>=2; if(d.length===2) return d.every(x=>x.exclusive); return false; }
-        function buildCandidateList(g) { const c=[]; for(let k in g){ const ds=g[k]; if(qualifies(ds)) c.push({supplierKey:k, deals:ds, count:ds.length, exclusiveCount:ds.filter(x=>x.exclusive).length, score:ds.length*10+ds.filter(x=>x.exclusive).length*5}); } const h3=c.some(x=>x.count>=3); let f=c; if(h3) f=c.filter(x=>x.count>=3); f.sort((a,b)=>b.score-a.score); return f; }
-        function getForcedCandidates(g) { const f=[]; [document.getElementById("potm1").value, document.getElementById("potm2").value].forEach(p=>{ if(!p)return; const n=normalizeSupplier(p); if(g[n]?.length>0) f.push({supplierKey:n, deals:g[n]}); else console.warn("No deals for forced partner:", p); }); if(f.length===2 && normalizeSupplier(document.getElementById("potm2").value)===f[0].supplierKey) [f[0],f[1]]=[f[1],f[0]]; return f; }
-        function combineCandidates(forced, cands) { const fk=new Set(forced.map(c=>c.supplierKey)), fl=[...forced], sl=4-fl.length; if(sl>0){ let ac=0; for(const ca of cands){ if(!fk.has(ca.supplierKey)){ fl.push(ca); ac++; if(ac>=sl) break; }} } return fl.slice(0,4); }
+        function loadLastWeekSuppliers() {
+            const storedData = localStorage.getItem('dealSorterLastWeek');
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    // Keep history for ~10 days
+                    const tenDaysAgo = Date.now() - (10 * 24 * 60 * 60 * 1000);
+                    if (data.timestamp && data.timestamp > tenDaysAgo && Array.isArray(data.suppliers)) {
+                        lastWeekSuppliers = data.suppliers;
+                        console.log("Loaded suppliers used recently:", lastWeekSuppliers);
+                    } else {
+                        console.log("Stored 'last week' data is too old or invalid, ignoring.");
+                        localStorage.removeItem('dealSorterLastWeek');
+                        lastWeekSuppliers = [];
+                    }
+                } catch (e) {
+                    console.error("Failed to parse last week's suppliers from localStorage", e);
+                    localStorage.removeItem('dealSorterLastWeek');
+                    lastWeekSuppliers = [];
+                }
+            } else {
+                lastWeekSuppliers = [];
+            }
+        }
 
-        // --- Main Process ---
-        function processAndSuggest() { const raw=document.getElementById('deals-input').value; if(!raw.trim()){alert("Paste deals.");return;} allParsedDeals=[]; allGroupedDeals={}; currentDisplayedSuppliers={}; Object.values(sortableInstances).forEach(i=>i.destroy()); sortableInstances={}; resetSwapTarget(); currentAvailableSort='preferred'; currentCategoryFilter='all'; document.getElementById('category-filter').value='all'; try { allParsedDeals=parseDeals(raw); if(allParsedDeals.length===0){alert("No valid deals.");return;} allGroupedDeals=groupDealsBySupplier(allParsedDeals); const forced=getForcedCandidates(allGroupedDeals), cands=buildCandidateList(allGroupedDeals), suggestions=combineCandidates(forced, cands); suggestions.forEach(s=>{const k=s.supplierKey; currentDisplayedSuppliers[k]={displayName:getDisplayName(k), deals:allGroupedDeals[k].map(d=>({...d}))};}); document.getElementById('input-section').style.display='none'; document.getElementById('review-section').style.display='grid'; document.getElementById('output-section').style.display='none'; document.getElementById('final-output').textContent=''; renderReviewUI(); } catch (e) {console.error("Error:",e); alert("Error: "+e.message);} }
+        function saveLastWeekSuppliers(supplierKeys) {
+            const dataToStore = {
+                suppliers: supplierKeys,
+                timestamp: Date.now()
+            };
+            try {
+                localStorage.setItem('dealSorterLastWeek', JSON.stringify(dataToStore));
+                console.log("Saved suppliers for next time:", supplierKeys);
+                lastWeekSuppliers = supplierKeys; // Update current state
+                // Re-render available pool if visible to show updated "(Recent)" status
+                if (document.getElementById('review-section').style.display !== 'none') {
+                     renderAvailablePool();
+                }
+            } catch (e) {
+                console.error("Failed to save last week's suppliers to localStorage", e);
+                alert("Could not save supplier history. LocalStorage might be full or disabled.");
+            }
+        }
 
-        // --- UI Rendering ---
-        function renderReviewUI() { renderAvailablePool(); renderWorkspace(); }
-        function renderAvailablePool() { const list=document.getElementById('available-list'); list.innerHTML=''; let count=0; const Wkeys=new Set(Object.keys(currentDisplayedSuppliers)); let availKeys=Object.keys(allGroupedDeals).filter(k=>!Wkeys.has(k)); if(currentCategoryFilter!=='all') availKeys=availKeys.filter(k=>(SUPPLIER_CATEGORIES[k]||[]).includes(currentCategoryFilter)); switch(currentAvailableSort){ case 'totalDeals': availKeys.sort((a,b)=>(allGroupedDeals[b]?.length||0)-(allGroupedDeals[a]?.length||0)||getDisplayName(a).localeCompare(getDisplayName(b))); break; case 'exclusiveDeals': availKeys.sort((a,b)=>(allGroupedDeals[b]?.filter(d=>d.exclusive).length||0)-(allGroupedDeals[a]?.filter(d=>d.exclusive).length||0)||getDisplayName(a).localeCompare(getDisplayName(b))); break; case 'alpha': availKeys.sort((a,b)=>getDisplayName(a).localeCompare(getDisplayName(b))); break; default: availKeys.sort((a,b)=>getPreferredIndex(a)-getPreferredIndex(b)||getDisplayName(a).localeCompare(getDisplayName(b))); break; } document.querySelectorAll('.available-sort-options .btn-link').forEach(b=>b.classList.remove('active')); const activeBtn=document.getElementById(`sort-${currentAvailableSort.replace('Deals','').toLowerCase()}`); if(activeBtn) activeBtn.classList.add('active'); availKeys.forEach(k=>{const dn=getDisplayName(k), dc=allGroupedDeals[k]?.length||0, ec=allGroupedDeals[k]?.filter(d=>d.exclusive).length||0; const li=document.createElement('li'); li.className='available-item'; if(swapTarget.key===k) li.classList.add('disabled'); li.innerHTML=`<span>${dn}</span><span>${dc} (${ec} Excl.)</span>`; li.onclick=()=>initiateSwap(k); list.appendChild(li); count++; }); if(Object.keys(allGroupedDeals).length===0) list.innerHTML='<li class="text-center text-muted p-2">Process deals first...</li>'; else if(availKeys.length===0 && Wkeys.size===Object.keys(allGroupedDeals).length) list.innerHTML='<li class="text-center text-muted p-2">All suppliers in workspace.</li>'; else if(count===0) list.innerHTML=`<li class="text-center text-muted p-2">No suppliers found${currentCategoryFilter!=='all'?` in category "${currentCategoryFilter}"`:''}.</li>`; }
-        function renderWorkspace() { const ws=document.getElementById('workspace'); ws.innerHTML=''; Object.values(sortableInstances).forEach(i=>i.destroy()); sortableInstances={}; const keys=Object.keys(currentDisplayedSuppliers).sort((a,b)=>currentDisplayedSuppliers[a].displayName.localeCompare(currentDisplayedSuppliers[b].displayName)); if(keys.length===0){ws.innerHTML='<p class="text-center text-muted p-2" style="grid-column:1/-1;">Suggestions appear here.</p>'; return;} keys.forEach(k=>{ const d=currentDisplayedSuppliers[k], c=document.createElement('div'); c.className='selected-supplier-card fade-in'; c.dataset.supplierKey=k; if(swapTarget.key===k) c.classList.add('swap-target');
-            // *** FIX: Use sanitized key for UL ID ***
-            const sanitizedKey = sanitizeKeyForId(k);
-            c.innerHTML=`<div class="card-header-selected" onclick="setSwapTarget(this.parentElement, '${k}')" title="Click to swap '${d.displayName}'"><h3>${d.displayName}</h3><span class="text-muted" style="font-size:0.8rem;">Click header to swap</span></div><ul class="deal-list-selected" id="deal-list-${sanitizedKey}">${d.deals.length===0?'<li class="text-center text-muted" style="padding:1rem 0;">No deals</li>':d.deals.map(dl=>`<li class="deal-item ${dl.exclusive?'is-exclusive':''}" data-deal-id="${dl.id}"><span class="drag-handle" title="Reorder"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg></span><input type="checkbox" class="deal-select" id="deal-cb-${dl.id}" ${dl.isSelected?'checked':''} onchange="toggleDealSelection('${k}','${dl.id}')"><div class="deal-content"><label for="deal-cb-${dl.id}" class="deal-title">${dl.title}</label><p class="deal-description">${dl.description}</p></div><div class="deal-actions"><button class="btn-icon btn-small btn-danger" onclick="removeDealFromCard('${k}','${dl.id}')" title="Remove Deal"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg></button></div></li>`).join('')}</ul>`; ws.appendChild(c);
-            // Use sanitized key to find the list element for SortableJS
-            const listEl=c.querySelector(`#deal-list-${sanitizedKey}`);
-            if(listEl&&d.deals.length>0) sortableInstances[k]=Sortable.create(listEl,{animation:150,handle:'.drag-handle',ghostClass:'sortable-ghost',dragClass:'sortable-drag',onEnd:(evt)=>{const mid=evt.item.dataset.dealId; const dls=currentDisplayedSuppliers[k]?.deals; if(!dls)return; const oIdx=dls.findIndex(dl=>dl.id===mid); if(oIdx>-1){const [item]=dls.splice(oIdx,1);dls.splice(evt.newIndex,0,item);}}}); }); }
+         function clearSupplierHistory() {
+            if (confirm("Are you sure you want to clear the history of recently used suppliers? This action cannot be undone.")) {
+                localStorage.removeItem('dealSorterLastWeek');
+                lastWeekSuppliers = [];
+                console.log("Supplier history cleared.");
+                alert("Supplier history cleared.");
+                // Re-render the available pool if visible
+                if (document.getElementById('review-section').style.display !== 'none') {
+                    renderAvailablePool();
+                }
+            }
+        }
 
-        // --- Interaction Handlers ---
-        function setAvailableSort(type) { if (currentAvailableSort!==type) { currentAvailableSort=type; renderAvailablePool(); } }
-        function setCategoryFilter(val) { if (currentCategoryFilter!==val) { currentCategoryFilter=val; renderAvailablePool(); } }
-        function setSwapTarget(el, key) { resetSwapTarget(); swapTarget.cardElement=el; swapTarget.key=key; el.classList.add('swap-target'); const availItem=[...document.querySelectorAll('#available-list .available-item')].find(i=>i.onclick?.toString().includes(`initiateSwap('${key}')`)); if(availItem) availItem.classList.add('disabled'); }
-        function resetSwapTarget() { if(swapTarget.cardElement) swapTarget.cardElement.classList.remove('swap-target'); document.querySelectorAll('#available-list .available-item.disabled').forEach(i=>i.classList.remove('disabled')); swapTarget.cardElement=null; swapTarget.key=null; }
-        function initiateSwap(newKey) { if(!swapTarget.key){alert("Click card header first.");return;} if(newKey===swapTarget.key){resetSwapTarget();return;} if(document.querySelector(`#available-list .available-item[onclick*="initiateSwap('${newKey}')"]`)?.classList.contains('disabled')) return; console.log(`Swapping ${swapTarget.key} with ${newKey}`); if(sortableInstances[swapTarget.key]){sortableInstances[swapTarget.key].destroy(); delete sortableInstances[swapTarget.key];} delete currentDisplayedSuppliers[swapTarget.key]; currentDisplayedSuppliers[newKey]={displayName:getDisplayName(newKey), deals:allGroupedDeals[newKey].map(d=>({...d, isSelected:true}))}; resetSwapTarget(); renderReviewUI(); }
-        function toggleDealSelection(key, id) { const s=currentDisplayedSuppliers[key]; if(!s)return; const d=s.deals.find(dl=>dl.id===id); if(d) d.isSelected=!d.isSelected; }
+        function populateDropdowns() {
+            const p1 = document.getElementById("potm1"), p2 = document.getElementById("potm2");
+            p1.length = 1; p2.length = 1; // Clear existing except default
 
-        // --- UPDATED removeDealFromCard with ID sanitization ---
-        function removeDealFromCard(supplierKey, dealId) {
-            // console.log(`Attempting remove: key='${supplierKey}', id='${dealId}'`); // Keep for debugging if needed
+            const sortedSuppliers = Object.entries(SUPPLIER_INFO)
+                .map(([key, info]) => ({ key: key, name: info.name }))
+                .sort((a, b) => a.name.localeCompare(b.name));
 
-            const supplier = currentDisplayedSuppliers[supplierKey];
-            if (!supplier) { console.error("Error: Supplier not found:", supplierKey); return; }
+            sortedSuppliers.forEach(s => {
+                // Use the normalized KEY as the value, display NAME as the text
+                p1.appendChild(new Option(s.name, s.key));
+                p2.appendChild(new Option(s.name, s.key));
+            });
+        }
 
-            const dealIndex = supplier.deals.findIndex(d => d.id === dealId);
-            // console.log(`Found index: ${dealIndex}`);
+        function populateCategoryFilter() {
+            const filterSelect = document.getElementById('category-filter');
+            filterSelect.length = 1; // Clear existing except default "All Categories"
+            UNIQUE_CATEGORIES.forEach(category => {
+                filterSelect.appendChild(new Option(category, category));
+            });
+        }
 
-            if (dealIndex > -1) {
-                supplier.deals.splice(dealIndex, 1); // Remove from state
-                // console.log(`Removed from state. Remaining: ${supplier.deals.length}`);
+         function setActiveSortButton(sortType) {
+            document.querySelectorAll('.available-sort-options .btn-link').forEach(b => b.classList.remove('active'));
+            // Handle 'priority' explicitly mapping to the 'sort-priority' button ID
+            const buttonId = `sort-${sortType === 'priority' ? 'priority' : sortType.replace('Deals', '').toLowerCase()}`;
+            const activeBtn = document.getElementById(buttonId);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            } else {
+                console.warn(`Could not find sort button for type: ${sortType} (ID: ${buttonId})`);
+                // Fallback to highlighting priority if the specific button isn't found
+                 const priorityBtn = document.getElementById('sort-priority');
+                 if(priorityBtn) priorityBtn.classList.add('active');
+            }
+        }
 
-                // *** FIX: Use sanitized key in selector ***
-                const sanitizedKey = sanitizeKeyForId(supplierKey);
-                const selector = `#deal-list-${sanitizedKey} .deal-item[data-deal-id="${dealId}"]`;
-                // console.log("Using selector:", selector);
-                const dealElement = document.querySelector(selector);
 
-                if (dealElement) {
-                    // console.log("Found DOM element, removing.");
-                    dealElement.remove();
-                } else {
-                    console.error("Error: Could not find deal element in DOM:", selector);
-                    // Don't alert every time, console error is enough now we know the cause
+        // --- Core Logic Helpers ---
+        function normalizeSupplier(name) {
+             // More robust normalization: lowercase, remove punctuation except &, trim excessive whitespace
+             return name?.toLowerCase()
+                        .trim()
+                        .replace(/&/g, '&') // Handle HTML entity
+                        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g,"") // Remove most punctuation
+                        .replace(/\s+/g,' ') // Collapse multiple spaces
+                        .trim()
+                        || ''; // Return empty string if input is falsy
+        }
+
+        function getSupplierInfo(key) {
+             // Use the normalized key directly for lookup
+            return SUPPLIER_INFO[key] || { name: formatDisplayName(key), categories: ["Other"], priority: PRIORITY.OTHER };
+        }
+
+        // Helper to format a display name from a key if not found in SUPPLIER_INFO
+        function formatDisplayName(key) {
+            if (!key) return "Unknown Supplier";
+            // Simple title case for fallback
+            return key.split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(' ');
+        }
+
+        function getDisplayName(key) {
+            if (!key) return "Unknown Supplier";
+             // Always use normalized key for lookup consistency
+             const normalizedKey = normalizeSupplier(key);
+            return SUPPLIER_INFO[normalizedKey]?.name || formatDisplayName(normalizedKey);
+        }
+
+        function sanitizeKeyForId(key) {
+             // Make it safe for HTML IDs: letters, numbers, hyphens only. Replace spaces with hyphens.
+             if (!key) return 'unknown-id';
+            return key.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+        }
+
+         function parseDeals(rawInput) {
+            const parsedDeals = [];
+            // Split by one or more blank lines
+            const dealBlocks = rawInput.split(/\n\s*\n+/);
+
+            dealBlocks.forEach((block, index) => {
+                const lines = block.split('\n')
+                                   .map(line => line.trim())
+                                   .filter(line => line &&
+                                                 !line.toLowerCase().includes("logo") &&
+                                                 !line.toLowerCase().includes("image") && // Added "image" exclusion
+                                                 !line.toLowerCase().includes("expires")); // Simplified expires check
+
+                if (lines.length >= 3) {
+                    const potentialSupplier = lines[0];
+                    const potentialTitle = lines[1];
+                    const potentialDescription = lines[2];
+
+                    // Basic validation: Title and Description shouldn't look like typical supplier names
+                    if (potentialTitle.length < 5 || potentialDescription.length < 10 || potentialTitle.split(' ').length > 10) {
+                         console.warn(`Skipping block ${index + 1} due to suspicious title/desc length:`, lines);
+                         return;
+                    }
+
+                    const supplierKey = normalizeSupplier(potentialSupplier);
+                    const supplierInfo = getSupplierInfo(supplierKey); // Get info using normalized key
+
+                     // Check if normalized key resolved to something meaningful
+                     if (!supplierKey || !supplierInfo || supplierInfo.name === "Unknown Supplier") {
+                         // Maybe try the *next* line as supplier if the first fails? Advanced heuristic.
+                         if (lines.length >= 4) {
+                             const secondLineKey = normalizeSupplier(lines[1]);
+                             const secondLineInfo = getSupplierInfo(secondLineKey);
+                             if (secondLineKey && secondLineInfo && secondLineInfo.name !== "Unknown Supplier") {
+                                 // console.log(`Using second line as supplier for block ${index + 1}`);
+                                 // Reassign lines - This is tricky, might need adjustment
+                                 // For now, let's just log the issue and skip
+                                 console.warn(`Skipping block ${index + 1}: Cannot reliably identify supplier from first line ('${potentialSupplier}')`, lines);
+                                 return; // Skip this block if supplier not recognized
+                             } else {
+                                 console.warn(`Skipping block ${index + 1}: Cannot identify supplier ('${potentialSupplier}')`, lines);
+                                 return;
+                             }
+                         } else {
+                             console.warn(`Skipping block ${index + 1}: Cannot identify supplier ('${potentialSupplier}')`, lines);
+                             return;
+                         }
+                     }
+
+                    const title = potentialTitle;
+                    const description = potentialDescription;
+                    // Check for "EXCLUSIVE" in title, case-insensitive
+                    const isExclusive = /\bEXCLUSIVE\b/i.test(title);
+
+                    parsedDeals.push({
+                        supplierKey: supplierKey, // Store the normalized key
+                        displayName: supplierInfo.name, // Store the official display name
+                        title: title,
+                        description: description,
+                        exclusive: isExclusive,
+                        id: crypto.randomUUID() // Unique ID for each deal item
+                    });
+                } else if (lines.length > 0) {
+                    console.warn(`Skipping block ${index + 1} due to insufficient lines:`, lines);
+                }
+            });
+            console.log(`Parsed ${parsedDeals.length} deals.`);
+            return parsedDeals;
+        }
+
+        function groupDealsBySupplier(deals) {
+            const grouped = {};
+            deals.forEach(deal => {
+                const key = deal.supplierKey; // Use the already normalized key
+                if (!grouped[key]) {
+                    grouped[key] = [];
+                }
+                 // Add the deal with a default isSelected state
+                grouped[key].push({ ...deal, isSelected: true });
+            });
+
+            // Sort deals within each supplier group (Exclusives first, then alphabetically by title)
+            for (const key in grouped) {
+                grouped[key].sort((a, b) => {
+                    if (b.exclusive !== a.exclusive) {
+                        return b.exclusive - a.exclusive; // true (1) comes before false (0)
+                    }
+                    return a.title.localeCompare(b.title); // Then sort by title
+                });
+            }
+            console.log("Grouped deals by supplier:", grouped);
+            return grouped;
+        }
+
+        // --- Suggestion Logic ---
+
+        // Basic qualification check (maybe not strictly needed if scoring handles it well)
+        function qualifies(deals) {
+             const exclusiveCount = deals.filter(d => d.exclusive).length;
+             if (deals.length >= 3 && exclusiveCount >=2 ) return true; // Original rule
+             if (deals.length >= 2 && exclusiveCount >= 1 ) return true; // Loosen slightly: 2 deals, at least 1 exclusive
+             if (deals.length >= 4) return true; // Allow if > 4 deals even w/o exclusives?
+            return false;
+        }
+
+
+        function buildCandidateList(groupedDeals, potmKeys) {
+            const candidates = [];
+            const lastWeekSet = new Set(lastWeekSuppliers); // For quick lookup
+
+            console.log("Building candidate list. POTM Keys:", potmKeys, "Last Week Keys:", lastWeekSet);
+
+            for (const key in groupedDeals) {
+                if (!key || !groupedDeals.hasOwnProperty(key)) continue; // Skip invalid keys
+
+                const deals = groupedDeals[key];
+                if (!deals || deals.length === 0) continue; // Skip suppliers with no deals
+
+                const supplierInfo = getSupplierInfo(key); // Use normalized key
+                const isPopular = (supplierInfo.categories || []).includes("Popular Cruises");
+                const isPotm = potmKeys.has(key);
+                const usedLastWeek = lastWeekSet.has(key);
+
+                let score = 0;
+                const dealCount = deals.length;
+                const exclusiveCount = deals.filter(d => d.exclusive).length;
+
+                // 1. Base score from priority levels
+                score += supplierInfo.priority || PRIORITY.OTHER;
+
+                // 2. Bonus for being in "Popular Cruises" category (adjust multiplier if needed)
+                 // Only apply if not already covered by a higher specific priority (like Viking, Most, Mid etc.)
+                if (isPopular && supplierInfo.priority <= PRIORITY.LEAST) {
+                    score += PRIORITY.POPULAR_BONUS;
                 }
 
-                // Cleanup SortableJS if list empty
+                 // 3. Bonus/Penalty based on number of deals (Incentivize having a few good deals)
+                if (dealCount >= 3 && dealCount <= 6) score += 15; // Sweet spot bonus
+                else if (dealCount >= 1 && dealCount <=2) score += 5; // Small bonus for having *some* deals
+                else if (dealCount > 10) score -= 10; // Slight penalty for too many (often noise)
+
+                // 4. Bonus for exclusives
+                score += exclusiveCount * 20; // Make exclusives quite valuable
+
+                // 5. Penalty if used last week (unless they are POTM this time)
+                if (usedLastWeek && !isPotm) {
+                    score += PRIORITY.LAST_WEEK_PENALTY;
+                    // console.log(`Applied penalty to ${key}. Score: ${score}`);
+                }
+
+                 // 6. Significant boost if POTM to ensure they are highly ranked
+                if (isPotm) {
+                    score += PRIORITY.HIGHEST;
+                    // console.log(`Applied POTM boost to ${key}. Score: ${score}`);
+                }
+
+                // Add to candidates if score is positive (avoid negative scores from penalty)
+                 // Or always add? Let's always add for now, sorting will handle low scores.
+                 // if (score > 0) {
+                    candidates.push({
+                        supplierKey: key,
+                        deals: deals, // Keep deals data associated
+                        score: score,
+                        displayName: supplierInfo.name // For sorting/display
+                    });
+                 // } else {
+                 //      console.log(`Skipping candidate ${key} due to non-positive score (${score})`);
+                 // }
+            }
+
+            // Sort candidates: Score descending, then alphabetically by display name
+            candidates.sort((a, b) => {
+                if (b.score !== a.score) {
+                    return b.score - a.score;
+                }
+                return a.displayName.localeCompare(b.displayName);
+            });
+
+            console.log("Sorted Candidate List:", candidates.map(c => ({ key: c.supplierKey, score: c.score, name: c.displayName })));
+            return candidates;
+        }
+
+
+        function getForcedPotmKeys() {
+            const potmKeys = new Set();
+            const potm1Value = document.getElementById("potm1").value; // Value is the KEY
+            const potm2Value = document.getElementById("potm2").value; // Value is the KEY
+
+            if (potm1Value) {
+                const key1 = normalizeSupplier(potm1Value); // Should already be normalized, but belt & suspenders
+                if (allGroupedDeals[key1]?.length > 0) {
+                   potmKeys.add(key1);
+                } else if (potm1Value) {
+                   console.warn("No deals found for selected Partner of the Month 1:", getDisplayName(key1));
+                }
+            }
+             if (potm2Value) {
+                const key2 = normalizeSupplier(potm2Value);
+                 if (allGroupedDeals[key2]?.length > 0) {
+                    potmKeys.add(key2);
+                 } else if (potm2Value) {
+                     console.warn("No deals found for selected Partner of the Month 2:", getDisplayName(key2));
+                 }
+            }
+            return potmKeys;
+        }
+
+
+        function combineCandidates(potmKeys, allCandidates) {
+            const finalSelection = [];
+            const finalSelectionKeys = new Set();
+            const maxSuggestions = 4;
+
+             // 1. Add forced POTM first, maintaining order if 2 are selected
+             const potm1Key = normalizeSupplier(document.getElementById("potm1").value);
+             const potm2Key = normalizeSupplier(document.getElementById("potm2").value);
+
+             if (potmKeys.has(potm1Key)) {
+                 const candidate = allCandidates.find(c => c.supplierKey === potm1Key);
+                 if (candidate) {
+                     finalSelection.push(candidate);
+                     finalSelectionKeys.add(potm1Key);
+                 }
+             }
+             // Add second POTM only if different and space allows
+             if (potmKeys.has(potm2Key) && potm2Key !== potm1Key && finalSelection.length < maxSuggestions) {
+                 const candidate = allCandidates.find(c => c.supplierKey === potm2Key);
+                  if (candidate) {
+                      finalSelection.push(candidate);
+                      finalSelectionKeys.add(potm2Key);
+                  }
+             }
+
+             // 2. Fill remaining slots (up to maxSuggestions) with the highest-scoring candidates
+             // that are NOT already selected POTM or have non-positive score? Maybe allow positive only.
+            for (const candidate of allCandidates) {
+                if (finalSelection.length >= maxSuggestions) break; // Stop when full
+
+                if (!finalSelectionKeys.has(candidate.supplierKey)) {
+                   // Optional: Only add if score is positive? Or meets a threshold?
+                   // if (candidate.score > 0) {
+                        finalSelection.push(candidate);
+                        finalSelectionKeys.add(candidate.supplierKey);
+                   // } else {
+                   //     console.log(`Candidate ${candidate.supplierKey} not added due to score ${candidate.score}`);
+                   // }
+                }
+            }
+
+             console.log("Final suggested supplier keys:", finalSelection.map(c => c.supplierKey));
+            return finalSelection; // Return the array of full candidate objects
+        }
+
+        // --- Main Process ---
+        function processAndSuggest() {
+            const rawInput = document.getElementById('deals-input').value;
+            if (!rawInput.trim()) {
+                alert("Please paste the deals into the input area first.");
+                return;
+            }
+
+            // Reset application state for this run
+            allParsedDeals = [];
+            allGroupedDeals = {};
+            currentDisplayedSuppliers = {};
+            Object.values(sortableInstances).forEach(instance => instance.destroy());
+            sortableInstances = {};
+            resetSwapTarget();
+            // Keep currentAvailableSort and currentCategoryFilter as they are user settings
+            // loadLastWeekSuppliers(); // History is loaded on page load, no need to reload here
+
+            document.getElementById('available-list').innerHTML = '<li class="text-center text-muted p-2">Processing...</li>';
+            document.getElementById('workspace').innerHTML = '<p class="text-center text-muted p-2" style="grid-column: 1 / -1;">Processing...</p>';
+
+
+            try {
+                allParsedDeals = parseDeals(rawInput);
+                if (allParsedDeals.length === 0) {
+                    alert("Could not parse any valid deals. Please check the input format:\n- Supplier Name on the first line\n- Title on the second line\n- Description on the third line\n- Separate deal blocks with blank lines.");
+                     renderReviewUI(); // Render empty state
+                    return;
+                }
+
+                allGroupedDeals = groupDealsBySupplier(allParsedDeals);
+                if (Object.keys(allGroupedDeals).length === 0) {
+                    alert("Parsed deals but could not group them by supplier. Check supplier names.");
+                     renderReviewUI(); // Render empty state
+                    return;
+                }
+
+                const potmKeys = getForcedPotmKeys();
+                const allCandidates = buildCandidateList(allGroupedDeals, potmKeys);
+                const suggestedCandidates = combineCandidates(potmKeys, allCandidates);
+
+                 // Populate currentDisplayedSuppliers (the workspace) with the suggestions
+                 currentDisplayedSuppliers = {}; // Clear previous workspace suppliers
+                suggestedCandidates.forEach(candidate => {
+                    const key = candidate.supplierKey;
+                    // Ensure deals actually exist for this key in the grouped data
+                    if (allGroupedDeals[key]) {
+                        currentDisplayedSuppliers[key] = {
+                             // Use getDisplayName for consistency
+                            displayName: getDisplayName(key),
+                             // Crucially, take a DEEP COPY of the deals, ensure `isSelected: true`
+                            deals: allGroupedDeals[key].map(deal => ({ ...deal, isSelected: true }))
+                        };
+                    } else {
+                         console.warn(`Suggested supplier ${key} not found in groupedDeals. Skipping.`);
+                    }
+                });
+
+                // Update UI
+                document.getElementById('input-section').style.display = 'none';
+                document.getElementById('review-section').style.display = 'grid';
+                document.getElementById('output-section').style.display = 'none';
+                document.getElementById('final-output').textContent = '';
+
+                renderReviewUI(); // Render both Available Pool and Workspace
+
+            } catch (error) {
+                console.error("Error during processing and suggestion:", error);
+                alert("An error occurred while processing the deals: " + error.message + "\n\nCheck the console (F12) for more details.");
+                 // Reset to a usable state
+                 startOver();
+            }
+        }
+
+
+        // --- UI Rendering ---
+        function renderReviewUI() {
+            renderAvailablePool();
+            renderWorkspace();
+        }
+
+        function renderAvailablePool() {
+            const listElement = document.getElementById('available-list');
+            listElement.innerHTML = ''; // Clear previous items
+            let displayedCount = 0;
+            const workspaceKeys = new Set(Object.keys(currentDisplayedSuppliers));
+            const lastWeekSet = new Set(lastWeekSuppliers);
+
+            // 1. Filter keys: Not in workspace AND matches category filter
+            let availableKeys = Object.keys(allGroupedDeals)
+                .filter(key => !workspaceKeys.has(key))
+                .filter(key => {
+                    if (currentCategoryFilter === 'all') return true;
+                    const info = getSupplierInfo(key);
+                    return (info.categories || []).includes(currentCategoryFilter);
+                });
+
+            // 2. Prepare data for sorting (add necessary info)
+            let itemsToSort = availableKeys.map(key => {
+                const info = getSupplierInfo(key);
+                const deals = allGroupedDeals[key] || [];
+                const usedLastWeek = lastWeekSet.has(key);
+                 // Calculate a temporary 'priority score' for sorting if needed
+                 let priorityScore = (info.priority || PRIORITY.OTHER);
+                 if(usedLastWeek) priorityScore += PRIORITY.LAST_WEEK_PENALTY; // Apply penalty for sorting
+
+                return {
+                    key: key,
+                    displayName: info.name,
+                    dealCount: deals.length,
+                    exclusiveCount: deals.filter(d => d.exclusive).length,
+                    priorityScore: priorityScore,
+                    usedLastWeek: usedLastWeek
+                };
+            });
+
+            // 3. Apply Sorting based on currentAvailableSort
+             switch (currentAvailableSort) {
+                case 'totalDeals':
+                    itemsToSort.sort((a, b) => b.dealCount - a.dealCount || a.displayName.localeCompare(b.displayName));
+                    break;
+                case 'exclusiveDeals':
+                    itemsToSort.sort((a, b) => b.exclusiveCount - a.exclusiveCount || a.displayName.localeCompare(b.displayName));
+                    break;
+                case 'alpha':
+                    itemsToSort.sort((a, b) => a.displayName.localeCompare(b.displayName));
+                    break;
+                case 'priority': // Default sort
+                default:
+                    itemsToSort.sort((a, b) => b.priorityScore - a.priorityScore || a.displayName.localeCompare(b.displayName));
+                    break;
+            }
+
+             // Update active sort button visual state
+             setActiveSortButton(currentAvailableSort);
+
+
+            // 4. Render List Items
+            itemsToSort.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'available-item';
+                 if(item.usedLastWeek) li.classList.add('used-last-week'); // Add class for potential styling
+                if (swapTarget.key === item.key) li.classList.add('disabled'); // Disable if current swap target
+
+                const recentIndicator = item.usedLastWeek ? '<span class="recent-indicator">(Recent)</span>' : '';
+
+                li.innerHTML = `
+                    <span>${item.displayName} ${recentIndicator}</span>
+                    <span>${item.dealCount} Deals (${item.exclusiveCount} Excl.)</span>
+                `;
+                li.onclick = () => initiateSwap(item.key);
+                li.title = `Click to swap with highlighted card in workspace. Priority Score: ${item.priorityScore}. ${item.usedLastWeek ? 'Featured recently.' : ''}`;
+
+                listElement.appendChild(li);
+                displayedCount++;
+            });
+
+            // 5. Handle Empty States
+            if (Object.keys(allGroupedDeals).length === 0) {
+                listElement.innerHTML = '<li class="text-center text-muted p-2">Process deals first...</li>';
+            } else if (availableKeys.length === 0 && workspaceKeys.size >= Object.keys(allGroupedDeals).length) {
+                 listElement.innerHTML = '<li class="text-center text-muted p-2">All available suppliers are in the workspace or filtered out.</li>';
+             } else if (displayedCount === 0) {
+                listElement.innerHTML = `<li class="text-center text-muted p-2">No available suppliers match the current filter "${currentCategoryFilter}".</li>`;
+            }
+        }
+
+         function renderWorkspace() {
+            const workspaceElement = document.getElementById('workspace');
+            workspaceElement.innerHTML = ''; // Clear previous cards
+             // Destroy old Sortable instances before re-rendering
+            Object.values(sortableInstances).forEach(instance => instance.destroy());
+            sortableInstances = {};
+
+             // Sort displayed suppliers alphabetically by display name for consistent card order
+             const sortedKeys = Object.keys(currentDisplayedSuppliers)
+                                    .sort((a, b) => currentDisplayedSuppliers[a].displayName.localeCompare(currentDisplayedSuppliers[b].displayName));
+
+            if (sortedKeys.length === 0) {
+                workspaceElement.innerHTML = '<p class="text-center text-muted p-2" style="grid-column: 1 / -1;">No suppliers suggested. Try adjusting input or POTM.</p>';
+                return;
+            }
+
+            sortedKeys.forEach(key => {
+                const supplierData = currentDisplayedSuppliers[key];
+                const cardElement = document.createElement('div');
+                cardElement.className = 'selected-supplier-card fade-in';
+                cardElement.dataset.supplierKey = key; // Store the original key
+                if (swapTarget.key === key) {
+                    cardElement.classList.add('swap-target'); // Highlight if it's the swap target
+                }
+
+                const sanitizedKey = sanitizeKeyForId(key); // Use sanitized key for the UL ID
+                const listId = `deal-list-${sanitizedKey}`;
+
+                 // Generate HTML for deals within this card
+                const dealsHtml = supplierData.deals.length === 0
+                    ? '<li class="text-center text-muted" style="padding: 1rem 0;">No deals found or remaining</li>'
+                    : supplierData.deals.map(deal => `
+                        <li class="deal-item ${deal.exclusive ? 'is-exclusive' : ''}" data-deal-id="${deal.id}">
+                            <span class="drag-handle" title="Drag to reorder deals">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/></svg>
+                            </span>
+                            <input type="checkbox" class="deal-select" id="deal-cb-${deal.id}"
+                                   ${deal.isSelected ? 'checked' : ''}
+                                   onchange="toggleDealSelection('${key}', '${deal.id}')"
+                                   title="Include this deal in the final output">
+                            <div class="deal-content">
+                                <label for="deal-cb-${deal.id}" class="deal-title" title="${deal.title}">${deal.title}</label>
+                                <p class="deal-description">${deal.description}</p>
+                            </div>
+                            <div class="deal-actions">
+                                <button class="btn-icon btn-small btn-danger" onclick="removeDealFromCard('${key}', '${deal.id}')" title="Remove this deal permanently from this card">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/></svg>
+                                </button>
+                            </div>
+                        </li>
+                    `).join('');
+
+                 // Set the inner HTML of the card
+                cardElement.innerHTML = `
+                    <div class="card-header-selected" onclick="setSwapTarget(this.parentElement, '${key}')" title="Click to select '${supplierData.displayName}' for swapping">
+                        <h3>${supplierData.displayName}</h3>
+                        <span class="text-muted" style="font-size:0.8rem;">Click header to swap</span>
+                    </div>
+                    <ul class="deal-list-selected" id="${listId}">
+                        ${dealsHtml}
+                    </ul>
+                `;
+
+                workspaceElement.appendChild(cardElement);
+
+                // Initialize SortableJS for the newly created list UL if it has deals
+                const listElement = cardElement.querySelector(`#${listId}`);
+                 if (listElement && supplierData.deals.length > 0) {
+                    sortableInstances[key] = Sortable.create(listElement, {
+                        animation: 150,
+                        handle: '.drag-handle', // Use the span with this class as the handle
+                        ghostClass: 'sortable-ghost', // Class for the placeholder
+                        dragClass: 'sortable-drag', // Class for the item being dragged
+                        onEnd: function (evt) {
+                             // Update the internal state array `currentDisplayedSuppliers[key].deals`
+                            const movedDealId = evt.item.dataset.dealId;
+                             const supplierDeals = currentDisplayedSuppliers[key]?.deals;
+                             if (!supplierDeals) return;
+
+                             const oldIndex = supplierDeals.findIndex(deal => deal.id === movedDealId);
+                            if (oldIndex > -1) {
+                                const [movedItem] = supplierDeals.splice(oldIndex, 1); // Remove item
+                                supplierDeals.splice(evt.newIndex, 0, movedItem); // Insert at new position
+                                // No need to re-render the whole workspace, just update state
+                                 console.log(`Reordered deals for ${key}`);
+                            } else {
+                                 console.error(`Could not find deal with ID ${movedDealId} to reorder for supplier ${key}`);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+
+        // --- Interaction Handlers ---
+        function setAvailableSort(type) {
+            if (currentAvailableSort !== type) {
+                currentAvailableSort = type;
+                renderAvailablePool(); // Re-render the pool with new sorting
+                 setActiveSortButton(type); // Update button highlighting
+            }
+        }
+
+        function setCategoryFilter(value) {
+            if (currentCategoryFilter !== value) {
+                currentCategoryFilter = value;
+                renderAvailablePool(); // Re-render the pool with new filter
+            }
+        }
+
+        function setSwapTarget(cardElement, supplierKey) {
+            // If clicking the same target again, deselect it
+            if (swapTarget.key === supplierKey) {
+                resetSwapTarget();
+                renderAvailablePool(); // Re-render pool to remove disabled state
+                return;
+            }
+
+             // Reset previous target (if any)
+             resetSwapTarget();
+
+            // Set new target
+            swapTarget.cardElement = cardElement;
+            swapTarget.key = supplierKey;
+            cardElement.classList.add('swap-target'); // Highlight the card in the workspace
+
+            // Disable the corresponding item in the available list
+            renderAvailablePool(); // Re-rendering handles the disabling based on swapTarget.key
+            console.log("Swap target set to:", supplierKey);
+        }
+
+        function resetSwapTarget() {
+            if (swapTarget.cardElement) {
+                swapTarget.cardElement.classList.remove('swap-target');
+            }
+            // No need to manually undisable here, renderAvailablePool handles it
+            swapTarget.cardElement = null;
+            swapTarget.key = null;
+        }
+
+        function initiateSwap(newSupplierKey) {
+            if (!swapTarget.key) {
+                alert("Please click the header of the card in the workspace you want to replace first.");
+                return;
+            }
+
+            if (newSupplierKey === swapTarget.key) {
+                 console.log("Attempted to swap with the same supplier. Canceling.");
+                resetSwapTarget();
+                 renderAvailablePool();
+                return;
+            }
+
+             // Check if the target is already in the workspace (shouldn't happen with current logic, but good check)
+             if (currentDisplayedSuppliers[newSupplierKey]) {
+                 alert(`${getDisplayName(newSupplierKey)} is already in the workspace.`);
+                 return;
+             }
+
+             console.log(`Swapping workspace supplier '${swapTarget.key}' with available supplier '${newSupplierKey}'`);
+
+            // Destroy SortableJS instance for the outgoing supplier
+            if (sortableInstances[swapTarget.key]) {
+                sortableInstances[swapTarget.key].destroy();
+                delete sortableInstances[swapTarget.key];
+            }
+
+            // Remove the old supplier from the workspace state
+            delete currentDisplayedSuppliers[swapTarget.key];
+
+            // Add the new supplier to the workspace state
+             // Ensure deals exist for the new key
+            if (allGroupedDeals[newSupplierKey]) {
+                currentDisplayedSuppliers[newSupplierKey] = {
+                    displayName: getDisplayName(newSupplierKey),
+                     // Deep copy deals and set isSelected to true by default for the new card
+                    deals: allGroupedDeals[newSupplierKey].map(deal => ({ ...deal, isSelected: true }))
+                };
+            } else {
+                 console.error(`Cannot add supplier ${newSupplierKey} - no deals found in allGroupedDeals.`);
+                 // Add an empty entry? Or handle error? Let's add empty for now.
+                 currentDisplayedSuppliers[newSupplierKey] = {
+                    displayName: getDisplayName(newSupplierKey),
+                    deals: []
+                 }
+            }
+
+
+            // Reset the swap target state
+            resetSwapTarget();
+
+            // Re-render the entire review UI (both pool and workspace)
+            renderReviewUI();
+        }
+
+         function toggleDealSelection(supplierKey, dealId) {
+            const supplier = currentDisplayedSuppliers[supplierKey];
+            if (!supplier || !supplier.deals) {
+                console.error(`Supplier or deals not found for key: ${supplierKey}`);
+                return;
+            }
+
+            const deal = supplier.deals.find(d => d.id === dealId);
+            if (deal) {
+                deal.isSelected = !deal.isSelected; // Toggle the state
+                console.log(`Toggled selection for deal ${dealId} in ${supplierKey} to ${deal.isSelected}`);
+                 // Maybe add visual feedback? Checkbox state handles it mostly.
+            } else {
+                console.error(`Deal with ID ${dealId} not found for supplier ${supplierKey}`);
+            }
+        }
+
+        function removeDealFromCard(supplierKey, dealId) {
+            console.log(`Attempting to remove deal: key='${supplierKey}', id='${dealId}'`);
+            const supplier = currentDisplayedSuppliers[supplierKey];
+
+            if (!supplier || !supplier.deals) {
+                console.error("Error: Supplier or deals array not found in currentDisplayedSuppliers:", supplierKey);
+                return;
+            }
+
+            const dealIndex = supplier.deals.findIndex(d => d.id === dealId);
+            console.log(`Found index for deal ${dealId}: ${dealIndex}`);
+
+            if (dealIndex > -1) {
+                // 1. Remove from state
+                supplier.deals.splice(dealIndex, 1);
+                 console.log(`Removed deal from state. Remaining deals for ${supplierKey}: ${supplier.deals.length}`);
+
+                 // 2. Remove from DOM
+                 const sanitizedKey = sanitizeKeyForId(supplierKey);
+                 const dealElementSelector = `#deal-list-${sanitizedKey} .deal-item[data-deal-id="${dealId}"]`;
+                const dealElement = document.querySelector(dealElementSelector);
+
+                if (dealElement) {
+                    console.log("Found DOM element, removing:", dealElementSelector);
+                    dealElement.remove();
+                } else {
+                    // This *shouldn't* happen if state and DOM are in sync, but log if it does.
+                    console.error("Error: Could not find deal element in DOM to remove:", dealElementSelector);
+                     // Consider re-rendering the specific card or whole workspace if desync occurs often
+                }
+
+                // 3. Cleanup SortableJS if the list becomes empty
                 if (supplier.deals.length === 0) {
-                     // console.log(`List empty, cleanup sortable for ${supplierKey}`);
-                    if (sortableInstances[supplierKey]) { // Use original key for sortable instance tracking
+                    console.log(`Deal list for ${supplierKey} is now empty.`);
+                    if (sortableInstances[supplierKey]) {
+                        console.log(`Destroying Sortable instance for ${supplierKey}`);
                         sortableInstances[supplierKey].destroy();
                         delete sortableInstances[supplierKey];
                     }
-                    // Use sanitized key to find the UL element
+                    // Add "No deals" message to the DOM UL
                     const listUl = document.getElementById(`deal-list-${sanitizedKey}`);
-                    if(listUl) {
+                    if (listUl) {
                         listUl.innerHTML = '<li class="text-center text-muted" style="padding: 1rem 0;">No deals remaining</li>';
                     }
                 }
             } else {
-                console.error(`Error: Deal ID '${dealId}' not found in state for '${supplierKey}'.`);
+                console.error(`Error: Deal ID '${dealId}' not found in state for supplier '${supplierKey}'. State may be out of sync.`);
+                 // Consider re-rendering the card to fix potential desync
+                 // renderWorkspace(); // This is heavy-handed, but could fix it.
             }
-       }
+        }
 
         // --- Final Output & Start Over ---
-        function generateFinalOutput() { const o=[]; const keys=Object.keys(currentDisplayedSuppliers).sort((a,b)=>currentDisplayedSuppliers[a].displayName.localeCompare(currentDisplayedSuppliers[b].displayName)); let inc=false; keys.forEach(k=>{ const d=currentDisplayedSuppliers[k]; const s=d.deals.filter(dl=>dl.isSelected).slice(0,4); if(s.length>0){ inc=true; o.push(`[${d.displayName}]`); s.forEach(dl=>{o.push(dl.title);o.push(dl.description);}); o.push('');}}); if(!inc){alert("No deals selected.");return;} const t=o.join('\n').trim(); document.getElementById('final-output').textContent=t; document.getElementById('output-section').style.display='block'; document.getElementById('output-section').scrollIntoView({behavior:'smooth'}); }
-        function copyFinalOutput() { const t=document.getElementById('final-output').textContent; if(!t){alert("Nothing to copy!");return;} navigator.clipboard.writeText(t).then(()=>{ const b=document.querySelector("#output-section .btn:first-of-type"); const ot=b.textContent; b.textContent="Copied!"; setTimeout(()=>{b.textContent=ot;},2000); }).catch(e=>{console.error("Copy fail:",e);alert("Failed copy.");}); }
-        function startOver() { allParsedDeals=[]; allGroupedDeals={}; currentDisplayedSuppliers={}; Object.values(sortableInstances).forEach(i=>i.destroy()); sortableInstances={}; resetSwapTarget(); currentAvailableSort='preferred'; currentCategoryFilter='all'; document.getElementById('category-filter').value='all'; document.getElementById('deals-input').value=''; document.getElementById('potm1').selectedIndex=0; document.getElementById('potm2').selectedIndex=0; document.getElementById('input-section').style.display='block'; document.getElementById('review-section').style.display='none'; document.getElementById('output-section').style.display='none'; document.getElementById('available-list').innerHTML='<li class="text-center text-muted p-2">Process first...</li>'; document.getElementById('workspace').innerHTML='<p class="text-center text-muted p-2" style="grid-column:1/-1;">Suggestions appear here.</p>'; document.getElementById('final-output').textContent=''; document.getElementById('input-section').scrollIntoView({behavior:'smooth'}); }
+        function generateFinalOutput() {
+            const outputLines = [];
+            const includedSupplierKeys = []; // Track keys actually included in output
 
+             // Get keys from the current workspace and sort them by display name
+             const workspaceKeys = Object.keys(currentDisplayedSuppliers)
+                                        .sort((a, b) => currentDisplayedSuppliers[a].displayName.localeCompare(currentDisplayedSuppliers[b].displayName));
+
+            let dealsIncludedCount = 0;
+
+            workspaceKeys.forEach(key => {
+                const supplierData = currentDisplayedSuppliers[key];
+                // Get the selected deals for this supplier, respecting the order in the state array
+                 const selectedDeals = supplierData.deals
+                                          .filter(deal => deal.isSelected)
+                                          .slice(0, 4); // Limit to max 4 deals per supplier
+
+                if (selectedDeals.length > 0) {
+                    includedSupplierKeys.push(key); // Add supplier key to the list for history saving
+                    outputLines.push(`[${supplierData.displayName}]`);
+                    selectedDeals.forEach(deal => {
+                        outputLines.push(deal.title);
+                        outputLines.push(deal.description);
+                        dealsIncludedCount++;
+                    });
+                    outputLines.push(''); // Blank line between suppliers
+                }
+            });
+
+            if (dealsIncludedCount === 0) {
+                alert("No deals are selected in the workspace. Please check the boxes next to the deals you want to include in the output.");
+                return;
+            }
+
+             // Join lines and trim any trailing blank line
+            const finalText = outputLines.join('\n').trim();
+            document.getElementById('final-output').textContent = finalText;
+            document.getElementById('output-section').style.display = 'block';
+            document.getElementById('output-section').scrollIntoView({ behavior: 'smooth' });
+
+             // Save the keys of suppliers that had selected deals in this output
+            saveLastWeekSuppliers(includedSupplierKeys);
+        }
+
+        function copyFinalOutput() {
+            const outputText = document.getElementById('final-output').textContent;
+            if (!outputText) {
+                alert("Nothing to copy!");
+                return;
+            }
+            navigator.clipboard.writeText(outputText).then(() => {
+                const copyButton = document.querySelector("#output-section .btn:first-of-type"); // Adjust selector if needed
+                const originalText = copyButton.textContent;
+                copyButton.textContent = "Copied!";
+                copyButton.disabled = true;
+                setTimeout(() => {
+                    copyButton.textContent = originalText;
+                    copyButton.disabled = false;
+                }, 2000); // Reset after 2 seconds
+            }).catch(err => {
+                console.error("Failed to copy text: ", err);
+                alert("Failed to copy text. Please try copying manually.");
+            });
+        }
+
+        function startOver() {
+             // Reset state variables
+            allParsedDeals = [];
+            allGroupedDeals = {};
+            currentDisplayedSuppliers = {};
+            Object.values(sortableInstances).forEach(instance => instance.destroy());
+            sortableInstances = {};
+            resetSwapTarget();
+            // Reset filters/sorts to default
+            currentAvailableSort = 'priority';
+            currentCategoryFilter = 'all';
+             document.getElementById('category-filter').value = 'all';
+            setActiveSortButton('priority'); // Ensure priority button is active
+
+             // Don't clear lastWeekSuppliers here, it persists between sessions unless cleared manually
+             // loadLastWeekSuppliers(); // Already loaded on page load
+
+            // Clear inputs and outputs
+            document.getElementById('deals-input').value = '';
+            document.getElementById('potm1').selectedIndex = 0;
+            document.getElementById('potm2').selectedIndex = 0;
+            document.getElementById('final-output').textContent = '';
+            document.getElementById('available-list').innerHTML = '<li class="text-center text-muted p-2">Process deals first...</li>';
+            document.getElementById('workspace').innerHTML = '<p class="text-center text-muted p-2" style="grid-column: 1 / -1;">Suggestions will appear here.</p>';
+
+            // Reset UI visibility
+            document.getElementById('input-section').style.display = 'block';
+            document.getElementById('review-section').style.display = 'none';
+            document.getElementById('output-section').style.display = 'none';
+
+            // Scroll back to top
+            document.getElementById('input-section').scrollIntoView({ behavior: 'smooth' });
+             console.log("Application reset to initial state.");
+        }
+
+    </script>
+
+
+    <!-- History Initialization Script -->
+    <!-- Place this *after* the main script block but *before* </body> -->
+    <script>
+      (function initializeHistory() {
+        // Use the EXACT normalized keys from your SUPPLIER_INFO object
+        const LAST_WEEK_KEYS = [
+          "royal caribbean",
+          "msc cruises",
+          "amawaterways",
+          "virgin voyages",
+          "celebrity cruises"
+        ];
+        const STORAGE_KEY = 'dealSorterLastWeek';
+
+        // Check if history already exists and is recent enough (e.g., < 1 day old)
+        // This prevents overwriting history if the user refreshes the page after using it.
+        const existingDataRaw = localStorage.getItem(STORAGE_KEY);
+        let shouldInitialize = true;
+        if (existingDataRaw) {
+            try {
+                const existingData = JSON.parse(existingDataRaw);
+                const oneDayAgo = Date.now() - (1 * 24 * 60 * 60 * 1000);
+                if (existingData.timestamp && existingData.timestamp > oneDayAgo) {
+                    // console.log("LocalStorage history seems recent; skipping initialization.");
+                    shouldInitialize = false; // Don't overwrite fresh data
+                }
+            } catch(e) {
+                console.error("Error parsing existing history data, will re-initialize.", e);
+                shouldInitialize = true; // Overwrite corrupted data
+            }
+        }
+
+
+        if (shouldInitialize) {
+            const dataToStore = {
+              suppliers: LAST_WEEK_KEYS,
+              timestamp: Date.now() // Set timestamp to now
+            };
+
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
+              console.log('LocalStorage history initialized/updated with specified suppliers:', LAST_WEEK_KEYS);
+            } catch (e) {
+              console.error('Failed to initialize localStorage:', e);
+            }
+        } else {
+            // Optionally log that initialization was skipped
+             // console.log('Skipped initialization of LocalStorage history.');
+        }
+
+      })();
     </script>
 
 </body>
