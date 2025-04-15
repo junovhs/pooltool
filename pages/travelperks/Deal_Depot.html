@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<style>
+  body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
+    padding: 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    text-align: center;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.filters {
+    margin-top: 25px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.filters h2 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #495057;
+    width: 100%; /* Take full width initially */
+    text-align: left;
+    margin-bottom: 10px; /* Add space below heading */
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-group label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 0.95rem;
+    min-width: 150px; /* Give selects some base width */
+    cursor: pointer;
+}
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.category-btn {
+    padding: 6px 12px;
+    border: 1px solid #007bff;
+    border-radius: 15px; /* Rounded buttons */
+    background-color: #fff;
+    color: #007bff;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    user-select: none; /* Prevent text selection */
+}
+
+.category-btn:hover {
+    background-color: #e7f3ff; /* Light blue background on hover */
+}
+
+.category-btn.active {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+}
+
+textarea#paste-area {
+    width: 95%;
+    min-height: 150px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    display: block; /* Make it block to take full width */
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+    cursor: grab; /* Indicate draggable */
+    transition: box-shadow 0.2s ease-in-out, opacity 0.3s ease; /* Added opacity transition */
+    padding-bottom: 40px; /* Add space for tags */
+}
+
+button#parse-button {
+    display: block;
+    width: 150px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin: 0 auto 25px auto;
+    transition: background-color 0.3s ease;
+}
+
+button#parse-button:hover {
+    background-color: #0056b3;
+}
+
+.deal-list-header {
+    display: flex;
+    justify-content: space-between; /* Pushes H2 left, Button right */
+    align-items: center; /* Vertically align items */
+    margin-bottom: 10px; /* Space below the header */
+}
+
+.deal-list-header h2 {
+    margin: 0; /* Remove default margin */
+    text-align: left; /* Align H2 left */
+}
+
+#copy-button {
+    padding: 8px 12px;
+    background-color: #28a745; /* Green */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+#copy-button:hover {
+    background-color: #218838; /* Darker green */
+}
+
+#copy-button:disabled {
+    background-color: #6c757d; /* Gray when disabled */
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.deal-list {
+    margin-top: 0; /* Removed margin top, handled by header now */
+    border: 1px dashed #ccc;
+    padding: 10px;
+    min-height: 100px;
+    background-color: #fafafa;
+    border-radius: 4px;
+}
+
+.deal-item {
+    display: block;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+    cursor: grab; /* Indicate draggable */
+    transition: box-shadow 0.2s ease-in-out, opacity 0.3s ease; /* Added opacity transition */
+}
+
+.deal-item.hidden {
+    display: none; /* Style to hide filtered items */
+    opacity: 0;
+    margin-bottom: 0;
+    padding: 0;
+    border: none;
+    height: 0;
+    overflow: hidden;
+    color: #666;
+}
+
+.deal-item.sortable-ghost {
+    opacity: 0.4;
+    background: #cce5ff;
+}
+
+.deal-item.sortable-chosen {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: grabbing;
+}
+
+.deal-item h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.1em;
+    color: #333;
+}
+
+.deal-item h4 {
+    margin: 0 0 10px 0;
+    font-size: 1em;
+    font-weight: normal;
+    color: #555;
+    font-style: italic;
+}
+
+.deal-item p {
+    margin: 0;
+    font-size: 0.95em;
+    color: #666;
+    margin-bottom: 35px; /* Add space below the description before tags */
+}
+
+.deal-tags {
+    position: relative; 
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px; 
+    padding-bottom: 5px; 
+}
+
+.deal-tag {
+    background-color: #e0e0e0;
+    color: #555;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    white-space: nowrap; /* Prevent tags from breaking mid-word */
+}
+
+.delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 24px; /* Center the 'X' */
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    opacity: 0.7;
+}
+
+.delete-btn:hover {
+    background-color: #cc0000;
+    opacity: 1;
+}
+</style>
+<html>
+<head>
+    <title>JSON Deal Organizer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Import Map for JS Libraries -->
+    <script type="importmap">
+      {
+        "imports": {
+          "sortablejs": "https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/+esm"
+        }
+      }
+    </script>
+</head>
+<body>
+    <h1>JSON Deal Organizer</h1>
+
+    <div class="container">
+        <textarea id="paste-area" placeholder='Paste your JSON array of deals here. Example:
+[
+  {
+    "id": 12345,
+    "status": "live",
+    "title": "Example Deal Title",
+    "shopOverline": "Example Supplier",
+    "shopListing": "This is the example deal description.",
+    "dealCategory": [96, 16974]
+  },
+  {
+    "id": 67890,
+    "status": "live",
+    "title": "Another Deal",
+    "shopOverline": "Another Supplier",
+    "shopListing": "More details about the second deal.",
+    "dealCategory": [39542]
+  }
+]
+'></textarea>
+        <button id="parse-button">Parse Deals</button>
+
+        <div class="filters">
+            <h2>Filters</h2>
+            <div class="filter-group">
+                <label for="supplier-filter">Supplier:</label>
+                <select id="supplier-filter">
+                    <option value="all">All Suppliers</option>
+                    <!-- Supplier options will be populated here -->
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Category:</label>
+                <div id="category-filter-buttons" class="category-buttons">
+                    <button class="category-btn active" data-category-id="all">All Categories</button>
+                    <!-- Category buttons will be populated here -->
+                </div>
+            </div>
+         </div>
+
+        <div class="deal-list-header">
+             <h2>Parsed Deals</h2>
+             <button id="copy-button" title="Copy visible deals to clipboard">Copy Visible Deals</button>
+        </div>
+        <div id="deal-list" class="deal-list">
+            <!-- Parsed deals will be added here -->
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
+
+<script>
+  import Sortable from 'sortablejs';
+
+const pasteArea = document.getElementById('paste-area');
+const parseButton = document.getElementById('parse-button');
+const dealListContainer = document.getElementById('deal-list');
+const supplierFilter = document.getElementById('supplier-filter');
+// Category filter elements
+const categoryFilterContainer = document.getElementById('category-filter-buttons');
+const copyButton = document.getElementById('copy-button');
+
+// --- Configuration ---
+const CATEGORY_MAP = {
+    96: 'River',
+    16974: 'Luxury',
+    39542: 'Exclusive',
+    100: 'Tours', // Added
+    16972: 'Adventure Cruising', // Added
+    16976: 'Disney & Theme Parks', // Added
+    94: 'Popular Cruises', // Added
+    98: 'Resorts & Hawaii', // Added
+    // Add more known category IDs here if needed
+};
+
+// --- State ---
+const processedDealIds = new Set(); // Use deal IDs for duplicate checking
+let uniqueSuppliers = new Set();
+let uniqueCategories = new Map(); // Store ID -> Name mapping
+let selectedCategoryIds = new Set(['all']); // Store selected category IDs ('all' is default)
+
+// --- Event Listeners ---
+parseButton.addEventListener('click', handleParse);
+supplierFilter.addEventListener('change', filterDeals);
+copyButton.addEventListener('click', handleCopyToClipboard); // Add listener for copy button
+// Category button clicks are handled during population
+
+// --- Functions ---
+
+function handleParse() {
+    const text = pasteArea.value.trim();
+    processedDealIds.clear();
+    uniqueSuppliers.clear();
+    uniqueCategories.clear();
+    dealListContainer.innerHTML = ''; // Clear previous results
+    resetFilters(); // Clear filter UI before parsing
+
+    let jsonData;
+    try {
+        jsonData = JSON.parse(text);
+        if (!Array.isArray(jsonData)) {
+            throw new Error("Input is not a JSON array.");
+        }
+    } catch (error) {
+        alert(`Invalid JSON input: ${error.message}`);
+        console.error("JSON Parsing Error:", error);
+        return;
+    }
+
+    let addedCount = 0;
+    let duplicateCount = 0;
+    let nonLiveCount = 0;
+
+    jsonData.forEach(deal => {
+        // Check if the deal has the required properties and is live
+        if (deal && deal.id && deal.status === 'live' && deal.title && deal.shopOverline && deal.shopListing) {
+            const dealId = deal.id;
+
+            if (!processedDealIds.has(dealId)) {
+                processedDealIds.add(dealId);
+
+                const supplier = deal.shopOverline;
+                const categories = deal.dealCategory || []; // Handle missing category array
+
+                // Add to unique sets/maps for filtering
+                uniqueSuppliers.add(supplier);
+                categories.forEach(catId => {
+                    if (!uniqueCategories.has(catId)) {
+                        uniqueCategories.set(catId, CATEGORY_MAP[catId] || `Category ${catId}`);
+                    }
+                });
+
+
+                addDealToDOM({
+                    id: dealId,
+                    supplier: supplier,
+                    title: deal.title,
+                    description: deal.shopListing,
+                    categories: categories // Pass categories to store in DOM
+                });
+                addedCount++;
+            } else {
+                console.log("Skipping duplicate deal (ID):", dealId, deal.title);
+                duplicateCount++;
+            }
+        } else if (deal && deal.status !== 'live') {
+            console.log("Skipping non-live deal:", deal.id, deal.title, `(Status: ${deal.status})`);
+            nonLiveCount++;
+        } else {
+            console.warn("Skipping malformed deal object:", deal);
+            // Optional: Add counter for malformed deals
+        }
+    });
+
+    console.log(`Processed ${jsonData.length} objects. Added ${addedCount} unique live deals. Skipped ${duplicateCount} duplicates. Skipped ${nonLiveCount} non-live deals.`);
+
+    populateFilters(); // Populate filter UI after processing all deals
+    filterDeals(); // Apply initial filter (show all)
+
+    // --- Display Summary Message ---
+    let message = `Added ${addedCount} unique live deals.`;
+    if (duplicateCount > 0) {
+        message += ` Skipped ${duplicateCount} duplicates.`;
+    }
+     if (nonLiveCount > 0) {
+        message += ` Skipped ${nonLiveCount} non-live deals.`;
+    }
+    if (addedCount === 0 && jsonData.length > 0) {
+        message += " No live deals found in the JSON.";
+    } else if (addedCount === 0 && jsonData.length === 0){
+         message = "No deals found in the JSON data.";
+    }
+    console.log(message);
+}
+
+
+function addDealToDOM(deal) {
+    const item = document.createElement('div');
+    item.classList.add('deal-item');
+    item.dataset.dealId = deal.id; // Store ID
+    item.dataset.supplier = deal.supplier; // Store supplier
+    const categories = deal.categories || [];
+    item.dataset.categories = JSON.stringify(categories); // Store categories as JSON string
+    item.dataset.description = deal.description; // Store description separately for easier copying
+    item.dataset.title = deal.title; // Store title separately for easier copying
+
+    const supplierEl = document.createElement('h3');
+    supplierEl.textContent = deal.supplier;
+
+    const titleEl = document.createElement('h4');
+    titleEl.textContent = deal.title;
+
+    const descriptionEl = document.createElement('p');
+    descriptionEl.textContent = deal.description;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.classList.add('delete-btn');
+    deleteBtn.innerHTML = '&times;'; // Use HTML entity for 'X'
+    deleteBtn.title = 'Delete Deal';
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent drag initiation
+        const currentSupplier = item.dataset.supplier;
+        const currentCategories = JSON.parse(item.dataset.categories || '[]');
+
+        item.remove();
+
+        // Remove ID from the processed set
+        if (deal.id) {
+             processedDealIds.delete(deal.id);
+             console.log(`Removed deal ID ${deal.id} from processed set.`);
+        }
+
+        // Check if the removed item was the last one for its supplier/category
+        // If so, remove from filter UI
+        updateFiltersAfterDeletion(currentSupplier, currentCategories);
+    });
+
+    // Create category tags
+    const tagsContainer = document.createElement('div');
+    tagsContainer.classList.add('deal-tags');
+    categories.forEach(catId => {
+        const tagName = CATEGORY_MAP[catId] || `Category ${catId}`;
+        const tagEl = document.createElement('span');
+        tagEl.classList.add('deal-tag');
+        tagEl.textContent = tagName;
+        tagEl.title = `Category ID: ${catId}`; // Add tooltip for ID
+        tagsContainer.appendChild(tagEl);
+    });
+
+
+    item.appendChild(deleteBtn);
+    item.appendChild(supplierEl);
+    item.appendChild(titleEl);
+    item.appendChild(descriptionEl);
+    item.appendChild(tagsContainer); // Add tags container
+
+    dealListContainer.appendChild(item);
+}
+
+function updateFiltersAfterDeletion(deletedSupplier, deletedCategories) {
+    // Check supplier
+    const remainingSuppliers = new Set([...dealListContainer.querySelectorAll('.deal-item')].map(el => el.dataset.supplier));
+    if (!remainingSuppliers.has(deletedSupplier)) {
+        uniqueSuppliers.delete(deletedSupplier);
+        const optionToRemove = supplierFilter.querySelector(`option[value="${deletedSupplier}"]`);
+        if (optionToRemove) optionToRemove.remove();
+        if (supplierFilter.value === deletedSupplier) {
+            supplierFilter.value = 'all';
+            // No need to call filterDeals here, category check below will do it if needed
+        }
+    }
+
+    // Check categories
+    const remainingCategories = new Set();
+    dealListContainer.querySelectorAll('.deal-item').forEach(el => {
+        JSON.parse(el.dataset.categories || '[]').forEach(catId => remainingCategories.add(catId));
+    });
+
+    let categoryFilterChanged = false;
+    deletedCategories.forEach(catId => {
+        if (!remainingCategories.has(catId)) {
+            uniqueCategories.delete(catId);
+            const buttonToRemove = categoryFilterContainer.querySelector(`button[data-category-id="${catId}"]`);
+            if (buttonToRemove) buttonToRemove.remove();
+            // If a selected category button was removed, update the selection
+            if (selectedCategoryIds.has(catId)) {
+                selectedCategoryIds.delete(catId);
+                // If no specific categories are left selected, select "All"
+                if (selectedCategoryIds.size === 0) {
+                     selectedCategoryIds.add('all');
+                     const allBtn = categoryFilterContainer.querySelector('button[data-category-id="all"]');
+                     if(allBtn) allBtn.classList.add('active');
+                }
+                categoryFilterChanged = true;
+            }
+        }
+    });
+
+    // Re-filter if supplier or category filter state changed
+    if (supplierFilter.value === deletedSupplier || categoryFilterChanged) {
+        filterDeals();
+    }
+}
+
+
+function resetFilters() {
+    // Reset supplier dropdown
+    supplierFilter.innerHTML = '<option value="all">All Suppliers</option>';
+    supplierFilter.value = 'all';
+
+    // Reset category buttons
+    // Keep 'All' button, remove others
+    categoryFilterContainer.innerHTML = '<button class="category-btn active" data-category-id="all">All Categories</button>';
+    selectedCategoryIds = new Set(['all']); // Reset selected state
+    // Re-add listener to the new 'All' button
+    categoryFilterContainer.querySelector('button[data-category-id="all"]')
+        .addEventListener('click', handleCategoryButtonClick);
+}
+
+function populateFilters() {
+    // Populate Suppliers
+    const sortedSuppliers = [...uniqueSuppliers].sort((a, b) => a.localeCompare(b));
+    sortedSuppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier;
+        option.textContent = supplier;
+        supplierFilter.appendChild(option);
+    });
+
+
+    // Populate Categories as Buttons
+    const allButton = categoryFilterContainer.querySelector('button[data-category-id="all"]');
+    // Remove existing category buttons except 'All'
+    categoryFilterContainer.querySelectorAll('button:not([data-category-id="all"])').forEach(btn => btn.remove());
+
+    const sortedCategories = [...uniqueCategories.entries()].sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB));
+    sortedCategories.forEach(([id, name]) => {
+        const button = document.createElement('button');
+        button.classList.add('category-btn');
+        button.dataset.categoryId = id;
+        button.textContent = name;
+        button.addEventListener('click', handleCategoryButtonClick);
+        categoryFilterContainer.appendChild(button);
+    });
+
+    // Ensure 'All' button still has its listener if it was recreated by resetFilters
+    if (allButton && !allButton.onclick) {
+         allButton.addEventListener('click', handleCategoryButtonClick);
+    }
+
+    // Restore active state if needed (though usually starts with 'All')
+    updateCategoryButtonVisuals();
+}
+
+function handleCategoryButtonClick(event) {
+    const clickedButton = event.target;
+    const categoryId = clickedButton.dataset.categoryId; // This is a string or number
+
+    if (categoryId === 'all') {
+        // If 'All' is clicked, select only 'All'
+        selectedCategoryIds.clear();
+        selectedCategoryIds.add('all');
+    } else {
+        // If a specific category is clicked:
+        // 1. Remove 'All' if it's selected
+        selectedCategoryIds.delete('all');
+        // 2. Toggle the clicked category
+        const categoryIdNum = parseInt(categoryId, 10); // Ensure it's a number if needed for comparisons later
+        if (selectedCategoryIds.has(categoryIdNum)) {
+            selectedCategoryIds.delete(categoryIdNum);
+        } else {
+            selectedCategoryIds.add(categoryIdNum);
+        }
+        // 3. If no specific categories are left, select 'All'
+        if (selectedCategoryIds.size === 0) {
+            selectedCategoryIds.add('all');
+        }
+    }
+
+    updateCategoryButtonVisuals();
+    filterDeals();
+}
+
+function updateCategoryButtonVisuals() {
+    const buttons = categoryFilterContainer.querySelectorAll('.category-btn');
+    buttons.forEach(button => {
+        const btnCatId = button.dataset.categoryId;
+        // Check if the button's ID (or 'all') is in the selected set
+        // Need careful type comparison if mixing strings and numbers
+        const isActive = selectedCategoryIds.has(btnCatId) ||
+                         (btnCatId !== 'all' && selectedCategoryIds.has(parseInt(btnCatId, 10)));
+
+        if (isActive) {
+            button.classList.add('active');
+        } else {
+            button.classList.remove('active');
+        }
+    });
+}
+
+
+function filterDeals() {
+    const selectedSupplier = supplierFilter.value;
+    // selectedCategoryIds is the Set containing 'all' or specific category IDs
+
+    const deals = dealListContainer.querySelectorAll('.deal-item');
+    deals.forEach(dealItem => {
+        // Supplier Check
+        const supplierMatch = selectedSupplier === 'all' || dealItem.dataset.supplier === selectedSupplier;
+
+        // Category Check
+        let categoryMatch = false;
+        if (selectedCategoryIds.has('all')) {
+            categoryMatch = true; // 'All' selected, matches all categories
+        } else {
+            const dealCategories = JSON.parse(dealItem.dataset.categories || '[]'); // Get categories array
+            // Check if *any* of the deal's categories are in the selected set
+            categoryMatch = dealCategories.some(catId => selectedCategoryIds.has(catId));
+        }
+
+        // Final Visibility
+        if (supplierMatch && categoryMatch) {
+            dealItem.classList.remove('hidden');
+        } else {
+            dealItem.classList.add('hidden');
+        }
+    });
+}
+
+// --- Copy to Clipboard Functionality ---
+async function handleCopyToClipboard() {
+    const visibleDeals = Array.from(dealListContainer.querySelectorAll('.deal-item:not(.hidden)'));
+
+    if (visibleDeals.length === 0) {
+        alert("No visible deals to copy.");
+        return;
+    }
+
+    // Group deals by supplier
+    const dealsBySupplier = {};
+    visibleDeals.forEach(dealItem => {
+        const supplier = dealItem.dataset.supplier;
+        const title = dealItem.dataset.title;
+        const description = dealItem.dataset.description;
+
+        if (!dealsBySupplier[supplier]) {
+            dealsBySupplier[supplier] = [];
+        }
+        dealsBySupplier[supplier].push({ title, description });
+    });
+
+    // Format the text
+    let outputText = "";
+    const sortedSuppliers = Object.keys(dealsBySupplier).sort((a, b) => a.localeCompare(b)); // Sort suppliers alphabetically
+
+    sortedSuppliers.forEach((supplier, index) => {
+        if (index > 0) {
+            outputText += "\n"; // Add extra newline between suppliers
+        }
+        outputText += `${supplier}\n`; // Supplier Name
+
+        dealsBySupplier[supplier].forEach((deal, dealIndex) => {
+            if (dealIndex > 0) {
+                outputText += "\n"; // Add space between deals of the same supplier
+            }
+            outputText += `${deal.title}\n`; // Deal Title
+            outputText += `${deal.description}\n`; // Deal Description
+        });
+         outputText += "\n"; // Add newline after the last deal of a supplier
+    });
+
+    // Remove trailing newline if any
+    outputText = outputText.trimEnd();
+
+    // Copy to clipboard
+    try {
+        await navigator.clipboard.writeText(outputText);
+        // Provide feedback
+        const originalText = copyButton.textContent;
+        copyButton.textContent = 'Copied!';
+        copyButton.disabled = true;
+        setTimeout(() => {
+            copyButton.textContent = originalText;
+            copyButton.disabled = false;
+        }, 1500); // Reset after 1.5 seconds
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        alert('Failed to copy deals to clipboard. Check browser permissions.');
+    }
+}
+
+// Initialize SortableJS for drag-and-drop
+new Sortable(dealListContainer, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    handle: '.deal-item',
+    filter: '.delete-btn', // Prevent initiating drag from delete button
+    preventOnFilter: true // Necessary for filter to work correctly
+});
+
+// Remove the old example text setting
+pasteArea.value = ''; // Clear the textarea initially
+</script>
