@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset="UTF-8">
   <title>Deal Matcher</title>
@@ -12,7 +11,6 @@
       line-height: 1.6;
       background-color: #f9f9f9;
     }
-
     .container {
       max-width: 1200px;
       margin: 0 auto;
@@ -333,11 +331,16 @@
       display: inline-block;
     }
 
+    .money-match {
+      background-color: #dff6e1;
+      font-weight: bold;
+    }
+
     @media (max-width: 768px) {
       .matched-deal, .non-matched-deal {
         flex-direction: column;
       }
-      
+  
       .json-match {
         margin-left: 0;
         margin-top: 10px;
@@ -346,7 +349,6 @@
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <h1>Deal Matcher</h1>
@@ -354,7 +356,6 @@
       Paste your HQ deals (vendor lines start with <code>v</code> and deal lines with <code>d</code> or <code>ed</code>)
       in the first box and the JSON export from your site in the second box. Then click "Compare Deals."
     </div>
-
     <div class="section">
       <h2>HQ Deals</h2>
       <textarea id="hqDeals" placeholder="Example:
@@ -363,18 +364,16 @@ d	Early Saver-Reduced Deposit & Up to $50 OBC (PEM/OB7): 03/31/2025
 ed	More=Merrier Sale-Save up to $125 per room & $25 NRD (PHY): 03/24/2025-03/29/2025
 d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
 "></textarea>
-
       <h2>JSON Deals</h2>
       <textarea id="jsonDeals" placeholder='Example:
 [
-  {
-    "shopOverline": "Carnival",
-    "expiryDate": "2025-03-31T16:00:00-07:00",
-    "title": "Early Saver-Reduced Deposit & Up to $50 OBC (PEM/OB7): 03/31/2025",
-    "shopListing": "More=Merrier Sale-Save up to $125 per room & $25 NRD (PHY): 03/24/2025-03/29/2025"
-  }
+{
+"shopOverline": "Carnival",
+"expiryDate": "2025-03-31T16:00:00-07:00",
+"title": "Early Saver-Reduced Deposit & Up to $50 OBC (PEM/OB7): 03/31/2025",
+"shopListing": "More=Merrier Sale-Save up to $125 per room & $25 NRD (PHY): 03/24/2025-03/29/2025"
+}
 ]'></textarea>
-
       <div class="control-bar">
         <div class="threshold-control">
           <label for="matchThreshold">Match Threshold:</label>
@@ -413,7 +412,6 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       </div>
     </div>
   </div>
-
   <script>
     // === Supplier Mapping Placeholders ===
     // The complete list of known suppliers (from your provided list)
@@ -706,20 +704,7 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       "cie": "CIE Tours",
       "cie tours": "CIE Tours",
       // Collette
-      "collette": "Collette",
-      // Great Safaris
-      "great safaris": "Great Safaris",
-      // Project Expedition
-      "project expedition": "Project Expedition",
-      "project expeditions": "Project Expedition",
-      // Shore Excursions Group
-      "shore excursions": "Shore Excursions Group",
-      "shore excursions group": "Shore Excursions Group",
-      // TourSales.com
-      "toursales": "TourSales.com",
-      "tour sales": "TourSales.com",
-      // Trafalgar
-      "trafalgar": "Trafalgar"
+      "collette": "Collette"
     };
 
     // Returns canonical vendor name
@@ -872,7 +857,7 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       }
       // try to recognize "50% off type" and normalize as "half off"
       if (
-        /(^|[\s\-])50(\s*%|\s*percent)?\s*(reduced|discount|off)/.test(w)
+        /(^|[\s\-])50(\s*%|\s*percent)\s*(off|reduced|discount)/.test(w)
         || w === "50%"
         || w === "50 percent"
       ) return "half off";
@@ -891,6 +876,46 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       if (canon !== w) return [canon];
       return [w];
     }
+
+    // Common multi-word phrases to prioritize in extraction
+    const commonPhrases = [
+      "up to",
+      "spring into",
+      "fall into",
+      "summer into",
+      "winter into",
+      "half off",
+      "early saver",
+      "wave season",
+      "limited time",
+      "flash sale",
+      "on sale",
+      "exclusive offer",
+      "special offer",
+      "limited offer",
+      "book now",
+      "for free",
+      "no charge",
+      "no cost",
+      "reduced deposit",
+      "best price",
+      "best offer",
+      "kids sail",
+      "kids cruise",
+      "kids fly",
+      "free gratuities",
+      "onboard credit",
+      "on board credit",
+      "per person",
+      "per guest",
+      "per cabin",
+      "per stateroom",
+      "per room",
+      "pre paid gratuities",
+      "pre-paid gratuities",
+      "last minute",
+      "save up"
+    ];
 
     // --- Extract keywords with synonyms and proper normalization ---
     function extractNormalizedKeywords(text, {noExclusive=false} = {}) {
@@ -924,26 +949,76 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       // Remove punctuation except % and $
       t = t.replace(/[^a-z0-9\s]/g, ' ');
 
-      // Extract all ngrams: (e.g. "half off" as one keyword too, in addition to "half" and "off")
-      var words = t.split(/\s+/).filter(w=>w.length>1);
-      var ngrams = [];
-      for (let i=0;i<words.length;i++) {
+      // Split into words
+      const words = t.split(/\s+/).filter(w => w.length > 1);
+      let ngrams = [];
+      let usedIndices = new Set(); // Track which word indices have been used in phrases
+      
+      // First pass: Check for common phrases and mark their indices as used
+      for (let i = 0; i < words.length - 1; i++) {
+        const possiblePhrases = [];
+        
+        // Check for 2-word phrases
+        if (i + 1 < words.length) {
+          possiblePhrases.push(words[i] + " " + words[i+1]);
+        }
+        
+        // Check for 3-word phrases
+        if (i + 2 < words.length) {
+          possiblePhrases.push(words[i] + " " + words[i+1] + " " + words[i+2]);
+        }
+        
+        for (const phrase of possiblePhrases) {
+          if (commonPhrases.includes(phrase.toLowerCase())) {
+            const normalized = normalizeKeyword(phrase);
+            if (normalized && normalized.length > 1) {
+              ngrams.push(normalized);
+              // Mark the indices as used
+              if (phrase.split(/\s+/).length === 2) {
+                usedIndices.add(i);
+                usedIndices.add(i+1);
+              } else if (phrase.split(/\s+/).length === 3) {
+                usedIndices.add(i);
+                usedIndices.add(i+1);
+                usedIndices.add(i+2);
+              }
+            }
+          }
+        }
+      }
+      
+      // Second pass: Extract bi-grams not caught in common phrases
+      for (let i = 0; i < words.length - 1; i++) {
+        if (usedIndices.has(i) || usedIndices.has(i+1)) continue; // Skip if already used in a phrase
+        
+        let bi = normalizeKeyword(words[i] + " " + words[i+1]);
+        if (bi && bi.length > 1) {
+          ngrams.push(bi);
+          usedIndices.add(i);
+          usedIndices.add(i+1);
+        }
+      }
+      
+      // Third pass: Extract single words that weren't part of phrases
+      for (let i = 0; i < words.length; i++) {
+        if (usedIndices.has(i)) continue; // Skip if already used in a phrase
+        
         let single = words[i].trim();
         if (!single) continue;
+        
         // Don't include "exclusive" (for matching exclusion detection, not as a keyword)
-        if (noExclusive && single==="exclusive") continue;
+        if (noExclusive && single === "exclusive") continue;
         
         // Skip numeric values entirely - they should be handled by dedicated extractors
         if (/^\d+$/.test(single)) continue;
         
-        ngrams.push(normalizeKeyword(single));
-        // bi-grams (for things like "half off")
-        if (i+1<words.length) {
-          let bi = normalizeKeyword(words[i]+" "+words[i+1]);
-          if (bi && bi!==ngrams[ngrams.length-1]) ngrams.push(bi);
+        let normalized = normalizeKeyword(single);
+        if (normalized && normalized.length > 1) {
+          ngrams.push(normalized);
         }
       }
-      // Uniquify
+      
+      // Uniquify the results
       let out = [];
       let seen = {};
       for (let kw of ngrams) {
@@ -952,8 +1027,10 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
           out.push(kw);
         }
       }
+      
       // Remove "exclusive" only if requested
-      if (noExclusive) out = out.filter(w=>w !== "exclusive");
+      if (noExclusive) out = out.filter(w => w !== "exclusive");
+      
       return out;
     }
 
@@ -1005,20 +1082,49 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
     function extractMoneyValues(text) {
       const vals = [];
       let match;
-      // $1,000, $ 1,000, $2000
-      const moneyReg = /\$\s*(\d{1,3}(?:,\d{3})*|\d+)(\.\d+)?/g;
+      // UPDATED REGEX: consistent with requirement and highlight logic
+      const moneyReg = /\$\s*([\d,]+(?:\.\d+)?)/g;
       while ((match = moneyReg.exec(text)) !== null) {
-        // Extract the full number without the $ sign
-        const fullMatch = match[0].substring(match[0].indexOf('$') + 1).trim();
-        // Remove commas and convert to float
-        const value = parseFloat(fullMatch.replace(/,/g, ""));
-        vals.push(value);
+        // Extract the captured numeric part
+        const capturedString = match[1];
+        // Remove all commas before parsing
+        const cleanString = capturedString.replace(/,/g, '');
+        // Parse to float
+        const value = parseFloat(cleanString);
+        if (!isNaN(value)) {
+          vals.push(value);
+        }
       }
-      return vals;
+      // DEBUG: Show what is being extracted!
+      console.log('Extracting Money - Input:', text, 'Output:', vals);
+      // Return unique values to prevent duplication issues
+      return [...new Set(vals)].sort((a, b) => a - b);
+    }
+
+    // --- Improved Money Matching Logic ---
+    // Check if two arrays of money values have significant overlap
+    function moneyValuesOverlap(arr1, arr2) {
+      // DEBUG: Show arrays being compared!
+      console.log('Comparing Money - HQ:', arr1, 'JSON:', arr2);
+      // Convert to strings with 2 decimal places to handle floating point comparison correctly
+      const set1 = new Set(arr1.map(v => v.toFixed(2)));
+      const set2 = new Set(arr2.map(v => v.toFixed(2)));
+      
+      // Find intersection
+      const intersection = [...set1].filter(x => set2.has(x));
+      
+      // Calculate the degree of overlap
+      if (intersection.length === 0) return { match: false, values: [] , complete: false};
+      
+      // If there's at least one match, return those matches
+      return { 
+        match: intersection.length > 0, 
+        values: intersection.map(x => parseFloat(x)),
+        complete: intersection.length === set1.size && intersection.length === set2.size
+      };
     }
 
     // --- Synonym Match Helper ---
-    // Determines whether, given two arrays, any synonym from either appears in the other
     function arrHasSynonym(arr1, arr2) {
       for (let kw of arr1) {
         for (let kw2 of arr2) {
@@ -1070,8 +1176,6 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
     }
 
     // ---- NEW: Special Numeric Phrase Extraction ----
-    // Recognize phrases like "for 2", "for two", "buy 2 get 1", but avoid "2nd" (means 'second', not a number value)
-    // Returns all special relevant numbers, e.g. [2,1]
     function extractSpecialNumericAll(text) {
       const out = [];
       // Ignore '2nd' or '3rd', they are ordinal markers (e.g., "2nd guest" is not "for 2")
@@ -1129,10 +1233,14 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
 
     // --- Main ENHANCED MATCHING LOGIC ---
     function compareDealScore(hqDeal, jsonDeal) {
+      // Always define moneyOverlap at top to avoid ReferenceError!
+      let moneyOverlap = { match: false, values: [], complete: false };
+
       // 0. Vendor check prerequisite (no score!)
       if (hqDeal.vendor !== jsonDeal.vendor) {
-        return {score: 0, reasons: ["Vendor mismatch"], flags: {}};
+        return {score: 0, reasons: ["Vendor mismatch"], flags: {}, moneyOverlap};
       }
+      
       let reasons = [];
       let score = 0;
       let flags = {};
@@ -1141,23 +1249,41 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       // --- Normalize main values ---
       const jsAllText = `${jsonDeal.title} ${jsonDeal.shopListing}`.trim();
 
+      // Early money extraction for monetary presence rule
+      let hqMoney = extractMoneyValues(hqDeal.text);
+      let jsMoney = extractMoneyValues(jsAllText);
+      
+      // NEW: Mandatory monetary presence rule
+      const hqHasMoney = hqMoney.length > 0;
+      const jsHasMoney = jsMoney.length > 0;
+      
+      if (hqHasMoney !== jsHasMoney) {
+        return {
+          score: 0, 
+          reasons: ['Monetary value presence mismatch (Required: $ amount must be present in both or neither)'], 
+          flags: {},
+          moneyOverlap
+        };
+      }
+
       // Date normalization
       const hqExp = extractNormalizedExpiry(hqDeal.text);
       const jsExp = normalizeJSONExpiry(jsonDeal.expiryDate);
 
-      // Money & percent (EXACT sets)
+      // Percentages and special numbers
       let hqPerc = extractPercentageValues(hqDeal.text);
       let jsPerc = extractPercentageValues(jsAllText);
-      let hqMoney = extractMoneyValues(hqDeal.text);
-      let jsMoney = extractMoneyValues(jsAllText);
       let hqSpecials = extractSpecialNumericAll(hqDeal.text);
       let jsSpecials = extractSpecialNumericAll(jsAllText);
-
-      // For scoring, these must match in value & count (order-insensitive)
-      function arraysEqual(a,b) {
-        if (a.length!==b.length) return false;
-        let aSorted= a.slice().sort(), bSorted= b.slice().sort();
-        for (let i=0;i<aSorted.length;i++) if (aSorted[i]!==bSorted[i]) return false;
+      
+      // DEBUG: Add console logs to diagnose percentage comparison issues
+      console.log('Comparing Percents - HQ:', hqPerc, 'JSON:', jsPerc, 'HQ Text:', hqDeal.text, 'JSON Text:', jsAllText);
+      
+      function arraysEqual(a, b) {
+        if (a.length !== b.length) return false;
+        let aSorted = a.slice().sort(), bSorted = b.slice().sort();
+        for (let i = 0; i < aSorted.length; i++) 
+          if (aSorted[i] !== bSorted[i]) return false;
         return true;
       }
 
@@ -1165,27 +1291,46 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
 
       // Special Numeric match, like for 2, etc.
       if (hqSpecials.length || jsSpecials.length){
-        if (arraysEqual(hqSpecials,jsSpecials)) {
+        if (arraysEqual(hqSpecials, jsSpecials)) {
           score += 60; specialMatch = true;
-          reasons.push('Special numeric phrase match: '+hqSpecials.join(', ')+ ' (+60)');
+          reasons.push('Special numeric phrase match: ' + hqSpecials.join(', ') + ' (+60)');
         }
       }
+
       // Percent match, robust: "10%", "10 %", "10 percent" (handled in extraction)
       if (hqPerc.length || jsPerc.length) {
-        if (arraysEqual(hqPerc,jsPerc)) {
+        if (arraysEqual(hqPerc, jsPerc)) {
           score += 60; percentMatch = true;
-          reasons.push('Percentage value match: '+hqPerc.join('%, ')+ '% (+60)');
+          reasons.push('Percentage value match: ' + hqPerc.join('%, ') + '% (+60)');
         } else if (hqPerc.length && jsPerc.length) {
-          reasons.push('Percentage mismatch');
+          reasons.push('Percentage mismatch (values differ or duplicate counts do not match)');
         }
       }
-      // Money match: exact, robust handling of $1,000 etc.
+
+      // Money match with improved logic
+      moneyOverlap = moneyValuesOverlap(hqMoney, jsMoney);
       if (hqMoney.length || jsMoney.length) {
-        if (arraysEqual(hqMoney.map(x=>x.toFixed(2)), jsMoney.map(x=>x.toFixed(2)))) {
-          score += 60; moneyMatch = true;
-          reasons.push('Money match: $'+hqMoney.join(', $')+' (+60)');
-        } else if (hqMoney.length && jsMoney.length) {
-          reasons.push('Money value mismatch');
+        if (!moneyOverlap.match) {
+          // If there are money values but NO meaningful overlap, this is a dealbreaker
+          return {
+            score: 0,
+            reasons: [`Money value mismatch: HQ [${hqMoney.join(', ')}] vs JSON [${jsMoney.join(', ')}]`],
+            flags: {},
+            moneyOverlap
+          };
+        } else if (moneyOverlap.match) {
+          // Only award full points if ALL values match on both sides
+          if (moneyOverlap.complete) {
+            score += 60;
+            moneyMatch = true;
+            reasons.push('Money match: $' + moneyOverlap.values.join(', $') + ' (+60)');
+          } else {
+            // Partial match - still good but not perfect
+            score += 40;
+            moneyMatch = true;
+            reasons.push('Partial money match: $' + moneyOverlap.values.join(', $') + 
+                         ' (Some values appear in one text but not the other) (+40)');
+          }
         }
       }
 
@@ -1245,17 +1390,41 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
           score += 50; matchedDate = true;
           dateInfo = 'Exact date match: '+hqExp.display+ ' (+50)';
         } else if (diff <= 5) {
-          score += 22; matchedDate = true; dateFlag = true;
-          flags.dateFlag = true;
-          dateInfo = `Date within 5 days (${hqExp.display} vs ${jsExp.display}, +22)`;
-          reasons.push('<strong class="orange">⚠️ Date mismatch (within 5 days)</strong>');
-        } else {
-          dateInfo = `Date mismatch: ${hqExp.display} (HQ) vs ${jsExp.display} (JSON)`;
-          reasons.push('<strong class="orange">⚠️ Date mismatch</strong>');
+          // Matching dates must be exact; if not exact even within 5 days, we do not match
           dateFlag = true;
           flags.dateFlag = true;
+          reasons.push('<strong class="orange">⚠️ Date mismatch (within 5 days)</strong>');
+          dateInfo = `Date within 5 days (${hqExp.display} vs ${jsExp.display})`;
+          // This match should NOT be accepted: immediately reject this as non-match.
+          return {
+            score: 0,
+            reasons: [`Date mismatch (within 5 days): ${hqExp.display} vs ${jsExp.display}`],
+            flags: { dateFlag: true },
+            moneyOverlap
+          };
+        } else {
+          // Strong mismatch, date is too far. Reject as non-match!
+          dateFlag = true;
+          flags.dateFlag = true;
+          reasons.push('<strong class="orange">⚠️ Date mismatch</strong>');
+          dateInfo = `Date mismatch: ${hqExp.display} (HQ) vs ${jsExp.display} (JSON)`;
+          return {
+            score: 0,
+            reasons: [`Date mismatch: ${hqExp.display} (HQ) vs ${jsExp.display} (JSON)`],
+            flags: { dateFlag: true },
+            moneyOverlap
+          };
         }
         reasons.push(dateInfo);
+      }
+      // If one deal has a date and the other doesn't, also treat as a mismatch/non-match
+      if ((hqExp && !jsExp) || (!hqExp && jsExp)) {
+        return {
+          score: 0,
+          reasons: ["Date presence mismatch: Only one of the deals has a date."],
+          flags: { dateFlag: true },
+          moneyOverlap
+        };
       }
 
       // Bonus: if we have BOTH exact monetary/percentage match AND exact date AND at least 1 matched keyword
@@ -1288,14 +1457,112 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       // Bounded score
       score = Math.max(0, Math.min(score, 510));
       return {
-        score, reasons, flags,
-        hqExp, jsExp,
+        score, 
+        reasons, 
+        flags,
+        hqExp, 
+        jsExp,
         commonKW: commonKWSyn,
-        nSynergy, percentMatch, moneyMatch, dateFlag, dateDiffDays
+        nSynergy, 
+        percentMatch, 
+        moneyMatch, 
+        dateFlag, 
+        dateDiffDays,
+        hqMoney,
+        jsMoney,
+        moneyOverlap
       };
     }
 
-    // --- Rendering tweaks for new flags ---
+    // --- Create a function for highlightJsonWithMatches using correct regex ---
+    function highlightJsonWithMatches(text, matchRes) {
+      // First escape HTML
+      let result = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+        
+      // Highlight dates
+      result = result.replace(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})/g, 
+        '<span class="expiry-date">$1</span>');
+        
+      // Highlight money values with correct regex and "money-match" class
+      result = result.replace(/\$\s*([\d,]+(?:\.\d+)?)/g, function(full, grp1) {
+        // Extract numeric value
+        const numValue = parseFloat(grp1.replace(/,/g, ''));
+        // Check if this value is in the overlap set
+        const isMatched =
+          matchRes && matchRes.moneyOverlap && 
+          matchRes.moneyOverlap.match && 
+          matchRes.moneyOverlap.values && 
+          matchRes.moneyOverlap.values.includes(numValue);
+        if (isMatched) {
+          return `<span class="price-value money-match">\$${grp1}</span>`;
+        } else {
+          return `<span class="price-value">\$${grp1}</span>`;
+        }
+      });
+        
+      // Highlight percentages
+      result = result.replace(/(\d+\s*%|\d+\s*percent)/gi,
+        '<span class="percentage-value">$1</span>');
+        
+      return result;
+    }
+
+    // Highlight numeric values and dates in text
+    function highlightText(text) {
+      // First escape HTML
+      let result = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+      
+      // Highlight dates MM/DD/YYYY or YYYY-MM-DD
+      result = result.replace(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})/g, 
+        '<span class="expiry-date">$1</span>');
+      
+      // Highlight money values with the CONSISTENT (correct) REGEX
+      // Use /\$\s*([\d,]+(?:\.\d+)?)/g!
+      result = result.replace(/\$\s*([\d,]+(?:\.\d+)?)/g, 
+        '<span class="price-value">\$${"$1"}</span>');
+      
+      // Highlight percentages
+      result = result.replace(/(\d+\s*%|\d+\s*percent)/gi, 
+        '<span class="percentage-value">$1</span>');
+      
+      return result;
+    }
+
+    function highlightTextJSON(text) {
+      // First escape HTML
+      let result = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+      // Dates
+      result = result.replace(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})/g,
+        '<span class="expiry-date">$1</span>');
+      // Money values (corrected REGEX)
+      result = result.replace(/\$\s*([\d,]+(?:\.\d+)?)/g,
+        '<span class="price-value">\$${"$1"}</span>');
+      // Percentages
+      result = result.replace(/(\d+\s*%|\d+\s*percent)/gi,
+        '<span class="percentage-value">$1</span>');
+      return result;
+    }
+
+    // Global arrays
+    let matchedDeals = []; // Array of { hqDeal, jsonDeal, score, jsonIndex, reasons }
+    let nonMatchedDeals = []; // Array of HQ deals
+
+    // Rendering tweaks for new flags
     function renderMatchedDeals() {
       const container = document.getElementById("matchedDealsContainer");
       const filter = document.getElementById("matchedFilter")?.value?.trim() ?? "";
@@ -1319,7 +1586,7 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
         // Get additional matching info for flag rendering by rerunning score
         const matchRes = match.jsonDeal
           ? compareDealScore(match.hqDeal, match.jsonDeal)
-          : {flags:{}, hqExp:null,jsExp:null};
+          : {flags:{}, hqExp:null, jsExp:null, moneyOverlap:{ match: false, values: [], complete: false }};
 
         // Highlight container if it's a possible date change
         if (matchRes.dateFlag) row.className = "matched-deal possible-date-change";
@@ -1336,7 +1603,7 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
         leftCol.className = "deal-info";
 
         // Keyword synergy flag
-        if (matchRes.nSynergy && matchRes.percentMatch||matchRes.moneyMatch) {
+        if (matchRes.nSynergy && (matchRes.percentMatch || matchRes.moneyMatch)) {
           const div = document.createElement("span");
           div.className="date-flag"; div.textContent = "SYNERGY";
           leftCol.appendChild(div);
@@ -1389,14 +1656,30 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
             return `<span class="expiry-date">${info.display}<br><small style="color:#aaa;">(${info.raw})</small></span>`;
           }
         });
+        
         // Show matched keywords inline as .keyword-flag for fun
         (matchRes.commonKW||[]).forEach(kw=>{
-          rendered = rendered.replace(new RegExp(`\\b(${kw})\\b`,'gi'),
+          rendered = rendered.replace(new RegExp(`\\b(${kw})\\b`, 'gi'),
             `<span class="keyword-flag">$1</span>`);
         });
-        // Money highlight
-        rendered = rendered.replace(/(\$\s*\d{1,3}(?:,\d{3})*(?:\.\d+)?|\$\s*\d+(?:\.\d+)?)/g, 
-            '<span class="price-value">$1</span>');
+        
+        // Money highlight with special class if it's a matching money value (use correct regex!)
+        rendered = rendered.replace(/\$\s*([\d,]+(?:\.\d+)?)/g, function(full, grp1) {
+          // Extract numeric value
+          const numValue = parseFloat(grp1.replace(/,/g, ''));
+          // Check if this value is in the overlap set
+          const isMatched =
+            matchRes && matchRes.moneyOverlap &&
+            matchRes.moneyOverlap.match &&
+            matchRes.moneyOverlap.values &&
+            matchRes.moneyOverlap.values.includes(numValue);
+          if (isMatched) {
+            return `<span class="price-value money-match">\$${grp1}</span>`;
+          } else {
+            return `<span class="price-value">\$${grp1}</span>`;
+          }
+        });
+        
         // Percentages
         rendered = rendered.replace(/(\d+\s*%|\d+\s*percent)/gi, 
             '<span class="percentage-value">$1</span>');
@@ -1407,11 +1690,13 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
         rightCol.className = "json-match";
         if (match.jsonDeal) {
           const jsonDetails = document.createElement("div");
+          let title = match.jsonDeal.title || "";
+          let listing = match.jsonDeal.shopListing || "";
           jsonDetails.innerHTML =
             `<strong>Vendor:</strong> ${match.jsonDeal.vendor}<br>` +
             `<strong>Expiry:</strong> <span class="expiry-date">${match.jsonDeal.expiryDate ? formatDate(new Date(match.jsonDeal.expiryDate)):"N/A"}</span><br>` +
-            `<strong>Title:</strong> ${highlightTextJSON(match.jsonDeal.title)}<br>` +
-            `<strong>Listing:</strong> ${highlightTextJSON(match.jsonDeal.shopListing)}`;
+            `<strong>Title:</strong> ${highlightJsonWithMatches(title, matchRes)}<br>` +
+            `<strong>Listing:</strong> ${highlightJsonWithMatches(listing, matchRes)}`;
           if (matchRes.flags.exclusiveFlag)
             jsonDetails.innerHTML += `<div style="margin-top:4px;"><span class="exclusive-flag">EXCLUSIVE</span><span style="font-size:0.93em;">Present in JSON only</span></div>`;
           rightCol.appendChild(jsonDetails);
@@ -1450,76 +1735,6 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       });
     }
 
-    // Global arrays
-    let matchedDeals = []; // Array of { hqDeal, jsonDeal, score, jsonIndex, reasons }
-    let nonMatchedDeals = []; // Array of HQ deals
-
-    // Highlight numeric values and dates in text
-    function highlightText(text) {
-      // First escape HTML
-      let result = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-      
-      // Highlight dates MM/DD/YYYY or YYYY-MM-DD
-      result = result.replace(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})/g, 
-        '<span class="expiry-date">$1</span>');
-      
-      // Highlight money values
-      result = result.replace(/(\$\s*\d+(?:,\d{3})*(?:\.\d+)?|\$\s*\d+(?:\.\d+)?)/g, 
-        '<span class="price-value">$1</span>');
-      
-      // Highlight percentages
-      result = result.replace(/(\d+%)/g, 
-        '<span class="percentage-value">$1</span>');
-      
-      return result;
-    }
-    
-    // Use highlightText for JSON deals, but we do not normalize JSON dates
-    function highlightTextJSON(text) {
-      let result = text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-      // Dates
-      const dateRegex = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}-\d{2}-\d{2})/g;
-      result = result.replace(dateRegex, '<span class="expiry-date">$1</span>');
-      // Money values
-      result = result.replace(/(\$\s*\d{1,3}(?:,\d{3})*(?:\.\d+)?|\$\s*\d+(?:\.\d+)?)/g,
-        '<span class="price-value">$1</span>');
-      // Percentages
-      result = result.replace(/(\d+\s*%|\d+\s*percent)/gi,
-        '<span class="percentage-value">$1</span>');
-      return result;
-    }
-
-    function filterDeals(deals, searchText) {
-      if (!searchText) return deals;
-      
-      const terms = searchText.toLowerCase().split(/\s+/);
-      return deals.filter(deal => {
-        const text = (deal.hqDeal.vendor + " " + deal.hqDeal.text).toLowerCase();
-        return terms.every(term => text.includes(term));
-      });
-    }
-    
-    function filterNonMatched(deals, searchText) {
-      if (!searchText) return deals;
-      
-      const terms = searchText.toLowerCase().split(/\s+/);
-      return deals.filter(deal => {
-        const text = (deal.vendor + " " + deal.text).toLowerCase();
-        return terms.every(term => text.includes(term));
-      });
-    }
-    
-    // Rendering functions
     function renderNonMatchedDeals() {
       const container = document.getElementById("nonMatchedDealsContainer");
       const filter = document.getElementById("nonMatchedFilter").value.trim();
@@ -1672,16 +1887,44 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
         let bestCandidate = null;
         let bestJsonIndex = null;
         let bestReasons = [];
+        let bestMatchRes = null;
+
         jsonDeals.forEach((jsonDeal, j) => {
-          const { score, reasons } = compareDealScore(hqDeal, jsonDeal);
+          const matchRes = compareDealScore(hqDeal, jsonDeal);
+          const score = matchRes.score;
+          const reasons = matchRes.reasons;
           if (score > bestScore) {
             bestScore = score;
             bestCandidate = jsonDeal;
             bestJsonIndex = j;
             bestReasons = reasons;
+            bestMatchRes = matchRes;
           }
         });
-        if (bestScore >= threshold) {
+
+        // Only match if it's fully allowed (no fatal mismatches)
+        // If the top candidate has a fatal reason (present in reasons) or is a money/date mismatch (score==0)
+        // then treat as non-match
+        let fatal = false;
+        if (bestMatchRes) {
+          // If money value mismatch or presence mismatch
+          if (
+            bestMatchRes.reasons &&
+            (
+              bestMatchRes.reasons.some(reason =>
+                reason.includes("Monetary value presence mismatch") ||
+                reason.includes("Money value mismatch") ||
+                reason.includes("Date mismatch")
+              )
+              // Also block all matches with score 0 (in case)
+              || bestMatchRes.score === 0
+            )
+          ) {
+            fatal = true;
+          }
+        }
+
+        if (!fatal && bestScore >= threshold) {
           candidateMatches.push({
             hqDeal: hqDeal,
             jsonDeal: bestCandidate,
@@ -1760,7 +2003,26 @@ d	72 Hour Sale-Great Guarantee Rates (P3P): 03/25/2025-03/27/2025
       const kidTerms = [" kid ", " kids ", " child ", " children ", "3rd guest", "third guest", "4th guest", "fourth guest"];
       return kidTerms.some(term => lower.includes(term)) || /\b(kid|kids|child|children)\b/.test(lower);
     }
+
+    function filterDeals(deals, searchText) {
+      if (!searchText) return deals;
+      
+      const terms = searchText.toLowerCase().split(/\s+/);
+      return deals.filter(deal => {
+        const text = (deal.hqDeal.vendor + " " + deal.hqDeal.text).toLowerCase();
+        return terms.every(term => text.includes(term));
+      });
+    }
+    
+    function filterNonMatched(deals, searchText) {
+      if (!searchText) return deals;
+      
+      const terms = searchText.toLowerCase().split(/\s+/);
+      return deals.filter(deal => {
+        const text = (deal.vendor + " " + deal.text).toLowerCase();
+        return terms.every(term => text.includes(term));
+      });
+    }
   </script>
 </body>
-
 </html>
