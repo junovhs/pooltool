@@ -1,774 +1,380 @@
 <!DOCTYPE html>
-<style>
-  body {
-    font-family: sans-serif;
-    line-height: 1.6;
-    background-color: #f4f4f4;
-    color: #333;
-    padding: 20px;
-}
-
-.container {
-    max-width: 800px;
-    margin: auto;
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-h1, h2 {
-    text-align: center;
-    color: #555;
-    margin-bottom: 20px;
-}
-
-.filters {
-    margin-top: 25px;
-    margin-bottom: 25px;
-    padding: 15px;
-    background-color: #e9ecef;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-}
-
-.filters h2 {
-    margin: 0;
-    font-size: 1.2em;
-    color: #495057;
-    width: 100%; /* Take full width initially */
-    text-align: left;
-    margin-bottom: 10px; /* Add space below heading */
-}
-
-.filter-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.filter-group label {
-    font-weight: bold;
-    color: #495057;
-}
-
-.filter-group select {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    background-color: #fff;
-    font-size: 0.95rem;
-    min-width: 150px; /* Give selects some base width */
-    cursor: pointer;
-}
-
-.category-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.category-btn {
-    padding: 6px 12px;
-    border: 1px solid #007bff;
-    border-radius: 15px; /* Rounded buttons */
-    background-color: #fff;
-    color: #007bff;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    user-select: none; /* Prevent text selection */
-}
-
-.category-btn:hover {
-    background-color: #e7f3ff; /* Light blue background on hover */
-}
-
-.category-btn.active {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: bold;
-}
-
-textarea#paste-area {
-    width: 95%;
-    min-height: 150px;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-    margin-bottom: 15px;
-    display: block; /* Make it block to take full width */
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    position: relative;
-    cursor: grab; /* Indicate draggable */
-    transition: box-shadow 0.2s ease-in-out, opacity 0.3s ease; /* Added opacity transition */
-    padding-bottom: 40px; /* Add space for tags */
-}
-
-button#parse-button {
-    display: block;
-    width: 150px;
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin: 0 auto 25px auto;
-    transition: background-color 0.3s ease;
-}
-
-button#parse-button:hover {
-    background-color: #0056b3;
-}
-
-.deal-list-header {
-    display: flex;
-    justify-content: space-between; /* Pushes H2 left, Button right */
-    align-items: center; /* Vertically align items */
-    margin-bottom: 10px; /* Space below the header */
-}
-
-.deal-list-header h2 {
-    margin: 0; /* Remove default margin */
-    text-align: left; /* Align H2 left */
-}
-
-#copy-button {
-    padding: 8px 12px;
-    background-color: #28a745; /* Green */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease, opacity 0.3s ease;
-}
-
-#copy-button:hover {
-    background-color: #218838; /* Darker green */
-}
-
-#copy-button:disabled {
-    background-color: #6c757d; /* Gray when disabled */
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.deal-list {
-    margin-top: 0; /* Removed margin top, handled by header now */
-    border: 1px dashed #ccc;
-    padding: 10px;
-    min-height: 100px;
-    background-color: #fafafa;
-    border-radius: 4px;
-}
-
-.deal-item {
-    display: block;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    position: relative;
-    cursor: grab; /* Indicate draggable */
-    transition: box-shadow 0.2s ease-in-out, opacity 0.3s ease; /* Added opacity transition */
-}
-
-.deal-item.hidden {
-    display: none; /* Style to hide filtered items */
-    opacity: 0;
-    margin-bottom: 0;
-    padding: 0;
-    border: none;
-    height: 0;
-    overflow: hidden;
-    color: #666;
-}
-
-.deal-item.sortable-ghost {
-    opacity: 0.4;
-    background: #cce5ff;
-}
-
-.deal-item.sortable-chosen {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    cursor: grabbing;
-}
-
-.deal-item h3 {
-    margin: 0 0 5px 0;
-    font-size: 1.1em;
-    color: #333;
-}
-
-.deal-item h4 {
-    margin: 0 0 10px 0;
-    font-size: 1em;
-    font-weight: normal;
-    color: #555;
-    font-style: italic;
-}
-
-.deal-item p {
-    margin: 0;
-    font-size: 0.95em;
-    color: #666;
-    margin-bottom: 35px; /* Add space below the description before tags */
-}
-
-.deal-tags {
-    position: relative; 
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 10px; 
-    padding-bottom: 5px; 
-}
-
-.deal-tag {
-    background-color: #e0e0e0;
-    color: #555;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 0.8em;
-    white-space: nowrap; /* Prevent tags from breaking mid-word */
-}
-
-.delete-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ff4d4d;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    font-size: 14px;
-    font-weight: bold;
-    line-height: 24px; /* Center the 'X' */
-    text-align: center;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    opacity: 0.7;
-}
-
-.delete-btn:hover {
-    background-color: #cc0000;
-    opacity: 1;
-}
-</style>
-<html>
+<html lang="en">
 <head>
-    <title>JSON Deal Organizer</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Import Map for JS Libraries -->
-    <script type="importmap">
-      {
-        "imports": {
-          "sortablejs": "https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/+esm"
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced JSON Deal Lister</title>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-light: #e8f0fe;
+            --primary-dark: #1565c0; /* Added for active sort or hover */
+            --secondary: #34A853; /* Exclusive star color */
+            --surface: #ffffff;
+            --background: #f8f9fa;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
+            --border-light: #e0e0e0;
+            --shadow-1: 0 1px 3px rgba(60,64,67,0.15), 0 1px 2px rgba(60,64,67,0.1);
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --transition-fast: 0.15s ease-out;
         }
-      }
-    </script>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+        body {
+            font-family: 'Roboto', 'Noto Sans', Arial, sans-serif;
+            background-color: var(--background); color: var(--text);
+            line-height: 1.6; padding: 1.5rem;
+        }
+        .container { max-width: 1000px; margin: 1rem auto; }
+        h1 { font-size: 2rem; font-weight: 500; text-align: center; color: var(--primary); margin-bottom: 1.5rem; }
+
+        textarea#deals-input {
+            width: 100%; height: 200px; padding: 1rem; border: 1px solid var(--border);
+            border-radius: var(--border-radius-sm); font-family: 'Roboto Mono', monospace;
+            font-size: 0.9rem; resize: vertical; margin-bottom: 1rem;
+        }
+        textarea#deals-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+        .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.5rem; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: var(--border-radius-sm); font-family: inherit; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); text-decoration: none; }
+        .btn:hover { background: var(--primary-dark); box-shadow: var(--shadow-1); }
+        .btn-secondary { background: var(--surface); color: var(--primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--primary-light); border-color: var(--primary); }
+
+        #filters-and-sorts-container {
+            background-color: var(--surface);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-1);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-light);
+        }
+        .control-section { margin-bottom: 1.25rem; }
+        .control-section:last-child { margin-bottom: 0; }
+        .control-section h2 {
+            font-size: 1rem; font-weight: 500; color: var(--text); /* Changed to primary text color for better visibility */
+            margin-bottom: 0.75rem; padding-bottom: 0.35rem; border-bottom: 1px solid var(--border-light);
+        }
+        .filter-bubbles { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .filter-bubbles button, .options-controls button {
+            background: var(--surface); color: var(--primary); border: 1px solid var(--border);
+            padding: 0.4rem 0.8rem; border-radius: 16px; /* More bubbly */ font-family: inherit;
+            font-size: 0.85rem; cursor: pointer; transition: all var(--transition-fast);
+        }
+        .filter-bubbles button:hover, .options-controls button:hover {
+            background: var(--primary-light); border-color: var(--primary); transform: translateY(-1px);
+        }
+        .filter-bubbles button.active, .options-controls button.active {
+            background: var(--primary); color: white; border-color: var(--primary); font-weight: 500;
+        }
+        .options-controls { display: flex; gap: 0.75rem; align-items: center; }
+        .sort-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .sort-options button { font-size: 0.85rem; padding: 0.4rem 0.8rem; border-radius: var(--border-radius-sm); }
+        .sort-options button.active {
+            background: var(--primary-dark); color: white; border-color: var(--primary-dark); font-weight: 500;
+        }
+
+        #deal-list-container { margin-top: 1rem; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--border-radius-md); box-shadow: var(--shadow-1); padding: 0.5rem 0; }
+        #deal-list { list-style: none; max-height: 70vh; overflow-y: auto; padding: 0 1.5rem; }
+        .deal-item {
+            border-bottom: 1px solid var(--border-light); padding: 1rem 0;
+            display: grid; grid-template-columns: auto 1fr; gap: 0 1rem; align-items: start;
+         }
+        .deal-item:last-child { border-bottom: none; }
+        .deal-item .indicator { grid-row: 1 / 3; font-size: 1.5rem; padding-top: 0.1em; }
+        .deal-item .indicator .exclusive-star { color: var(--secondary); }
+        .deal-item .supplier { font-weight: 500; font-size: 1.1rem; color: var(--primary-dark); grid-column: 2; margin-bottom: 0.25rem; }
+        .deal-item .title-line { grid-column: 2; display: flex; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.3rem; }
+        .deal-item .title { font-weight: 500; margin-right: 0.75rem; font-size: 1rem; }
+        .deal-item .expiry-pill {
+            font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); background-color: #e8eaed;
+            padding: 0.1rem 0.6rem; border-radius: 10px; white-space: nowrap; border: 1px solid var(--border-light);
+        }
+        .deal-item .description { grid-column: 2; font-size: 0.9rem; color: var(--text-secondary); }
+        .placeholder { padding: 2rem; text-align: center; color: var(--text-secondary); }
+    </style>
 </head>
 <body>
-    <h1>JSON Deal Organizer</h1>
-
     <div class="container">
-        <textarea id="paste-area" placeholder='Paste your JSON array of deals here. Example:
-[
-  {
-    "id": 12345,
-    "status": "live",
-    "title": "Example Deal Title",
-    "shopOverline": "Example Supplier",
-    "shopListing": "This is the example deal description.",
-    "dealCategory": [96, 16974]
-  },
-  {
-    "id": 67890,
-    "status": "live",
-    "title": "Another Deal",
-    "shopOverline": "Another Supplier",
-    "shopListing": "More details about the second deal.",
-    "dealCategory": [39542]
-  }
-]
-'></textarea>
-        <button id="parse-button">Parse Deals</button>
+        <h1>Enhanced JSON Deal Lister</h1>
 
-        <div class="filters">
-            <h2>Filters</h2>
-            <div class="filter-group">
-                <label for="supplier-filter">Supplier:</label>
-                <select id="supplier-filter">
-                    <option value="all">All Suppliers</option>
-                    <!-- Supplier options will be populated here -->
-                </select>
-            </div>
-            <div class="filter-group">
-                <label>Category:</label>
-                <div id="category-filter-buttons" class="category-buttons">
-                    <button class="category-btn active" data-category-id="all">All Categories</button>
-                    <!-- Category buttons will be populated here -->
+        <textarea id="deals-input" placeholder="Paste the JSON array of deal objects here..."></textarea>
+
+        <div class="actions-bar">
+            <button class="btn" onclick="processJsonInput()">Show Deals</button>
+            <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+        </div>
+
+        <div id="filters-and-sorts-container" style="display: none;">
+            <div class="control-section">
+                <h2>Filter by Supplier:</h2>
+                <div id="supplier-filters" class="filter-bubbles">
+                    <!-- Supplier bubbles will be dynamically added here -->
                 </div>
             </div>
-         </div>
 
-        <div class="deal-list-header">
-             <h2>Parsed Deals</h2>
-             <button id="copy-button" title="Copy visible deals to clipboard">Copy Visible Deals</button>
+            <div class="control-section">
+                <h2>Options:</h2>
+                <div class="options-controls">
+                    <button id="exclusive-toggle-btn" onclick="toggleExclusiveFilter()">Show Only Exclusives</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h2>Sort by:</h2>
+                <div class="sort-options">
+                    <button id="sort-supplier" class="btn btn-secondary active" onclick="setSort('supplier')">Supplier</button>
+                    <button id="sort-expiry" class="btn btn-secondary" onclick="setSort('expiry')">Expiry Date</button>
+                    <button id="sort-exclusive" class="btn btn-secondary" onclick="setSort('exclusive')">Exclusives First</button>
+                </div>
+            </div>
         </div>
-        <div id="deal-list" class="deal-list">
-            <!-- Parsed deals will be added here -->
+
+        <div id="deal-list-container">
+            <ul id="deal-list">
+                <li class="placeholder">Paste JSON and click "Show Deals"</li>
+            </ul>
         </div>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <script>
+        let allParsedDeals = [];
+        let displayedDeals = []; // Deals after filtering and sorting, for rendering
+        let currentSort = 'supplier';
+        let activeSupplierFilter = null; // null for all, or supplier displayName string
+        let showExclusivesOnly = false;
+
+        const SUPPLIER_INFO = { /* --- PASTE YOUR FULL SUPPLIER_INFO OBJECT HERE --- */
+             "norwegian cruise line": { name: "Norwegian Cruise Line" }, "royal caribbean": { name: "Royal Caribbean" }, "celebrity cruises": { name: "Celebrity Cruises" }, "disney cruise line": { name: "Disney Cruise Line" }, "virgin voyages": { name: "Virgin Voyages" }, "holland america line": { name: "Holland America Line" }, "princess": { name: "Princess" }, "princess cruises": { name: "Princess" }, "carnival": { name: "Carnival" }, "carnival cruise line": { name: "Carnival" }, "msc cruises": { name: "MSC Cruises" }, "viking": { name: "Viking" }, "american cruise line": { name: "American Cruise Line" }, "atlas ocean voyages": { name: "Atlas Ocean Voyages" }, "azamara": { name: "Azamara" }, "crystal cruises": { name: "Crystal Cruises" }, "cunard": { name: "Cunard" }, "emerald cruises": { name: "Emerald Cruises" }, "explora journeys": { name: "Explora Journeys" }, "four seasons yachts": { name: "Four Seasons Yachts" }, "oceania cruises": { name: "Oceania Cruises" }, "paul gauguin cruises": { name: "Paul Gauguin Cruises" }, "ponant": { name: "Ponant" }, "regent seven seas cruises": { name: "Regent Seven Seas Cruises" }, "ritz-carlton yacht collection": { name: "Ritz-Carlton Yacht Collection" }, "scenic eclipse ocean voyages": { name: "Scenic Eclipse Ocean Voyages" }, "seabourn": { name: "Seabourn" }, "silversea": { name: "Silversea" }, "star clippers": { name: "Star Clippers" }, "tauck cruises": { name: "Tauck Cruises" }, "windstar": { name: "Windstar" }, "windstar cruises": { name: "Windstar" }, "avalon waterways": { name: "Avalon Waterways" }, "amawaterways": { name: "AmaWaterways" }, "croisieurope": { name: "CroisiEurope" }, "riverside cruises": { name: "Riverside Cruises" }, "riviera river cruises": { name: "Riviera River Cruises" }, "tauck tours": { name: "Tauck Tours" }, "uniworld": { name: "Uniworld" }, "uniworld boutique river cruises": { name: "Uniworld" }, "scenic river": { name: "Scenic River" }, "scenic luxury cruises & tours": { name: "Scenic River" }, "lindblad expeditions & national geographic": { name: "Lindblad Expeditions & National Geographic" }, "lindblad expeditions": { name: "Lindblad Expeditions & National Geographic" }, "hurtigruten": { name: "Hurtigruten" }, "uncruise adventures": { name: "UnCruise Adventures" }, "adventures by disney": { name: "Adventures by Disney" }, "disneyland": { name: "Disneyland" }, "disneyworld": { name: "DisneyWorld" }, "walt disney world": { name: "DisneyWorld" }, "aulani a disney resort & spa": { name: "Aulani, A Disney Resort & Spa" }, "aulani": { name: "Aulani, A Disney Resort & Spa" }, "sandals": { name: "Sandals" }, "beaches": { name: "Beaches" }, "breathless": { name: "Breathless" }, "club med": { name: "Club Med" }, "el dorado spa resorts & hotels": { name: "El Dorado Spa Resorts & Hotels" }, "dreams": { name: "Dreams" }, "excellence resorts": { name: "Excellence Resorts" }, "hard rock hotels": { name: "Hard Rock Hotels" }, "hard rock hotel & casino": { name: "Hard Rock Hotels" }, "iberostar hotels & resorts": { name: "Iberostar Hotels & Resorts" }, "iberostar beachfront resorts": { name: "Iberostar Hotels & Resorts" }, "karisma hotels & resorts": { name: "Karisma Hotels & Resorts" }, "outrigger hotels & resorts": { name: "Outrigger Hotels & Resorts" }, "palace resorts": { name: "Palace Resorts" }, "riu hotels & resorts": { name: "RIU Hotels & Resorts" }, "secrets": { name: "Secrets" }, "american airline vacations": { name: "American Airline Vacations" }, "delta vacations": { name: "Delta Vacations" }, "southwest vacations": { name: "Southwest Vacations" }, "united vacations": { name: "United Vacations" }, "villas of distinction": { name: "Villas of Distinction" }, "zoetry wellness & spa resorts": { name: "Zoëtry Wellness & Spa Resorts" }, "atlantis paradise island bahamas": { name: "Atlantis Paradise Island Bahamas" }, "atlantis": { name: "Atlantis Paradise Island Bahamas" }, "great safaris": { name: "Great Safaris" }, "african travel": { name: "African Travel" }, "abercrombie & kent": { name: "Abercrombie & Kent" }, "g adventures": { name: "G Adventures" }, "globus journeys": { name: "Globus Journeys" }, "globus": { name: "Globus Journeys" }, "trafalgar": { name: "Trafalgar" }, "bluesky tours": { name: "BlueSky Tours" }, "cie tours": { name: "CIE Tours" }, "collette": { name: "Collette" }, "shore excursions group": { name: "Shore Excursions Group" }, "toursalescom": { name: "TourSales.com" }, "viator": { name: "Viator" }, "project expedition": { name: "Project Expedition" }, "rocky mountaineer": { name: "Rocky Mountaineer" }
+        };
+
+        function normalizeSupplier(name) { return name?.toLowerCase().trim().replace(/&/g, '&').replace(/[.,\/#!$%\^&\*;:{}=\-_`~()']/g,"").replace(/\s+/g,' ').trim() || ''; }
+        function formatDisplayName(key) { return key ? key.split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(' ') : "Unknown"; }
+        function getDisplayName(key) { return SUPPLIER_INFO[normalizeSupplier(key)]?.name || formatDisplayName(normalizeSupplier(key)); }
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            try { const d = new Date(dateString); if (isNaN(d) || d.getFullYear() > 2050) return ''; return `Ends ${d.getMonth() + 1}/${d.getDate()}`; }
+            catch (e) { return ''; }
+        }
+
+        function parseDeals(rawInput) {
+            const parsed = []; let dealObjects = [];
+            try { dealObjects = JSON.parse(rawInput); if (!Array.isArray(dealObjects)) throw new Error("Not JSON array."); }
+            catch (e) { alert(`Invalid JSON:\n${e.message}`); return []; }
+
+            dealObjects.forEach((deal, index) => {
+                try {
+                    if (typeof deal !== 'object' || deal === null) return;
+                    const { status, shopOverline, title, shopListing, dealCategory, expiryDate: expiryDateStr } = deal;
+                    if (!shopOverline || !title || !shopListing || !status) return;
+                    if (status !== "live") return;
+
+                    const supplierKey = normalizeSupplier(shopOverline); if (!supplierKey) return;
+                    const categories = dealCategory || [];
+                    const isExclusive = categories.includes(39542);
+                    const formattedExpiry = formatDate(expiryDateStr);
+                    const expiryDate = new Date(expiryDateStr);
+
+                    parsed.push({
+                        supplierKey: supplierKey,
+                        displayName: getDisplayName(supplierKey),
+                        title: title,
+                        description: shopListing,
+                        exclusive: isExclusive,
+                        formattedExpiryDate: formattedExpiry,
+                        expiryDateObject: !isNaN(expiryDate) ? expiryDate : null,
+                        id: crypto.randomUUID()
+                    });
+                } catch (error) { console.error(`Error processing object at index ${index}:`, error, deal); }
+            });
+            return parsed;
+        }
+
+        function sortDisplayedDeals() {
+            const fallbackDate = new Date('2099-12-31');
+            displayedDeals.sort((a, b) => {
+                if (currentSort === 'supplier') {
+                    const nameCompare = a.displayName.localeCompare(b.displayName);
+                    if (nameCompare !== 0) return nameCompare;
+                    const dateA = a.expiryDateObject || fallbackDate;
+                    const dateB = b.expiryDateObject || fallbackDate;
+                    return dateA - dateB;
+                } else if (currentSort === 'expiry') {
+                    const dateA = a.expiryDateObject || fallbackDate;
+                    const dateB = b.expiryDateObject || fallbackDate;
+                    const dateCompare = dateA - dateB;
+                    if (dateCompare !== 0) return dateCompare;
+                    return a.displayName.localeCompare(b.displayName);
+                } else if (currentSort === 'exclusive') {
+                    const exclusiveCompare = b.exclusive - a.exclusive;
+                    if (exclusiveCompare !== 0) return exclusiveCompare;
+                    const dateA = a.expiryDateObject || fallbackDate;
+                    const dateB = b.expiryDateObject || fallbackDate;
+                    return dateA - dateB;
+                }
+                return 0;
+            });
+        }
+
+        function renderDealList() {
+            const listElement = document.getElementById('deal-list');
+            listElement.innerHTML = '';
+
+            if (displayedDeals.length === 0) {
+                const placeholderText = allParsedDeals.length > 0 ?
+                    "No deals match the current filters." :
+                    "Paste JSON and click \"Show Deals\", or no valid deals were found in the input.";
+                listElement.innerHTML = `<li class="placeholder">${placeholderText}</li>`;
+                return;
+            }
+
+            displayedDeals.forEach(deal => {
+                const li = document.createElement('li');
+                li.className = 'deal-item';
+                const expiryPillHtml = deal.formattedExpiryDate ? `<span class="expiry-pill">${deal.formattedExpiryDate}</span>` : '';
+                const exclusiveIndicator = deal.exclusive ? '<span class="exclusive-star" title="Exclusive Deal">★</span>' : '';
+                li.innerHTML = `
+                    <div class="indicator">${exclusiveIndicator}</div>
+                    <div class="supplier">${deal.displayName}</div>
+                    <div class="title-line">
+                        <span class="title">${deal.title}</span>
+                        ${expiryPillHtml}
+                    </div>
+                    <div class="description">${deal.description}</div>
+                `;
+                listElement.appendChild(li);
+            });
+        }
+
+        function updateFilterUIStates() {
+            // Supplier filter buttons
+            document.querySelectorAll('#supplier-filters button').forEach(btn => {
+                if (btn.dataset.supplier === (activeSupplierFilter || 'ALL')) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Exclusive toggle button
+            const exclusiveBtn = document.getElementById('exclusive-toggle-btn');
+            if (showExclusivesOnly) {
+                exclusiveBtn.classList.add('active');
+                exclusiveBtn.textContent = 'Showing Only Exclusives';
+            } else {
+                exclusiveBtn.classList.remove('active');
+                exclusiveBtn.textContent = 'Show Only Exclusives';
+            }
+
+            // Sort buttons
+            document.querySelectorAll('.sort-options button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`sort-${currentSort}`)?.classList.add('active');
+        }
+        
+        function updateAndRenderDeals() {
+            let tempDeals = [...allParsedDeals];
+
+            // Apply supplier filter
+            if (activeSupplierFilter) {
+                tempDeals = tempDeals.filter(d => d.displayName === activeSupplierFilter);
+            }
+
+            // Apply exclusive filter
+            if (showExclusivesOnly) {
+                tempDeals = tempDeals.filter(d => d.exclusive);
+            }
+
+            displayedDeals = tempDeals;
+            sortDisplayedDeals(); // Sorts displayedDeals in place
+            renderDealList();     // Renders based on displayedDeals
+            updateFilterUIStates(); // Updates UI for buttons, etc.
+        }
+
+        function renderSupplierFilters() {
+            const container = document.getElementById('supplier-filters');
+            container.innerHTML = ''; // Clear existing
+
+            const uniqueSuppliers = [...new Set(allParsedDeals.map(d => d.displayName))].sort();
+
+            // "All Suppliers" button
+            const allBtn = document.createElement('button');
+            allBtn.textContent = 'All Suppliers';
+            allBtn.dataset.supplier = 'ALL'; // Special value for 'all'
+            allBtn.onclick = () => setSupplierFilter(null);
+            container.appendChild(allBtn);
+
+            uniqueSuppliers.forEach(supplierName => {
+                const btn = document.createElement('button');
+                btn.textContent = supplierName;
+                btn.dataset.supplier = supplierName;
+                btn.onclick = () => setSupplierFilter(supplierName);
+                container.appendChild(btn);
+            });
+        }
+
+        function setSupplierFilter(supplierName) {
+            activeSupplierFilter = supplierName;
+            updateAndRenderDeals();
+        }
+
+        function toggleExclusiveFilter() {
+            showExclusivesOnly = !showExclusivesOnly;
+            updateAndRenderDeals();
+        }
+
+        function setSort(sortType) {
+            if (currentSort !== sortType) {
+                currentSort = sortType;
+                updateAndRenderDeals();
+            }
+        }
+
+        function processJsonInput() {
+            const rawInput = document.getElementById('deals-input').value;
+            if (!rawInput.trim()) { alert("Paste JSON first."); return; }
+
+            allParsedDeals = parseDeals(rawInput);
+            const filtersContainer = document.getElementById('filters-and-sorts-container');
+
+            if (allParsedDeals.length > 0) {
+                filtersContainer.style.display = 'block';
+                renderSupplierFilters();
+                // Reset filters to default before first render with new data
+                activeSupplierFilter = null;
+                showExclusivesOnly = false;
+                // currentSort = 'supplier'; // Keep current sort or reset, let's keep for now
+            } else {
+                filtersContainer.style.display = 'none';
+                document.getElementById('supplier-filters').innerHTML = '';
+            }
+            updateAndRenderDeals(); // This will handle filtering, sorting, rendering, and UI states
+        }
+
+        function clearAll() {
+             allParsedDeals = [];
+             displayedDeals = [];
+             document.getElementById('deals-input').value = '';
+             
+             document.getElementById('filters-and-sorts-container').style.display = 'none';
+             document.getElementById('supplier-filters').innerHTML = '';
+
+             // Reset states
+             activeSupplierFilter = null;
+             showExclusivesOnly = false;
+             currentSort = 'supplier'; // Reset sort to default
+
+             updateAndRenderDeals(); // Will render placeholder and update UI states
+        }
+
+        // Initial UI setup if needed (e.g. ensure sort buttons reflect default `currentSort`)
+        // This is handled by updateAndRenderDeals via clearAll or processJsonInput.
+        // If you want the sort buttons to show active on page load (before data):
+        // window.onload = () => { updateFilterUIStates(); }; 
+        // But better to do it once data is processed or cleared.
+
+    </script>
 </body>
 </html>
-
-<script>
-  import Sortable from 'sortablejs';
-
-const pasteArea = document.getElementById('paste-area');
-const parseButton = document.getElementById('parse-button');
-const dealListContainer = document.getElementById('deal-list');
-const supplierFilter = document.getElementById('supplier-filter');
-// Category filter elements
-const categoryFilterContainer = document.getElementById('category-filter-buttons');
-const copyButton = document.getElementById('copy-button');
-
-// --- Configuration ---
-const CATEGORY_MAP = {
-    96: 'River',
-    16974: 'Luxury',
-    39542: 'Exclusive',
-    100: 'Tours', // Added
-    16972: 'Adventure Cruising', // Added
-    16976: 'Disney & Theme Parks', // Added
-    94: 'Popular Cruises', // Added
-    98: 'Resorts & Hawaii', // Added
-    // Add more known category IDs here if needed
-};
-
-// --- State ---
-const processedDealIds = new Set(); // Use deal IDs for duplicate checking
-let uniqueSuppliers = new Set();
-let uniqueCategories = new Map(); // Store ID -> Name mapping
-let selectedCategoryIds = new Set(['all']); // Store selected category IDs ('all' is default)
-
-// --- Event Listeners ---
-parseButton.addEventListener('click', handleParse);
-supplierFilter.addEventListener('change', filterDeals);
-copyButton.addEventListener('click', handleCopyToClipboard); // Add listener for copy button
-// Category button clicks are handled during population
-
-// --- Functions ---
-
-function handleParse() {
-    const text = pasteArea.value.trim();
-    processedDealIds.clear();
-    uniqueSuppliers.clear();
-    uniqueCategories.clear();
-    dealListContainer.innerHTML = ''; // Clear previous results
-    resetFilters(); // Clear filter UI before parsing
-
-    let jsonData;
-    try {
-        jsonData = JSON.parse(text);
-        if (!Array.isArray(jsonData)) {
-            throw new Error("Input is not a JSON array.");
-        }
-    } catch (error) {
-        alert(`Invalid JSON input: ${error.message}`);
-        console.error("JSON Parsing Error:", error);
-        return;
-    }
-
-    let addedCount = 0;
-    let duplicateCount = 0;
-    let nonLiveCount = 0;
-
-    jsonData.forEach(deal => {
-        // Check if the deal has the required properties and is live
-        if (deal && deal.id && deal.status === 'live' && deal.title && deal.shopOverline && deal.shopListing) {
-            const dealId = deal.id;
-
-            if (!processedDealIds.has(dealId)) {
-                processedDealIds.add(dealId);
-
-                const supplier = deal.shopOverline;
-                const categories = deal.dealCategory || []; // Handle missing category array
-
-                // Add to unique sets/maps for filtering
-                uniqueSuppliers.add(supplier);
-                categories.forEach(catId => {
-                    if (!uniqueCategories.has(catId)) {
-                        uniqueCategories.set(catId, CATEGORY_MAP[catId] || `Category ${catId}`);
-                    }
-                });
-
-
-                addDealToDOM({
-                    id: dealId,
-                    supplier: supplier,
-                    title: deal.title,
-                    description: deal.shopListing,
-                    categories: categories // Pass categories to store in DOM
-                });
-                addedCount++;
-            } else {
-                console.log("Skipping duplicate deal (ID):", dealId, deal.title);
-                duplicateCount++;
-            }
-        } else if (deal && deal.status !== 'live') {
-            console.log("Skipping non-live deal:", deal.id, deal.title, `(Status: ${deal.status})`);
-            nonLiveCount++;
-        } else {
-            console.warn("Skipping malformed deal object:", deal);
-            // Optional: Add counter for malformed deals
-        }
-    });
-
-    console.log(`Processed ${jsonData.length} objects. Added ${addedCount} unique live deals. Skipped ${duplicateCount} duplicates. Skipped ${nonLiveCount} non-live deals.`);
-
-    populateFilters(); // Populate filter UI after processing all deals
-    filterDeals(); // Apply initial filter (show all)
-
-    // --- Display Summary Message ---
-    let message = `Added ${addedCount} unique live deals.`;
-    if (duplicateCount > 0) {
-        message += ` Skipped ${duplicateCount} duplicates.`;
-    }
-     if (nonLiveCount > 0) {
-        message += ` Skipped ${nonLiveCount} non-live deals.`;
-    }
-    if (addedCount === 0 && jsonData.length > 0) {
-        message += " No live deals found in the JSON.";
-    } else if (addedCount === 0 && jsonData.length === 0){
-         message = "No deals found in the JSON data.";
-    }
-    console.log(message);
-}
-
-
-function addDealToDOM(deal) {
-    const item = document.createElement('div');
-    item.classList.add('deal-item');
-    item.dataset.dealId = deal.id; // Store ID
-    item.dataset.supplier = deal.supplier; // Store supplier
-    const categories = deal.categories || [];
-    item.dataset.categories = JSON.stringify(categories); // Store categories as JSON string
-    item.dataset.description = deal.description; // Store description separately for easier copying
-    item.dataset.title = deal.title; // Store title separately for easier copying
-
-    const supplierEl = document.createElement('h3');
-    supplierEl.textContent = deal.supplier;
-
-    const titleEl = document.createElement('h4');
-    titleEl.textContent = deal.title;
-
-    const descriptionEl = document.createElement('p');
-    descriptionEl.textContent = deal.description;
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.classList.add('delete-btn');
-    deleteBtn.innerHTML = '&times;'; // Use HTML entity for 'X'
-    deleteBtn.title = 'Delete Deal';
-    deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent drag initiation
-        const currentSupplier = item.dataset.supplier;
-        const currentCategories = JSON.parse(item.dataset.categories || '[]');
-
-        item.remove();
-
-        // Remove ID from the processed set
-        if (deal.id) {
-             processedDealIds.delete(deal.id);
-             console.log(`Removed deal ID ${deal.id} from processed set.`);
-        }
-
-        // Check if the removed item was the last one for its supplier/category
-        // If so, remove from filter UI
-        updateFiltersAfterDeletion(currentSupplier, currentCategories);
-    });
-
-    // Create category tags
-    const tagsContainer = document.createElement('div');
-    tagsContainer.classList.add('deal-tags');
-    categories.forEach(catId => {
-        const tagName = CATEGORY_MAP[catId] || `Category ${catId}`;
-        const tagEl = document.createElement('span');
-        tagEl.classList.add('deal-tag');
-        tagEl.textContent = tagName;
-        tagEl.title = `Category ID: ${catId}`; // Add tooltip for ID
-        tagsContainer.appendChild(tagEl);
-    });
-
-
-    item.appendChild(deleteBtn);
-    item.appendChild(supplierEl);
-    item.appendChild(titleEl);
-    item.appendChild(descriptionEl);
-    item.appendChild(tagsContainer); // Add tags container
-
-    dealListContainer.appendChild(item);
-}
-
-function updateFiltersAfterDeletion(deletedSupplier, deletedCategories) {
-    // Check supplier
-    const remainingSuppliers = new Set([...dealListContainer.querySelectorAll('.deal-item')].map(el => el.dataset.supplier));
-    if (!remainingSuppliers.has(deletedSupplier)) {
-        uniqueSuppliers.delete(deletedSupplier);
-        const optionToRemove = supplierFilter.querySelector(`option[value="${deletedSupplier}"]`);
-        if (optionToRemove) optionToRemove.remove();
-        if (supplierFilter.value === deletedSupplier) {
-            supplierFilter.value = 'all';
-            // No need to call filterDeals here, category check below will do it if needed
-        }
-    }
-
-    // Check categories
-    const remainingCategories = new Set();
-    dealListContainer.querySelectorAll('.deal-item').forEach(el => {
-        JSON.parse(el.dataset.categories || '[]').forEach(catId => remainingCategories.add(catId));
-    });
-
-    let categoryFilterChanged = false;
-    deletedCategories.forEach(catId => {
-        if (!remainingCategories.has(catId)) {
-            uniqueCategories.delete(catId);
-            const buttonToRemove = categoryFilterContainer.querySelector(`button[data-category-id="${catId}"]`);
-            if (buttonToRemove) buttonToRemove.remove();
-            // If a selected category button was removed, update the selection
-            if (selectedCategoryIds.has(catId)) {
-                selectedCategoryIds.delete(catId);
-                // If no specific categories are left selected, select "All"
-                if (selectedCategoryIds.size === 0) {
-                     selectedCategoryIds.add('all');
-                     const allBtn = categoryFilterContainer.querySelector('button[data-category-id="all"]');
-                     if(allBtn) allBtn.classList.add('active');
-                }
-                categoryFilterChanged = true;
-            }
-        }
-    });
-
-    // Re-filter if supplier or category filter state changed
-    if (supplierFilter.value === deletedSupplier || categoryFilterChanged) {
-        filterDeals();
-    }
-}
-
-
-function resetFilters() {
-    // Reset supplier dropdown
-    supplierFilter.innerHTML = '<option value="all">All Suppliers</option>';
-    supplierFilter.value = 'all';
-
-    // Reset category buttons
-    // Keep 'All' button, remove others
-    categoryFilterContainer.innerHTML = '<button class="category-btn active" data-category-id="all">All Categories</button>';
-    selectedCategoryIds = new Set(['all']); // Reset selected state
-    // Re-add listener to the new 'All' button
-    categoryFilterContainer.querySelector('button[data-category-id="all"]')
-        .addEventListener('click', handleCategoryButtonClick);
-}
-
-function populateFilters() {
-    // Populate Suppliers
-    const sortedSuppliers = [...uniqueSuppliers].sort((a, b) => a.localeCompare(b));
-    sortedSuppliers.forEach(supplier => {
-        const option = document.createElement('option');
-        option.value = supplier;
-        option.textContent = supplier;
-        supplierFilter.appendChild(option);
-    });
-
-
-    // Populate Categories as Buttons
-    const allButton = categoryFilterContainer.querySelector('button[data-category-id="all"]');
-    // Remove existing category buttons except 'All'
-    categoryFilterContainer.querySelectorAll('button:not([data-category-id="all"])').forEach(btn => btn.remove());
-
-    const sortedCategories = [...uniqueCategories.entries()].sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB));
-    sortedCategories.forEach(([id, name]) => {
-        const button = document.createElement('button');
-        button.classList.add('category-btn');
-        button.dataset.categoryId = id;
-        button.textContent = name;
-        button.addEventListener('click', handleCategoryButtonClick);
-        categoryFilterContainer.appendChild(button);
-    });
-
-    // Ensure 'All' button still has its listener if it was recreated by resetFilters
-    if (allButton && !allButton.onclick) {
-         allButton.addEventListener('click', handleCategoryButtonClick);
-    }
-
-    // Restore active state if needed (though usually starts with 'All')
-    updateCategoryButtonVisuals();
-}
-
-function handleCategoryButtonClick(event) {
-    const clickedButton = event.target;
-    const categoryId = clickedButton.dataset.categoryId; // This is a string or number
-
-    if (categoryId === 'all') {
-        // If 'All' is clicked, select only 'All'
-        selectedCategoryIds.clear();
-        selectedCategoryIds.add('all');
-    } else {
-        // If a specific category is clicked:
-        // 1. Remove 'All' if it's selected
-        selectedCategoryIds.delete('all');
-        // 2. Toggle the clicked category
-        const categoryIdNum = parseInt(categoryId, 10); // Ensure it's a number if needed for comparisons later
-        if (selectedCategoryIds.has(categoryIdNum)) {
-            selectedCategoryIds.delete(categoryIdNum);
-        } else {
-            selectedCategoryIds.add(categoryIdNum);
-        }
-        // 3. If no specific categories are left, select 'All'
-        if (selectedCategoryIds.size === 0) {
-            selectedCategoryIds.add('all');
-        }
-    }
-
-    updateCategoryButtonVisuals();
-    filterDeals();
-}
-
-function updateCategoryButtonVisuals() {
-    const buttons = categoryFilterContainer.querySelectorAll('.category-btn');
-    buttons.forEach(button => {
-        const btnCatId = button.dataset.categoryId;
-        // Check if the button's ID (or 'all') is in the selected set
-        // Need careful type comparison if mixing strings and numbers
-        const isActive = selectedCategoryIds.has(btnCatId) ||
-                         (btnCatId !== 'all' && selectedCategoryIds.has(parseInt(btnCatId, 10)));
-
-        if (isActive) {
-            button.classList.add('active');
-        } else {
-            button.classList.remove('active');
-        }
-    });
-}
-
-
-function filterDeals() {
-    const selectedSupplier = supplierFilter.value;
-    // selectedCategoryIds is the Set containing 'all' or specific category IDs
-
-    const deals = dealListContainer.querySelectorAll('.deal-item');
-    deals.forEach(dealItem => {
-        // Supplier Check
-        const supplierMatch = selectedSupplier === 'all' || dealItem.dataset.supplier === selectedSupplier;
-
-        // Category Check
-        let categoryMatch = false;
-        if (selectedCategoryIds.has('all')) {
-            categoryMatch = true; // 'All' selected, matches all categories
-        } else {
-            const dealCategories = JSON.parse(dealItem.dataset.categories || '[]'); // Get categories array
-            // Check if *any* of the deal's categories are in the selected set
-            categoryMatch = dealCategories.some(catId => selectedCategoryIds.has(catId));
-        }
-
-        // Final Visibility
-        if (supplierMatch && categoryMatch) {
-            dealItem.classList.remove('hidden');
-        } else {
-            dealItem.classList.add('hidden');
-        }
-    });
-}
-
-// --- Copy to Clipboard Functionality ---
-async function handleCopyToClipboard() {
-    const visibleDeals = Array.from(dealListContainer.querySelectorAll('.deal-item:not(.hidden)'));
-
-    if (visibleDeals.length === 0) {
-        alert("No visible deals to copy.");
-        return;
-    }
-
-    // Group deals by supplier
-    const dealsBySupplier = {};
-    visibleDeals.forEach(dealItem => {
-        const supplier = dealItem.dataset.supplier;
-        const title = dealItem.dataset.title;
-        const description = dealItem.dataset.description;
-
-        if (!dealsBySupplier[supplier]) {
-            dealsBySupplier[supplier] = [];
-        }
-        dealsBySupplier[supplier].push({ title, description });
-    });
-
-    // Format the text
-    let outputText = "";
-    const sortedSuppliers = Object.keys(dealsBySupplier).sort((a, b) => a.localeCompare(b)); // Sort suppliers alphabetically
-
-    sortedSuppliers.forEach((supplier, index) => {
-        if (index > 0) {
-            outputText += "\n"; // Add extra newline between suppliers
-        }
-        outputText += `${supplier}\n`; // Supplier Name
-
-        dealsBySupplier[supplier].forEach((deal, dealIndex) => {
-            if (dealIndex > 0) {
-                outputText += "\n"; // Add space between deals of the same supplier
-            }
-            outputText += `${deal.title}\n`; // Deal Title
-            outputText += `${deal.description}\n`; // Deal Description
-        });
-         outputText += "\n"; // Add newline after the last deal of a supplier
-    });
-
-    // Remove trailing newline if any
-    outputText = outputText.trimEnd();
-
-    // Copy to clipboard
-    try {
-        await navigator.clipboard.writeText(outputText);
-        // Provide feedback
-        const originalText = copyButton.textContent;
-        copyButton.textContent = 'Copied!';
-        copyButton.disabled = true;
-        setTimeout(() => {
-            copyButton.textContent = originalText;
-            copyButton.disabled = false;
-        }, 1500); // Reset after 1.5 seconds
-    } catch (err) {
-        console.error('Failed to copy text: ', err);
-        alert('Failed to copy deals to clipboard. Check browser permissions.');
-    }
-}
-
-// Initialize SortableJS for drag-and-drop
-new Sortable(dealListContainer, {
-    animation: 150,
-    ghostClass: 'sortable-ghost',
-    chosenClass: 'sortable-chosen',
-    handle: '.deal-item',
-    filter: '.delete-btn', // Prevent initiating drag from delete button
-    preventOnFilter: true // Necessary for filter to work correctly
-});
-
-// Remove the old example text setting
-pasteArea.value = ''; // Clear the textarea initially
-</script>
