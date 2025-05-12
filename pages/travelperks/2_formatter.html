@@ -889,6 +889,9 @@ function parseExpiry(expiryText) {
 // Global array to store parsed deals for filtering later.
 let allDeals = [];
 
+// Global array to store parsed deals for filtering later.
+let allDeals = [];
+
 function parseDeals() {
   const input = document.getElementById("inputText").value;
   const lines = input.split('\n');
@@ -931,20 +934,23 @@ function parseDeals() {
       let isExclusive = false;
       if (line.startsWith("ed")) {
         isExclusive = true;
-        line = line.slice(2).trim();
+        line = line.slice(2).trim(); // Remove "ed"
       } else {
-        line = line.slice(1).trim();
+        line = line.slice(1).trim(); // Remove "d"
       }
       
-      // Split the line at the first colon to separate deal text from expiry info.
-      const colonIndex = line.indexOf(":");
+      // Split the line at the LAST colon to separate deal text from expiry info.
+      const colonIndex = line.lastIndexOf(":"); // <--- THE FIX IS HERE
       let dealText = "";
       let expiryPortion = "";
+
       if (colonIndex !== -1) {
         dealText = line.substring(0, colonIndex).trim();
         expiryPortion = line.substring(colonIndex + 1).trim();
       } else {
+        // No colon found, assume the whole line is the deal text and there's no expiry.
         dealText = line;
+        expiryPortion = ""; // Ensure it's an empty string if no colon
       }
       
       // Bold monetary amounts and percentages.
@@ -965,7 +971,7 @@ function parseDeals() {
       resultHTML += `</div>`;
       
       // Store deal info for filtering.
-      allDeals.push({ vendor: currentVendor, expiry: parsedExpiry.expiry });
+      allDeals.push({ vendor: currentVendor, expiry: parsedExpiry.expiry, exclusive: isExclusive, element: null }); // Added exclusive and element placeholder
     }
   });
   
@@ -975,6 +981,15 @@ function parseDeals() {
   }
   
   document.getElementById("result").innerHTML = resultHTML;
+
+  // Assign DOM elements to allDeals for easier access later if needed for complex filtering
+  const dealElements = document.querySelectorAll("#result .deal");
+  dealElements.forEach((dealEl, index) => {
+    if (allDeals[index]) { // Make sure the deal exists in the array
+        allDeals[index].element = dealEl;
+    }
+  });
+
   generateControls();
   
   // Add animation to the generated content
@@ -986,7 +1001,6 @@ function parseDeals() {
   // Add remove buttons to all deals
   addRemoveButtonsToDeals();
 }
-
 // Generate filter controls (tag cloud of expiry dates) based on the parsed deals.
 function generateControls() {
   const controlsDiv = document.getElementById("controls");
